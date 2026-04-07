@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "PORT=3001 node server.js",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit --detectOpenHandles",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage --forceExit",
     "test:rendering": "npx playwright test tests/adversarial/B-rendering.test.js --reporter=line --timeout=60000"
   },
