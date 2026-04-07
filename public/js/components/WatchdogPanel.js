@@ -1,0 +1,124 @@
+import { html } from 'htm/preact';
+import { useState, useEffect } from 'preact/hooks';
+import { settings } from '../state/store.js';
+import { timeAgo } from '../utils/format.js';
+
+/**
+ * WatchdogPanel — watchdog status display.
+ * Shows enabled/disabled from settings, last tick time, recent log entries.
+ */
+export function WatchdogPanel() {
+  const [logs, setLogs] = useState([]);
+  const [lastTick, setLastTick] = useState(null);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState(null);
+
+  const s = settings.value || {};
+  const wdSettings = s.watchdog || {};
+  const enabled = wdSettings.enabled !== false;
+
+  useEffect(() => {
+    loadLogs();
+  }, []);
+
+  async function loadLogs() {
+    setLogsLoading(true);
+    setLogsError(null);
+    try {
+      const data = await fetch('/api/watchdog/logs').then(r => {
+        if (!r.ok) throw new Error('Not available');
+        return r.json();
+      });
+      setLogs(Array.isArray(data) ? data : (data.logs || []));
+      if (data.lastTick) setLastTick(data.lastTick);
+    } catch (e) {
+      // Endpoint may not exist yet — show placeholder gracefully
+      setLogsError(null);
+      setLogs([]);
+    }
+    setLogsLoading(false);
+  }
+
+  const statusColor = enabled ? 'var(--accent)' : 'var(--text-muted)';
+
+  return html`
+    <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;background:var(--bg-surface);">
+
+      <!-- Header -->
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <span style="font-size:14px;font-weight:600;color:var(--text-bright);">Watchdog</span>
+        <span style=${`font-size:11px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:var(--radius-sm);background:${enabled ? 'rgba(0,200,100,0.12)' : 'var(--bg-raised)'};color:${statusColor};`}>
+          ${enabled ? 'Enabled' : 'Disabled'}
+        </span>
+        <div style="flex:1;"></div>
+        <button
+          onClick=${loadLogs}
+          style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer;"
+        >Refresh</button>
+      </div>
+
+      <!-- Status summary -->
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;flex:1;min-width:120px;">
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:3px;">Model</div>
+            <div style="font-size:13px;color:var(--text-primary);">${wdSettings.defaultModel || 'sonnet'}</div>
+          </div>
+          <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;flex:1;min-width:120px;">
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:3px;">Interval</div>
+            <div style="font-size:13px;color:var(--text-primary);">${wdSettings.intervalMinutes || 5} min</div>
+          </div>
+          <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;flex:1;min-width:120px;">
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:3px;">Last Tick</div>
+            <div style="font-size:13px;color:var(--text-primary);">${lastTick ? timeAgo(lastTick) : '—'}</div>
+          </div>
+          ${wdSettings.extendedThinking ? html`
+            <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;flex:1;min-width:120px;">
+              <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:3px;">Thinking</div>
+              <div style="font-size:13px;color:var(--accent);">Extended</div>
+            </div>
+          ` : null}
+        </div>
+        ${wdSettings.defaultFlags ? html`
+          <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Flags: ${wdSettings.defaultFlags}</div>
+        ` : null}
+      </div>
+
+      <!-- Log entries -->
+      <div style="flex:1;overflow-y:auto;padding:8px 14px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Recent Activity</div>
+        ${logsLoading
+          ? html`<div style="color:var(--text-muted);font-size:12px;">Loading logs…</div>`
+          : logs.length === 0
+            ? html`
+                <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:32px 0;color:var(--text-muted);">
+                  <span style="font-size:28px;">🐕</span>
+                  <span style="font-size:13px;">${enabled ? 'No watchdog activity yet' : 'Watchdog is disabled'}</span>
+                  <span style="font-size:11px;text-align:center;max-width:260px;">
+                    ${enabled
+                      ? 'Watchdog will monitor sessions and log activity here.'
+                      : 'Enable watchdog in Settings to start monitoring sessions.'}
+                  </span>
+                </div>
+              `
+            : logs.map((entry, i) => html`
+                <div
+                  key=${i}
+                  style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-raised);margin-bottom:6px;font-size:12px;"
+                >
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+                    ${entry.level ? html`
+                      <span style=${`font-size:10px;font-weight:700;text-transform:uppercase;color:${entry.level === 'error' ? 'var(--danger)' : entry.level === 'warn' ? 'var(--warning)' : 'var(--text-muted)'};`}>
+                        ${entry.level}
+                      </span>
+                    ` : null}
+                    ${entry.timestamp ? html`<span style="font-size:10px;color:var(--text-muted);">${timeAgo(entry.timestamp)}</span>` : null}
+                  </div>
+                  <div style="color:var(--text-primary);font-family:var(--font-mono);">${entry.message || JSON.stringify(entry)}</div>
+                </div>
+              `)
+        }
+      </div>
+    </div>
+  `;
+}

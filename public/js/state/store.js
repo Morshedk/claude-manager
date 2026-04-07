@@ -1,0 +1,70 @@
+import { signal, computed } from 'preact/signals';
+
+// ── Connection ────────────────────────────────────────────────────────────────
+/** Whether the WebSocket is currently connected */
+export const connected = signal(false);
+
+/** The clientId assigned by the server on init */
+export const clientId = signal(null);
+
+// ── Projects ──────────────────────────────────────────────────────────────────
+/** Array of project records: { id, name, path, createdAt, settings } */
+export const projects = signal([]);
+
+/** Currently selected project ID in the sidebar */
+export const selectedProjectId = signal(null);
+
+/** Derived: the full project object for the selected project */
+export const selectedProject = computed(() =>
+  projects.value.find(p => p.id === selectedProjectId.value) ?? null
+);
+
+// ── Sessions ──────────────────────────────────────────────────────────────────
+/** Array of session records: { id, projectId, state, type, ... } */
+export const sessions = signal([]);
+
+/** Explicitly selected session ID (in list/card context) */
+export const selectedSessionId = signal(null);
+
+/** Derived: all sessions belonging to the currently selected project */
+export const projectSessions = computed(() => {
+  const pid = selectedProjectId.value;
+  if (!pid) return [];
+  return sessions.value.filter(s => s.projectId === pid);
+});
+
+/** Session ID currently attached/viewed in the terminal overlay */
+export const attachedSessionId = signal(null);
+
+/** Derived: the full session object for the attached session */
+export const attachedSession = computed(() =>
+  sessions.value.find(s => s.id === attachedSessionId.value) ?? null
+);
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+/** App-level settings object */
+export const settings = signal({});
+
+// ── Todos ─────────────────────────────────────────────────────────────────────
+/** Map of projectId → { items: TodoItem[], loading: boolean } */
+export const todos = signal({});
+
+// ── UI State ──────────────────────────────────────────────────────────────────
+/** Whether the project sidebar is visible */
+export const sidebarVisible = signal(true);
+
+/** Whether the session overlay is in split-view mode */
+export const splitView = signal(false);
+
+/** Whether the new session modal is open */
+export const newSessionModalOpen = signal(false);
+
+/** Whether the settings modal is open */
+export const settingsModalOpen = signal(false);
+
+/** Whether the file browser panel is visible */
+export const fileBrowserOpen = signal(false);
+
+// ── Toast notifications ───────────────────────────────────────────────────────
+/** Array of { id, message, type } toast notifications */
+export const toasts = signal([]);

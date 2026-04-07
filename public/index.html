@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Web App v2</title>
+
+  <!-- Prevent white flash on load -->
+  <style>html, body { background: #0c1117; }</style>
+
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/vendor/xterm.min.css" />
+
+  <!-- xterm.js and addons (loaded before module scripts) -->
+  <script src="/vendor/xterm.min.js"></script>
+  <script src="/vendor/xterm-addon-fit.min.js"></script>
+  <script src="/vendor/xterm-addon-webgl.min.js"></script>
+  <script src="/vendor/xterm-addon-canvas.min.js"></script>
+  <script src="/vendor/xterm-addon-unicode11.min.js"></script>
+  <script src="/vendor/xterm-addon-web-links.min.js"></script>
+  <script src="/vendor/xterm-addon-serialize.min.js"></script>
+
+  <!-- Import map for ESM dependencies (no build step) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "preact":                  "https://esm.sh/preact@10",
+      "preact/hooks":            "https://esm.sh/preact@10/hooks",
+      "preact/signals":          "https://esm.sh/@preact/signals@1",
+      "htm":                     "https://esm.sh/htm@3",
+      "htm/preact":              "https://esm.sh/htm@3/preact"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
