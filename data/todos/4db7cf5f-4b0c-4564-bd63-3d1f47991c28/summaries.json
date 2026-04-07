@@ -1,0 +1,68 @@
+{
+  "sessions": {
+    "cacff1cf-ad86-4718-af95-9a81addffa97": {
+      "lastSummarizedOffset": 772,
+      "entries": [
+        {
+          "id": "42c0724f-d05d-489e-97d0-ab65e9c6ed38",
+          "timestamp": "2026-04-07T11:06:00.530Z",
+          "sessionName": "cm-cacff1cf",
+          "summary": "An invalid bash command was run using '--session-id' which is not a valid bash option, resulting in a usage error. No productive work was accomplished.",
+          "keyActions": [
+            "Ran invalid bash command with --session-id flag",
+            "Received bash usage error output"
+          ]
+        },
+        {
+          "id": "85d32134-1df4-4d89-a2d2-128e99ea94e1",
+          "timestamp": "2026-04-07T11:11:22.931Z",
+          "sessionName": "cm-cacff1cf",
+          "summary": "User attempted to run bash with an invalid '--resume' option, resulting in a usage error. No productive work was accomplished.",
+          "keyActions": [
+            "Ran bash with invalid --resume flag",
+            "Received bash usage error message"
+          ]
+        },
+        {
+          "id": "27e4e279-8817-4509-af03-f59395255961",
+          "timestamp": "2026-04-07T11:12:29.977Z",
+          "sessionName": "cm-cacff1cf",
+          "summary": "A failed attempt to run bash with an invalid --resume option, followed by a successful echo command confirming the shell is alive.",
+          "keyActions": [
+            "Failed bash --resume invocation",
+            "Verified shell responsiveness with echo"
+          ]
+        }
+      ]
+    },
+    "ede4871a-d5dd-45f4-b84c-0d360ee2b16e": {
+      "lastSummarizedOffset": 652,
+      "entries": [
+        {
+          "id": "25312dab-929d-49db-8973-fd9dfca57f0f",
+          "timestamp": "2026-04-07T11:06:12.212Z",
+          "sessionName": "cm-ede4871a",
+          "summary": "An invalid bash command was run using '--session-id' which is not a valid bash option, resulting in a usage error. No productive work was accomplished.",
+          "keyActions": [
+            "Attempted invalid bash invocation with --session-id flag"
+          ]
+        }
+      ]
+    },
+    "f0ba51c3-179a-4844-b99d-5c1b948809a7": {
+      "lastSummarizedOffset": 652,
+      "entries": [
+        {
+          "id": "b30adb7c-afe5-4179-aee5-983457492af3",
+          "timestamp": "2026-04-07T11:12:39.908Z",
+          "sessionName": "cm-f0ba51c3",
+          "summary": "A bash command was run with an invalid --session-id option, resulting in a usage error. No productive work was accomplished.",
+          "keyActions": [
+            "Attempted bash with invalid --session-id flag",
+            "Received bash usage error message"
+          ]
+        }
+      ]
+    }
+  }
+}

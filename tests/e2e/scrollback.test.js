@@ -226,7 +226,16 @@ function findBulletLines(text) {
  * @param {string} sessionName - the name of the session to attach to
  */
 async function openSessionOverlay(page, projectName, sessionName) {
-  // ── Step 1: Click the project in the sidebar ─────────────────────────────
+  // ── Step 1: Wait for project sidebar to be populated ─────────────────────
+  // After page reload the WS sessions:list arrives asynchronously; wait for
+  // at least one project item to appear before clicking.
+  try {
+    await page.waitForSelector('#project-sidebar .project-item', { timeout: 15000 });
+  } catch {
+    console.log('  [warn] No project items visible in sidebar within 15s');
+  }
+
+  // ── Step 2: Click the project in the sidebar ──────────────────────────────
   const projectItem = page.locator('#project-sidebar .project-item').filter({ hasText: projectName }).first();
   const projectExists = await projectItem.count();
   if (projectExists) {
@@ -235,10 +244,18 @@ async function openSessionOverlay(page, projectName, sessionName) {
     const firstItem = page.locator('#project-sidebar .project-item').first();
     if (await firstItem.count()) await firstItem.click();
   }
-  await sleep(1200);
 
-  // ── Step 2: Find the specific session card by session name ────────────────
-  // Target the card containing our session name
+  // ── Step 3: Wait for session cards to appear in #project-sessions-list ────
+  // After selecting the project, Preact re-renders projectSessions.
+  // Sessions arrive via WS sessions:list on connect — give generous time.
+  try {
+    await page.waitForSelector('#project-sessions-list .session-card', { timeout: 15000 });
+  } catch {
+    console.log(`  [warn] No session cards appeared after 15s — will try to proceed anyway`);
+  }
+  await sleep(500);
+
+  // ── Step 4: Find the specific session card by session name ────────────────
   const targetCard = page.locator('.session-card').filter({ hasText: sessionName });
   const cardExists = await targetCard.count();
 
@@ -248,21 +265,22 @@ async function openSessionOverlay(page, projectName, sessionName) {
 
   const card = cardExists ? targetCard.first() : page.locator('.session-card').first();
 
-  // v2: Open button inside the card
-  const openBtn = card.locator('button.btn-ghost').filter({ hasText: 'Open' });
+  // v2: Open button inside the card (class="btn btn-ghost btn-sm")
+  // v1: session name link (.session-card-name-link)
+  const openBtn = card.locator('button').filter({ hasText: /^Open$/ });
   const hasOpenBtn = await openBtn.count();
 
   if (hasOpenBtn) {
     // v2 UI: click the Open button
-    await openBtn.click();
+    await openBtn.first().click();
   } else {
-    // v1 UI: click the session name link inside the card
+    // v1 UI or fallback: click the session name link or the card itself
     const nameLink = card.locator('.session-card-name-link');
     const hasNameLink = await nameLink.count();
     if (hasNameLink) {
-      await nameLink.click();
+      await nameLink.first().click();
     } else {
-      await card.click();
+      await card.first().click();
     }
   }
 

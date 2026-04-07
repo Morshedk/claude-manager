@@ -23,7 +23,14 @@ export async function loadProjects() {
 export async function loadSessions() {
   try {
     const data = await fetch('/api/sessions').then(r => r.json());
-    sessions.value = Array.isArray(data) ? data : (data.sessions || []);
+    // v2 API returns { managed, detected }; v1 returned an array or { sessions }
+    if (Array.isArray(data)) {
+      sessions.value = data;
+    } else if (Array.isArray(data.managed)) {
+      sessions.value = data.managed;
+    } else {
+      sessions.value = data.sessions || [];
+    }
   } catch (err) {
     console.error('[actions] loadSessions failed:', err);
   }

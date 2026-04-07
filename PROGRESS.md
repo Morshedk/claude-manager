@@ -30,7 +30,7 @@
 | 6A | Review: session core | ✅ Done | Fixed 3 bugs: (1) stateChange event field mismatch (TmuxSession emitted `status` instead of `state`), (2) TmuxSession.addViewer double-sent snapshot via viewer callback AND subscribe protocol, (3) subscribe race condition — snapshot now captured before viewer registration. 306 tests passing. |
 | 6B | Review: terminal frontend | ✅ Done | Fixed 5 bugs: WS msg field mismatch (sessionId→id), double-subscribe on attach, dead terminal after reconnect, esm.sh dual-preact instances, missing session:restarted handler. Removed dead useScrollControl hook. Snapshot flow, Unicode11 order, renderer fallback, DA filter, ResizeObserver all correct. |
 | 6C | Integration tests | ✅ Done | 62 tests passing (15 WS protocol + 47 session lifecycle) |
-| 6D | E2E Playwright scrollback | 🔄 Running | |
+| 6D | E2E Playwright scrollback | ✅ Done | v2: PASS — no dot artifacts after restart; fixed loadSessions() to handle {managed,detected} API shape |
 | 7A | WatchdogManager | ✅ Done | 77 tests passing |
 | 7B | Review: watchdog | ✅ Done | Fixed: server.js missing todoManager/settingsStore/dataDir in WatchdogManager ctor; atomic state writes confirmed; shell injection mitigated via JSON.stringify; restart-loop backoff present; 77/77 tests pass |
 | 8 | Evaluation v1 vs v2 | ⏳ Queued | Opus |
