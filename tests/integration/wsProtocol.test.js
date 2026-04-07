@@ -345,8 +345,25 @@ describe('session:create', () => {
     const { ws: ws1 } = await openClient(serverPort());
     const { ws: ws2 } = await openClient(serverPort());
 
-    // Collect any sessions:list on ws2 after ws1 creates a session
-    const listOnWs2 = waitForMessage(ws2, 'sessions:list', 4000);
+    // Collect ALL messages on ws2 — the broadcast sessions:list will arrive
+    // after session:created lands on ws1. We must capture it regardless of
+    // how many sessions:list messages ws2 has already received.
+    const listPromise = new Promise((resolve, reject) => {
+      let count = 0;
+      const timer = setTimeout(() => reject(new Error('Broadcast timeout')), 4000);
+      ws2.on('message', (raw) => {
+        const msg = JSON.parse(raw.toString());
+        if (msg.type === 'sessions:list') {
+          count++;
+          // The broadcast sessions:list arrives on this NEW listener,
+          // which is added AFTER openClient() already consumed the initial one.
+          if (count >= 1) {
+            clearTimeout(timer);
+            resolve(msg);
+          }
+        }
+      });
+    });
 
     ws1.send(JSON.stringify({
       type: 'session:create',
@@ -355,7 +372,7 @@ describe('session:create', () => {
       name: 'broadcast-test',
     }));
 
-    const updatedList = await listOnWs2;
+    const updatedList = await listPromise;
     expect(Array.isArray(updatedList.sessions)).toBe(true);
     // The new session should appear in the list
     expect(updatedList.sessions.some((s) => s.mode === 'direct')).toBe(true);
@@ -520,19 +537,19 @@ describe('malformed messages', () => {
   test('server does not crash on invalid JSON from client', async () => {
     const { ws } = await openClient(serverPort());
 
-    // Send garbage — server should not crash; we should still be able to communicate
+    // Send garbage — server should not crash
     ws.send('not-valid-json{{{{');
 
     await new Promise((r) => setTimeout(r, 200));
 
-    // Server is still alive — send a valid message and expect a response
-    const listPromise = waitForMessage(ws, 'sessions:list', 3000);
-    ws.send(JSON.stringify({ type: 'session:list' }));
-
-    // Just verify the server is still responsive (session:list is unrecognised
-    // but server won't crash — we rely on the fact that we can send another create)
-    // Actually just check the connection is still open
+    // Server is still alive — the WebSocket connection is still open
     expect(ws.readyState).toBe(WebSocket.OPEN);
+
+    // Send a valid message and verify we get a response (session:create error)
+    const errorPromise = waitForMessage(ws, 'session:error', 3000);
+    ws.send(JSON.stringify({ type: 'session:create', projectId: 'no-such-project', mode: 'direct' }));
+    const err = await errorPromise;
+    expect(err.type).toBe('session:error');
 
     ws.close();
   });
