@@ -33,7 +33,7 @@
 | 6D | E2E Playwright scrollback | ✅ Done | v2: PASS — no dot artifacts after restart; fixed loadSessions() to handle {managed,detected} API shape |
 | 7A | WatchdogManager | ✅ Done | 77 tests passing |
 | 7B | Review: watchdog | ✅ Done | Fixed: server.js missing todoManager/settingsStore/dataDir in WatchdogManager ctor; atomic state writes confirmed; shell injection mitigated via JSON.stringify; restart-loop backoff present; 77/77 tests pass |
-| 8 | Evaluation v1 vs v2 | ⏳ Queued | Opus |
+| 8 | Evaluation v1 vs v2 | ✅ Done | SWITCH TO v2 — bug fixed, feature parity, 507 tests passing, 10/10 review bugs confirmed fixed |
 
 ---
 
