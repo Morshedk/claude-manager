@@ -1,0 +1,125 @@
+{
+  "updatedAt": "2026-04-07T15:53:40.113Z",
+  "items": [
+    {
+      "id": "173e005b-65cc-47ee-a34b-584d81c7b106",
+      "title": "Commit the watchdog error-logging fix — just run: git add server.js lib/watchdog/WatchdogManager.js && git commit -m 'fix: log watchdog tick errors before emitting'",
+      "priority": "high",
+      "estimate": "5m",
+      "blockedBy": null,
+      "status": "pending",
+      "source": "auto",
+      "reward": {
+        "type": "fact",
+        "content": "The Apollo 11 guidance computer had only 74 KB of memory — less than a single modern email attachment — yet it navigated humans to the Moon and back."
+      },
+      "createdAt": "2026-04-07T15:53:40.112Z",
+      "completedAt": null
+    },
+    {
+      "id": "db7dec2a-7b9d-4e91-8990-e8c25acad3e9",
+      "title": "git add open-claude-appv2.sh and commit it (or add to .gitignore if it's personal)",
+      "priority": "medium",
+      "estimate": "5m",
+      "blockedBy": null,
+      "status": "pending",
+      "source": "auto",
+      "reward": {
+        "type": "fact",
+        "content": "Octopuses have three hearts and blue blood — two hearts pump blood to the gills, while the third pumps it to the rest of the body."
+      },
+      "createdAt": "2026-04-07T15:53:40.113Z",
+      "completedAt": null
+    },
+    {
+      "id": "184bf194-fb08-4eb3-a8a4-e3a05c5ced7f",
+      "title": "Set up a git remote — run: git remote add origin <your-repo-url>",
+      "priority": "high",
+      "estimate": "5m",
+      "blockedBy": null,
+      "status": "pending",
+      "source": "auto",
+      "reward": {
+        "type": "fact",
+        "content": "The entire internet weighs about as much as a strawberry — roughly 50 grams — calculated from the electrons in motion carrying all the data."
+      },
+      "createdAt": "2026-04-07T15:53:40.113Z",
+      "completedAt": null
+    },
+    {
+      "id": "c93f47df-627e-4205-947c-c009cf07b6d4",
+      "title": "Push master to remote — just: git push -u origin master",
+      "priority": "high",
+      "estimate": "5m",
+      "blockedBy": "Set up a git remote",
+      "status": "pending",
+      "source": "auto",
+      "reward": {
+        "type": "video_query",
+        "content": "rocket launch close-up slow motion 4K"
+      },
+      "createdAt": "2026-04-07T15:53:40.113Z",
+      "completedAt": null
+    },
+    {
+      "id": "c05b16dd-9e7c-419b-bd5a-41df6a83755d",
+      "title": "Merge master into main — the 'SWITCH TO v2' verdict plus all refactors are sitting unmerged",
+      "priority": "high",
+      "estimate": "5m",
+      "blockedBy": "Set up a git remote",
+      "status": "pending",
+      "source": "auto",
+      "reward": {
+        "type": "fact",
+        "content": "A day on Venus is longer than a year on Venus — it takes 243 Earth days to rotate once but only 225 Earth days to orbit the Sun."
+      },
+      "createdAt": "2026-04-07T15:53:40.113Z",
+      "completedAt": null
+    },
+    {
+      "id": "8cd82f43-4ef2-4d38-a850-60b776206da2",
+      "title": "Remove the hardcoded droplet IP (142.93.181.243) from open-claude-appv2.sh — move it to an env var or SSH config alias",
+      "priority": "medium",
+      "estimate": "15m",
+      "blockedBy": null,
+      "status": "pending",
+      "source": "auto",
+      "reward": {
+        "type": "video_query",
+        "content": "domino chain reaction world record"
+      },
+      "createdAt": "2026-04-07T15:53:40.113Z",
+      "completedAt": null
+    },
+    {
+      "id": "0caa2ee5-cdfc-4cb9-8479-61f399144287",
+      "title": "Commit the data files — run: git add data/todos/ data/watchdog-state.json && git commit -m 'chore: update todo and watchdog state'",
+      "priority": "low",
+      "estimate": "5m",
+      "blockedBy": null,
+      "status": "pending",
+      "source": "auto",
+      "reward": {
+        "type": "video_query",
+        "content": "satisfying CNC machine cutting metal compilation"
+      },
+      "createdAt": "2026-04-07T15:53:40.113Z",
+      "completedAt": null
+    },
+    {
+      "id": "de15adf9-19a1-4793-821d-5dd448c726ff",
+      "title": "Create a CLAUDE.md in the project root with build/test/lint commands so future sessions start faster",
+      "priority": "medium",
+      "estimate": "15m",
+      "blockedBy": null,
+      "status": "pending",
+      "source": "auto",
+      "reward": {
+        "type": "fact",
+        "content": "Honey never spoils — archaeologists have found 3,000-year-old honey in Egyptian tombs that was still perfectly edible."
+      },
+      "createdAt": "2026-04-07T15:53:40.113Z",
+      "completedAt": null
+    }
+  ]
+}

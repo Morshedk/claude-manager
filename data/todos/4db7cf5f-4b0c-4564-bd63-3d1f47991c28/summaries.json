@@ -1,7 +1,7 @@
 {
   "sessions": {
     "cacff1cf-ad86-4718-af95-9a81addffa97": {
-      "lastSummarizedOffset": 772,
+      "lastSummarizedOffset": 771,
       "entries": [
         {
           "id": "42c0724f-d05d-489e-97d0-ab65e9c6ed38",
@@ -26,6 +26,26 @@
         {
           "id": "27e4e279-8817-4509-af03-f59395255961",
           "timestamp": "2026-04-07T11:12:29.977Z",
+          "sessionName": "cm-cacff1cf",
+          "summary": "A failed attempt to run bash with an invalid --resume option, followed by a successful echo command confirming the shell is alive.",
+          "keyActions": [
+            "Failed bash --resume invocation",
+            "Verified shell responsiveness with echo"
+          ]
+        },
+        {
+          "id": "202d44ed-6263-4142-a543-38e142fd0b9d",
+          "timestamp": "2026-04-07T15:00:59.176Z",
+          "sessionName": "cm-cacff1cf",
+          "summary": "User attempted to run bash with an invalid --resume option, which failed. They then ran an echo command to verify the shell was responsive.",
+          "keyActions": [
+            "Failed bash --resume invocation",
+            "Verified shell is alive with echo command"
+          ]
+        },
+        {
+          "id": "ecbf874d-b2cd-4a51-ac68-00347a050332",
+          "timestamp": "2026-04-07T15:53:07.353Z",
           "sessionName": "cm-cacff1cf",
           "summary": "A failed attempt to run bash with an invalid --resume option, followed by a successful echo command confirming the shell is alive.",
           "keyActions": [

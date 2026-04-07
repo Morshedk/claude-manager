@@ -102,6 +102,7 @@ wss.on('connection', (ws) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 await sessions.init();
+watchdog.on('error', (err) => console.error('[watchdog] error:', err.message));
 watchdog.start();
 
 httpServer.listen(PORT, '127.0.0.1', () => {

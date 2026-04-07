@@ -10,11 +10,11 @@
     "factory2": {
       "restartCount": 0,
       "restartPausedUntil": 0,
-      "lastMcpRestart": 0,
+      "lastMcpRestart": 1775574240.928,
       "lastContextRestart": 0,
       "contextState": "normal"
     }
   },
   "_creditState": "ok",
-  "updatedAt": "2026-04-07T10:59:50.851Z"
+  "updatedAt": "2026-04-07T16:03:36.999Z"
 }
