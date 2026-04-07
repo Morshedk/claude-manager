@@ -141,7 +141,12 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     on(SERVER.SESSION_OUTPUT, handleOutput);
 
     // ── 7. Subscribe — server sends session:subscribed, then live output ──────
-    send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId, cols, rows });
+    // Use actual fitted dimensions so PTY starts at the right width, not hardcoded defaults
+    const initDims = fitAddon.proposeDimensions();
+    send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId,
+      cols: initDims?.cols || cols,
+      rows: initDims?.rows || rows,
+    });
 
     // ── 7b. Re-subscribe on WS reconnect ────────────────────────────────────
     // When the WebSocket drops and reconnects, TerminalPane is still mounted

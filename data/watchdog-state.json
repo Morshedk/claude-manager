@@ -1,7 +1,7 @@
 {
   "_state": {
     "factory": {
-      "restartCount": 0,
+      "restartCount": 2,
       "restartPausedUntil": 0,
       "lastMcpRestart": 0,
       "lastContextRestart": 0,
@@ -16,5 +16,5 @@
     }
   },
   "_creditState": "ok",
-  "updatedAt": "2026-04-07T16:07:36.959Z"
+  "updatedAt": "2026-04-07T16:13:56.077Z"
 }
