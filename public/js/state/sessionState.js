@@ -108,6 +108,6 @@ export function initMessageHandlers() {
     showToast(msg.error || 'Terminal error', 'error');
   });
 
-  // session:snapshot and session:output are handled per-terminal in TerminalPane
+  // session:subscribed and session:output are handled per-terminal in TerminalPane
   // They are NOT stored in global state — handled locally in the component
 }

@@ -23,7 +23,7 @@ const XTERM_THEME = {
  * Key design:
  * - Unicode11 addon loads BEFORE xterm.open() to prevent glyph-width corruption
  * - WebGL → Canvas → DOM renderer fallback (VS Code parity)
- * - On session:snapshot → xterm.reset() then write clean rendered state (no dot artifacts)
+ * - On session:subscribed -> xterm.reset() clears buffer before live output
  * - On session:output → write live PTY stream
  * - DA/DA2 responses from xterm replaying scrollback are filtered before forwarding
  *
@@ -124,22 +124,20 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
 
     // ── 6. WebSocket message handlers ─────────────────────────────────────────
 
-    // session:snapshot → THE KEY DIFFERENCE FROM v1
-    // xterm.reset() clears state cleanly, then we write the server-rendered snapshot.
-    // No \x1bc hack needed — reset() is more reliable and avoids the dot artifact.
-    const handleSnapshot = (msg) => {
+    // session:subscribed -> client clears xterm buffer before live output begins.
+    // This prevents buffer accumulation across reconnects/restarts.
+    const handleSubscribed = (msg) => {
       if (msg.id !== sessionId) return;
       xterm.reset();
-      if (msg.data) xterm.write(msg.data);
     };
 
-    // session:output → live PTY stream after snapshot
+    // session:output → live PTY stream
     const handleOutput = (msg) => {
       if (msg.id !== sessionId) return;
       if (msg.data) xterm.write(msg.data);
     };
 
-    on(SERVER.SESSION_SNAPSHOT, handleSnapshot);
+    on(SERVER.SESSION_SUBSCRIBED, handleSubscribed);
     on(SERVER.SESSION_OUTPUT, handleOutput);
 
     // ── 7. Subscribe — server sends snapshot first, then live output ──────────
@@ -173,7 +171,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
 
     // ── Cleanup on unmount or sessionId change ────────────────────────────────
     return () => {
-      off(SERVER.SESSION_SNAPSHOT, handleSnapshot);
+      off(SERVER.SESSION_SUBSCRIBED, handleSubscribed);
       off(SERVER.SESSION_OUTPUT, handleOutput);
       off('connection:open', handleReconnect);
       resizeObserver.disconnect();

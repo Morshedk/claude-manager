@@ -34,6 +34,7 @@
 | 7A | WatchdogManager | ✅ Done | 77 tests passing |
 | 7B | Review: watchdog | ✅ Done | Fixed: server.js missing todoManager/settingsStore/dataDir in WatchdogManager ctor; atomic state writes confirmed; shell injection mitigated via JSON.stringify; restart-loop backoff present; 77/77 tests pass |
 | 8 | Evaluation v1 vs v2 | ✅ Done | SWITCH TO v2 — bug fixed, feature parity, 507 tests passing, 10/10 review bugs confirmed fixed |
+| S1 | Snapshot system removal (coding) | ✅ Done | Removed headless xterm, SerializeAddon, @xterm/headless, @xterm/addon-serialize, getSnapshot(), getScrollback(), session:snapshot msg, snapshotsDir, saveSnapshot/loadSnapshot/deleteSnapshot. session:subscribed now triggers xterm.reset() on client. 422 tests passing. |
 
 ---
 

@@ -298,14 +298,6 @@ describe('Running state', () => {
 // ---------------------------------------------------------------------------
 
 describe('Subscribe and snapshot', () => {
-  test('subscribe returns snapshot string', async () => {
-    const mgr = await makeManager();
-    const meta = await mgr.create({ projectId, mode: 'direct' });
-
-    const snapshot = await mgr.subscribe(meta.id, 'client-1', jest.fn());
-    expect(snapshot).toBe('serialized-terminal-snapshot');
-  });
-
   test('subscribe registers viewer callback', async () => {
     const mgr = await makeManager();
     const meta = await mgr.create({ projectId, mode: 'direct' });
@@ -343,20 +335,6 @@ describe('Subscribe and snapshot', () => {
     mgr.unsubscribe(meta.id, 'client-1');
 
     expect(session.removeViewer).toHaveBeenCalledWith('client-1');
-  });
-
-  test('getSnapshot returns session snapshot', async () => {
-    const mgr = await makeManager();
-    const meta = await mgr.create({ projectId, mode: 'direct' });
-
-    const snap = await mgr.getSnapshot(meta.id);
-    expect(snap).toBe('serialized-terminal-snapshot');
-  });
-
-  test('getSnapshot returns empty string for unknown session', async () => {
-    const mgr = await makeManager();
-    const snap = await mgr.getSnapshot('ghost');
-    expect(snap).toBe('');
   });
 
   test('live output from PTY is forwarded to subscribed viewers', async () => {
@@ -617,10 +595,9 @@ describe('Full lifecycle: create → subscribe → stop → restart → delete',
     const meta = await mgr.create({ projectId, mode: 'direct', name: 'lifecycle-e2e' });
     expect(mgr.exists(meta.id)).toBe(true);
 
-    // 2. Subscribe → snapshot
+    // 2. Subscribe
     const snapReceived = [];
-    const snapshot = await mgr.subscribe(meta.id, 'viewer-1', (data) => snapReceived.push(data));
-    expect(snapshot).toBe('serialized-terminal-snapshot');
+    await mgr.subscribe(meta.id, 'viewer-1', (data) => snapReceived.push(data));
 
     // 3. Stop
     await mgr.stop(meta.id);

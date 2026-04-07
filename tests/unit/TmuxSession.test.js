@@ -206,76 +206,6 @@ describe('TmuxSession — start()', () => {
   });
 });
 
-describe('TmuxSession — getSnapshot()', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockExecSync.mockReturnValue('');
-  });
-
-  test('calls tmux capture-pane with -p -e -J -S - flags', () => {
-    const s = new TmuxSession(makeMeta(), makeStore());
-    s.meta.status = STATES.RUNNING;
-
-    s.getSnapshot();
-
-    const captureCall = mockExecSync.mock.calls.find(
-      ([cmd]) => typeof cmd === 'string' && cmd.includes('capture-pane')
-    );
-    expect(captureCall).toBeTruthy();
-    expect(captureCall[0]).toContain('-p');
-    expect(captureCall[0]).toContain('-e');
-    expect(captureCall[0]).toContain('-J');
-    expect(captureCall[0]).toContain('-S -');
-    expect(captureCall[0]).toContain('cm-aaaabbbb');
-  });
-
-  test('returns capture-pane output as string', () => {
-    mockExecSync.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('capture-pane')) {
-        return 'hello from claude\n';
-      }
-      return '';
-    });
-
-    const s = new TmuxSession(makeMeta(), makeStore());
-    s.meta.status = STATES.RUNNING;
-    const result = s.getSnapshot();
-
-    expect(result).toBe('hello from claude\n');
-  });
-
-  test('returns empty string when tmux session is dead', () => {
-    // has-session throws → _tmuxSessionAlive returns false
-    mockExecSync.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('has-session')) {
-        throw new Error('no session');
-      }
-      return '';
-    });
-
-    const s = new TmuxSession(makeMeta(), makeStore());
-    s.meta.status = STATES.RUNNING;
-    const result = s.getSnapshot();
-
-    expect(result).toBe('');
-  });
-
-  test('returns empty string when capture-pane throws', () => {
-    mockExecSync.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('capture-pane')) {
-        throw new Error('tmux error');
-      }
-      return ''; // has-session succeeds
-    });
-
-    const s = new TmuxSession(makeMeta(), makeStore());
-    s.meta.status = STATES.RUNNING;
-    const result = s.getSnapshot();
-
-    expect(result).toBe('');
-  });
-});
-
 describe('TmuxSession — addViewer() / removeViewer()', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -294,22 +224,13 @@ describe('TmuxSession — addViewer() / removeViewer()', () => {
     expect(s.viewers.has('client-1')).toBe(true);
   });
 
-  test('addViewer does NOT send snapshot via callback (snapshot sent separately by SessionManager)', () => {
-    mockExecSync.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('capture-pane')) {
-        return 'snapshot content\n';
-      }
-      return '';
-    });
-
+  test('addViewer does not call callback on registration', () => {
     const s = new TmuxSession(makeMeta(), makeStore());
     s.meta.status = STATES.RUNNING;
 
     const cb = jest.fn();
     s.addViewer('client-1', cb);
 
-    // Snapshot is NOT sent via the viewer callback — it goes through the
-    // subscribe protocol as a separate 'session:snapshot' message.
     expect(cb).not.toHaveBeenCalled();
   });
 
@@ -330,9 +251,6 @@ describe('TmuxSession — addViewer() / removeViewer()', () => {
 
     const cb1 = jest.fn();
     const cb2 = jest.fn();
-
-    // Suppress snapshot calls
-    jest.spyOn(s, 'getSnapshot').mockReturnValue('');
 
     s.addViewer('c1', cb1);
     s.addViewer('c2', cb2);

@@ -19,7 +19,7 @@ export const SERVER = {
   INIT:              'init',
   SESSION_CREATED:   'session:created',
   SESSION_STATE:     'session:state',
-  SESSION_SNAPSHOT:  'session:snapshot',
+  SESSION_SUBSCRIBED:'session:subscribed',
   SESSION_OUTPUT:    'session:output',
   SESSION_ERROR:     'session:error',
   SESSIONS_LIST:     'sessions:list',

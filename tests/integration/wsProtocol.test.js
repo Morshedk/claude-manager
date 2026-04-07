@@ -45,7 +45,6 @@ function makeDirectSessionInstance(meta) {
     }),
     write: jest.fn(),
     resize: jest.fn(),
-    getSnapshot: jest.fn().mockResolvedValue('snapshot-data'),
     addViewer: jest.fn().mockImplementation(function (clientId, cb) {
       this.viewers.set(clientId, cb);
     }),
@@ -77,7 +76,6 @@ jest.unstable_mockModule('../../lib/sessions/TmuxSession.js', () => ({
     stop: jest.fn().mockResolvedValue(undefined),
     write: jest.fn(),
     resize: jest.fn(),
-    getSnapshot: jest.fn().mockResolvedValue(''),
     addViewer: jest.fn(),
     removeViewer: jest.fn(),
     on: jest.fn(),
@@ -401,52 +399,17 @@ describe('session:create', () => {
 });
 
 describe('session:subscribe', () => {
-  test('returns session:snapshot then session:subscribed in order', async () => {
-    // Create a session first via manager directly
+  test('returns session:subscribed after subscribe', async () => {
     const sessionMeta = await sessions.create({ projectId, mode: 'direct', name: 'sub-test' });
-
     const { ws } = await openClient(serverPort());
 
-    const received = [];
-    const done = new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error(
-        `Subscribe timeout. Got: ${JSON.stringify(received.map(m => m.type))}`
-      )), 4000);
-
-      ws.on('message', (raw) => {
-        const msg = JSON.parse(raw.toString());
-        if (msg.type === 'session:snapshot' || msg.type === 'session:subscribed') {
-          received.push(msg);
-          if (received.length === 2) {
-            clearTimeout(timer);
-            resolve();
-          }
-        }
-      });
-    });
-
-    ws.send(JSON.stringify({ type: 'session:subscribe', id: sessionMeta.id }));
-    await done;
-
-    expect(received[0].type).toBe('session:snapshot');
-    expect(received[0].id).toBe(sessionMeta.id);
-    expect(received[1].type).toBe('session:subscribed');
-    expect(received[1].id).toBe(sessionMeta.id);
-
-    ws.close();
-  });
-
-  test('snapshot message contains session data field', async () => {
-    const sessionMeta = await sessions.create({ projectId, mode: 'direct', name: 'snap-data-test' });
-    const { ws } = await openClient(serverPort());
-
-    const snapshotPromise = waitForMessage(ws, 'session:snapshot', 4000);
+    const subscribedPromise = waitForMessage(ws, 'session:subscribed', 4000);
 
     ws.send(JSON.stringify({ type: 'session:subscribe', id: sessionMeta.id }));
 
-    const snap = await snapshotPromise;
-    expect(snap.data).toBeDefined(); // snapshot-data from mock
-    expect(snap.id).toBe(sessionMeta.id);
+    const msg = await subscribedPromise;
+    expect(msg.type).toBe('session:subscribed');
+    expect(msg.id).toBe(sessionMeta.id);
 
     ws.close();
   });

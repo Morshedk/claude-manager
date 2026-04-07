@@ -30,7 +30,6 @@ function makeDirectSessionInstance(meta) {
     stop: jest.fn().mockResolvedValue(undefined),
     write: jest.fn(),
     resize: jest.fn(),
-    getSnapshot: jest.fn().mockResolvedValue('direct-snapshot'),
     addViewer: jest.fn(),
     removeViewer: jest.fn(),
     on: emitter.on.bind(emitter),
@@ -49,7 +48,6 @@ function makeTmuxSessionInstance(meta) {
     restart: jest.fn(),
     write: jest.fn(),
     resize: jest.fn(),
-    getSnapshot: jest.fn().mockResolvedValue('tmux-snapshot'),
     addViewer: jest.fn(),
     removeViewer: jest.fn(),
     on: emitter.on.bind(emitter),
@@ -74,7 +72,6 @@ jest.unstable_mockModule('../../lib/sessions/TmuxSession.js', () => ({
 const mockStoreSave = jest.fn().mockResolvedValue(undefined);
 const mockStoreLoad = jest.fn().mockResolvedValue([]);
 const mockStoreRemove = jest.fn().mockResolvedValue(undefined);
-const mockStoreDeleteSnapshot = jest.fn().mockResolvedValue(undefined);
 const mockStoreUpsert = jest.fn().mockResolvedValue(undefined);
 
 jest.unstable_mockModule('../../lib/sessions/SessionStore.js', () => ({
@@ -82,7 +79,6 @@ jest.unstable_mockModule('../../lib/sessions/SessionStore.js', () => ({
     save: mockStoreSave,
     load: mockStoreLoad,
     remove: mockStoreRemove,
-    deleteSnapshot: mockStoreDeleteSnapshot,
     upsert: mockStoreUpsert,
   })),
 }));
@@ -123,7 +119,6 @@ beforeEach(() => {
   mockStoreLoad.mockResolvedValue([]);
   mockStoreSave.mockResolvedValue(undefined);
   mockStoreRemove.mockResolvedValue(undefined);
-  mockStoreDeleteSnapshot.mockResolvedValue(undefined);
   mockDirectSessionCtor.mockImplementation((meta) => makeDirectSessionInstance(meta));
   mockTmuxSessionCtor.mockImplementation((meta) => makeTmuxSessionInstance(meta));
 });
@@ -241,16 +236,15 @@ describe('list() and get()', () => {
 // --- subscribe() and unsubscribe() ---
 
 describe('subscribe() and unsubscribe()', () => {
-  test('subscribe() calls session.addViewer and returns snapshot', async () => {
+  test('subscribe() calls session.addViewer', async () => {
     const mgr = makeManager();
     const { id } = await mgr.create({ projectId: 'proj-1', mode: 'direct' });
     const cb = jest.fn();
 
-    const snapshot = await mgr.subscribe(id, 'client-1', cb);
+    await mgr.subscribe(id, 'client-1', cb);
 
     const session = mgr.sessions.get(id);
     expect(session.addViewer).toHaveBeenCalledWith('client-1', cb);
-    expect(snapshot).toBe('direct-snapshot');
   });
 
   test('subscribe() throws for unknown session', async () => {
@@ -337,16 +331,14 @@ describe('delete()', () => {
     expect(mgr.exists(id)).toBe(false);
   });
 
-  test('delete() calls store.remove and store.deleteSnapshot', async () => {
+  test('delete() calls store.remove', async () => {
     const mgr = makeManager();
     const { id } = await mgr.create({ projectId: 'proj-1', mode: 'direct' });
     mockStoreRemove.mockClear();
-    mockStoreDeleteSnapshot.mockClear();
 
     await mgr.delete(id);
 
     expect(mockStoreRemove).toHaveBeenCalledWith(id);
-    expect(mockStoreDeleteSnapshot).toHaveBeenCalledWith(id);
   });
 
   test('delete() is a no-op for unknown session', async () => {
@@ -362,32 +354,6 @@ describe('delete()', () => {
 
     await mgr.delete(id);
     expect(session.stop).toHaveBeenCalled();
-  });
-});
-
-// --- getSnapshot() / getScrollback() ---
-
-describe('getSnapshot() and getScrollback()', () => {
-  test('getSnapshot() returns session snapshot', async () => {
-    const mgr = makeManager();
-    const { id } = await mgr.create({ projectId: 'proj-1', mode: 'direct' });
-
-    const snap = await mgr.getSnapshot(id);
-    expect(snap).toBe('direct-snapshot');
-  });
-
-  test('getSnapshot() returns empty string for unknown session', async () => {
-    const mgr = makeManager();
-    const snap = await mgr.getSnapshot('ghost');
-    expect(snap).toBe('');
-  });
-
-  test('getScrollback() is alias for getSnapshot()', async () => {
-    const mgr = makeManager();
-    const { id } = await mgr.create({ projectId: 'proj-1', mode: 'direct' });
-
-    const snap = await mgr.getScrollback(id);
-    expect(snap).toBe('direct-snapshot');
   });
 });
 

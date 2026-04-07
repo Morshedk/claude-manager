@@ -4,7 +4,7 @@
  * Tests that v2 fixes the "bullet characters appear after restart" bug present in v1.
  *
  * v1 bug: xterm in-memory buffer never cleared on restart → old scrollback replays as dots.
- * v2 fix: xterm.reset() called before writing snapshot → clean buffer every time.
+ * v2 fix: xterm.reset() called on session:subscribed → clean buffer every time.
  *
  * Flow:
  *  1. Start server (v1 on 3098, v2 on 3099) with temp data dirs
@@ -160,10 +160,9 @@ async function subscribeAndSendCommand(port, sessionId, command, sentinel, timeo
 
   ws.send(JSON.stringify({ type: 'session:subscribe', id: sessionId, cols: 120, rows: 30 }));
 
-  // Accept any first response: subscribed, snapshot, or output
+  // Accept any first response: subscribed or output
   await waitForMessage(ws, m =>
     (m.type === 'session:subscribed' && m.id === sessionId) ||
-    (m.type === 'session:snapshot'   && m.id === sessionId) ||
     (m.type === 'session:output'     && m.id === sessionId)
   , 10000);
 
