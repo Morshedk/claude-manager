@@ -32,7 +32,7 @@
 | 6C | Integration tests | ✅ Done | 62 tests passing (15 WS protocol + 47 session lifecycle) |
 | 6D | E2E Playwright scrollback | 🔄 Running | |
 | 7A | WatchdogManager | ✅ Done | 77 tests passing |
-| 7B | Review: watchdog | ⏳ Queued | Opus |
+| 7B | Review: watchdog | ✅ Done | Fixed: server.js missing todoManager/settingsStore/dataDir in WatchdogManager ctor; atomic state writes confirmed; shell injection mitigated via JSON.stringify; restart-loop backoff present; 77/77 tests pass |
 | 8 | Evaluation v1 vs v2 | ⏳ Queued | Opus |
 
 ---

@@ -28,7 +28,7 @@ const sessions = new SessionManager(projects, settings, { dataDir: DATA_DIR });
 const terminals = new TerminalManager();
 const detector = new ProcessDetector(projects);
 const todos = new TodoManager(projects, sessions, { dataDir: DATA_DIR });
-const watchdog = new WatchdogManager({ clientRegistry, sessionManager: sessions, detector });
+const watchdog = new WatchdogManager({ clientRegistry, sessionManager: sessions, detector, settingsStore: settings, todoManager: todos, dataDir: DATA_DIR });
 
 // ── Initialize WS handlers ────────────────────────────────────────────────────
 const sessionHandlers = new SessionHandlers(sessions, clientRegistry);
@@ -102,6 +102,7 @@ wss.on('connection', (ws) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 await sessions.init();
+watchdog.start();
 
 httpServer.listen(PORT, '127.0.0.1', () => {
   console.log(`[server] claude-web-app-v2 listening on http://127.0.0.1:${PORT}`);

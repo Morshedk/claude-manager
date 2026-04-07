@@ -218,32 +218,61 @@ function findBulletLines(text) {
 }
 
 /**
- * Open a project in the sidebar then click Open on the first session card.
+ * Open a project in the sidebar then attach to a specific session by name.
+ * Handles both v1 (click session name) and v2 (click Open button) UIs.
+ *
+ * @param {import('playwright').Page} page
+ * @param {string} projectName
+ * @param {string} sessionName - the name of the session to attach to
  */
-async function openSessionOverlay(page, projectName) {
-  // Click the project in the sidebar
+async function openSessionOverlay(page, projectName, sessionName) {
+  // ── Step 1: Click the project in the sidebar ─────────────────────────────
   const projectItem = page.locator('#project-sidebar .project-item').filter({ hasText: projectName }).first();
   const projectExists = await projectItem.count();
-  if (!projectExists) {
-    // Fallback: click first project item
-    await page.locator('#project-sidebar .project-item').first().click();
-  } else {
+  if (projectExists) {
     await projectItem.click();
+  } else {
+    const firstItem = page.locator('#project-sidebar .project-item').first();
+    if (await firstItem.count()) await firstItem.click();
   }
-  await sleep(1000);
+  await sleep(1200);
 
-  // Click Open on the first session card
-  const openBtn = page.locator('.session-card .btn-ghost').filter({ hasText: 'Open' }).first();
+  // ── Step 2: Find the specific session card by session name ────────────────
+  // Target the card containing our session name
+  const targetCard = page.locator('.session-card').filter({ hasText: sessionName });
+  const cardExists = await targetCard.count();
+
+  if (!cardExists) {
+    console.log(`  [warn] Session card with name "${sessionName}" not found, using first card`);
+  }
+
+  const card = cardExists ? targetCard.first() : page.locator('.session-card').first();
+
+  // v2: Open button inside the card
+  const openBtn = card.locator('button.btn-ghost').filter({ hasText: 'Open' });
   const hasOpenBtn = await openBtn.count();
+
   if (hasOpenBtn) {
+    // v2 UI: click the Open button
     await openBtn.click();
   } else {
-    // Fallback: click the card itself
-    await page.locator('.session-card').first().click();
+    // v1 UI: click the session name link inside the card
+    const nameLink = card.locator('.session-card-name-link');
+    const hasNameLink = await nameLink.count();
+    if (hasNameLink) {
+      await nameLink.click();
+    } else {
+      await card.click();
+    }
   }
 
-  // Wait for session overlay terminal to appear
-  await page.waitForSelector('#session-overlay-terminal .xterm-viewport', { timeout: 20000 });
+  // Wait for session overlay terminal
+  try {
+    await page.waitForSelector('#session-overlay-terminal .xterm-viewport', { timeout: 20000 });
+  } catch {
+    await page.waitForSelector('#session-overlay-terminal', { timeout: 5000 });
+    await sleep(3000);
+  }
   await sleep(2000); // let snapshot render
 }
 
@@ -313,34 +342,27 @@ async function runScrollbackTest({ browser, port, appLabel, screenshotPrefix }) 
     // ── 4. Open session overlay in browser ───────────────────────────────────
     // Reload page so the new session card appears
     await page.reload({ waitUntil: 'networkidle' });
-    await sleep(500);
-    await openSessionOverlay(page, project.name);
+    await sleep(1000);
+    await openSessionOverlay(page, project.name, sessionName);
     console.log(`  [${appLabel}] Terminal overlay visible`);
+    // Wait a bit more for tmux to render and xterm to display content
+    await sleep(3000);
 
     // ── 5. Produce bullet characters ─────────────────────────────────────────
-    // Use bash's $'...' quoting to output actual bullet characters
+    // Write actual U+2022 bullet chars using printf with hex encoding.
+    // This produces output like: • item 1  • item 2  etc.
+    // These chars trigger the v1 replay-as-dots bug.
     const bulletSentinel = 'BULLET_DONE_' + Date.now();
-    console.log(`  [${appLabel}] Writing bullet output...`);
+    console.log(`  [${appLabel}] Writing bullet output via WS...`);
     try {
-      // Send via browser keyboard input to ensure it goes through the overlay
-      await page.locator('#session-overlay-terminal').click();
-      await sleep(300);
-      // Type the command with actual bullet char using bash $'...' syntax
-      const bulletCmd = `for i in 1 2 3 4 5; do echo $'\\u2022 item '$i; done; echo ${bulletSentinel}`;
-      // Use WS to send since typing unicode is tricky in Playwright
+      // printf with \xe2\x80\xa2 = UTF-8 encoding of U+2022 BULLET (•)
+      const bulletCmd = `printf '\\xe2\\x80\\xa2 item %d\\n' 1 2 3 4 5; echo "${bulletSentinel}"`;
       await subscribeAndSendCommand(port, sessionId, bulletCmd, bulletSentinel, 15000);
+      console.log(`  [${appLabel}] Bullet sentinel received`);
     } catch (e) {
-      console.log(`  [${appLabel}] Bullet command issue: ${e.message} — continuing anyway`);
-      // Try alternative: printf with octal for bullet char
-      try {
-        await subscribeAndSendCommand(port, sessionId,
-          `printf '\\xe2\\x80\\xa2 item %d\\n' 1 2 3 4 5; echo ${bulletSentinel}`,
-          bulletSentinel, 10000);
-      } catch (e2) {
-        console.log(`  [${appLabel}] Fallback also failed: ${e2.message}`);
-      }
+      console.log(`  [${appLabel}] Bullet command issue: ${e.message}`);
     }
-    await sleep(2000);
+    await sleep(2500); // let xterm render the output
 
     // ── 6. Screenshot before restart ─────────────────────────────────────────
     await screenshot(page, `${screenshotPrefix}-01-before-restart`);
@@ -355,10 +377,20 @@ async function runScrollbackTest({ browser, port, appLabel, screenshotPrefix }) 
     }
 
     // ── 7. Restart via the overlay Restart button ─────────────────────────────
+    // v1: uses #btn-session-restart
+    // v2: uses a button with text "Restart" in #session-overlay header
     console.log(`  [${appLabel}] Clicking Restart button...`);
-    const restartBtn = page.locator('#session-overlay button').filter({ hasText: 'Restart' });
-    await restartBtn.waitFor({ timeout: 5000 });
-    await restartBtn.click();
+    const v1RestartBtn = page.locator('#btn-session-restart');
+    const v2RestartBtn = page.locator('#session-overlay button').filter({ hasText: 'Restart' });
+
+    const hasV1Btn = await v1RestartBtn.count();
+    if (hasV1Btn) {
+      await v1RestartBtn.waitFor({ timeout: 5000 });
+      await v1RestartBtn.click();
+    } else {
+      await v2RestartBtn.waitFor({ timeout: 5000 });
+      await v2RestartBtn.click();
+    }
 
     // Wait for restart to complete — give generous time for PTY restart
     console.log(`  [${appLabel}] Waiting for restart to settle (10s)...`);
@@ -431,12 +463,12 @@ async function main() {
     v1TmpDir = execSync('mktemp -d /tmp/qa-v1-scrollback-XXXXXX').toString().trim();
     v2TmpDir = execSync('mktemp -d /tmp/qa-v2-scrollback-XXXXXX').toString().trim();
 
-    // Copy project data so there's at least one project without needing to create one
+    // Copy project/settings data so there's at least one project
     execSync(`cp -r ${V1_DIR}/data/* ${v1TmpDir}/ 2>/dev/null || true`);
     execSync(`cp -r ${V2_DIR}/data/* ${v2TmpDir}/ 2>/dev/null || true`);
-    // Always start with clean sessions
+    // Always start with clean sessions (v1 uses {"sessions":[]}, v2 uses [])
     execSync(`echo '{"sessions":[]}' > ${v1TmpDir}/sessions.json`);
-    try { execSync(`echo '{"sessions":[]}' > ${v2TmpDir}/sessions.json`); } catch {}
+    execSync(`echo '[]' > ${v2TmpDir}/sessions.json`);
 
     console.log(`  v1 data: ${v1TmpDir}`);
     console.log(`  v2 data: ${v2TmpDir}`);
