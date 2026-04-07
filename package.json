@@ -6,7 +6,8 @@
     "start": "node server.js",
     "dev": "PORT=3001 node server.js",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit --detectOpenHandles",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage --forceExit"
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage --forceExit",
+    "test:rendering": "npx playwright test tests/adversarial/B-rendering.test.js --reporter=line --timeout=60000"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -27,7 +28,8 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/tests/e2e/"
+      "/tests/e2e/",
+      "/tests/adversarial/B-rendering.test.js"
     ]
   }
 }

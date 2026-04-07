@@ -19,7 +19,7 @@ import { WatchdogManager } from './lib/watchdog/WatchdogManager.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = process.env.PORT || 3001;
-const DATA_DIR = join(__dirname, 'data');
+const DATA_DIR = process.env.DATA_DIR || join(__dirname, 'data');
 
 // ── Initialize stores and managers ───────────────────────────────────────────
 const projects = new ProjectStore(join(DATA_DIR, 'projects.json'));
@@ -84,11 +84,12 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     console.log(`[ws] client disconnected: ${clientId}`);
-    // Clean up terminal viewers on disconnect
+    // Clean up viewers on disconnect (both terminal and session subscriptions)
     const client = clientRegistry.get(clientId);
     if (client) {
       for (const subId of client.subscriptions) {
         terminals.removeViewer(subId, clientId);
+        sessions.unsubscribe(subId, clientId);
       }
     }
     clientRegistry.remove(clientId);
