@@ -81,6 +81,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     try { xterm.loadAddon(new WebLinksAddon.WebLinksAddon()); } catch {}
 
     fitAddon.fit();
+    xterm.focus();
     xtermRef.current = { xterm, fitAddon };
 
     // ── 4. Scroll control — auto-scroll only when user is at bottom ───────────

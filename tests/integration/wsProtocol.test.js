@@ -387,6 +387,7 @@ describe('session:create', () => {
     ws.send(JSON.stringify({
       type: 'session:create',
       projectId: 'nonexistent-project-id',
+      name: 'test-session',
       mode: 'direct',
     }));
 

@@ -3,7 +3,7 @@
     "factory": {
       "restartCount": 0,
       "restartPausedUntil": 0,
-      "lastMcpRestart": 0,
+      "lastMcpRestart": 1775584683.477,
       "lastContextRestart": 0,
       "contextState": "normal"
     },
@@ -16,5 +16,5 @@
     }
   },
   "_creditState": "ok",
-  "updatedAt": "2026-04-07T17:48:31.632Z"
+  "updatedAt": "2026-04-07T17:59:10.704Z"
 }
