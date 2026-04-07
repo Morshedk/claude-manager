@@ -95,8 +95,8 @@ export function initMessageHandlers() {
   // Todo updates pushed from server
   on(SERVER.TODOS_UPDATED, handleTodosUpdated);
 
-  // Session restarted — update session state and re-subscribe for output
-  on('session:restarted', (msg) => {
+  // Session refreshed — update session state
+  on('session:refreshed', (msg) => {
     if (msg.session) upsertSession(msg.session);
   });
 

@@ -86,8 +86,8 @@ export function stopSession(sessionId) {
   send({ type: CLIENT.SESSION_STOP, id: sessionId });
 }
 
-export function restartSession(sessionId) {
-  send({ type: CLIENT.SESSION_RESTART, id: sessionId });
+export function refreshSession(sessionId) {
+  send({ type: CLIENT.SESSION_REFRESH, id: sessionId });
 }
 
 export function deleteSession(sessionId) {

@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { TerminalPane } from './TerminalPane.js';
 import { attachedSession, splitView } from '../state/store.js';
-import { detachSession, restartSession, stopSession, showToast } from '../state/actions.js';
+import { detachSession, refreshSession, stopSession, showToast } from '../state/actions.js';
 
 /**
  * SessionOverlay — full-screen (or split) terminal view for the attached session.
@@ -20,9 +20,9 @@ export function SessionOverlay() {
 
   const toggleSplit = () => { splitView.value = !splitView.value; };
 
-  const handleRestart = () => {
-    restartSession(session.id);
-    showToast('Restarting session\u2026', 'info');
+  const handleRefresh = () => {
+    refreshSession(session.id);
+    showToast('Refreshing session\u2026', 'info');
   };
 
   const handleStop = () => {
@@ -41,10 +41,9 @@ export function SessionOverlay() {
     starting: 'var(--warning)',
     stopped: 'var(--text-muted)',
     error: 'var(--danger)',
-    shell: 'var(--accent)',
   }[session.status || session.state] || 'var(--text-muted)';
 
-  const isActive = session.status === 'running' || session.status === 'shell';
+  const isActive = session.status === 'running';
 
   return html`
     <div
@@ -123,11 +122,11 @@ export function SessionOverlay() {
           </button>
 
           <button
-            onClick=${handleRestart}
+            onClick=${handleRefresh}
             style=${btnStyle()}
-            title="Restart session"
+            title="Refresh session"
           >
-            Restart
+            Refresh
           </button>
 
           ${isActive ? html`

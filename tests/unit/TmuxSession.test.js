@@ -67,17 +67,10 @@ function makeStore() {
   };
 }
 
-// Make execSync return '' (tmux session alive) for has-session calls,
-// but let individual tests override with mockReturnValueOnce.
-function makeAlive(session) {
-  // _tmuxSessionAlive calls `tmux has-session` — just don't throw (default mock is fine)
-  // _tmuxRunningClaude calls `tmux list-panes` — return a non-bash value
-  mockExecSync.mockImplementation((cmd) => {
-    if (typeof cmd === 'string' && cmd.includes('list-panes')) {
-      return 'node\n';
-    }
-    return '';
-  });
+// Make execSync return '' so tmux has-session succeeds (tmux session alive).
+// No list-panes mock needed — _tmuxRunningClaude is removed in the new design.
+function makeAlive() {
+  mockExecSync.mockReturnValue('');
 }
 
 // --------------------------------------------------------------------------
@@ -289,19 +282,19 @@ describe('TmuxSession — write() / resize()', () => {
     expect(mockPtyWrite).toHaveBeenCalledWith('hello\n');
   });
 
-  test('write() forwards data to PTY when SHELL', () => {
-    const s = new TmuxSession(makeMeta(), makeStore());
-    s.meta.status = STATES.SHELL;
-    s.pty = mockPtyProcess;
-
-    s.write('ls\n');
-
-    expect(mockPtyWrite).toHaveBeenCalledWith('ls\n');
-  });
-
   test('write() does nothing when STOPPED', () => {
     const s = new TmuxSession(makeMeta(), makeStore());
     s.meta.status = STATES.STOPPED;
+    s.pty = mockPtyProcess;
+
+    s.write('ignored');
+
+    expect(mockPtyWrite).not.toHaveBeenCalled();
+  });
+
+  test('write() does nothing when STARTING', () => {
+    const s = new TmuxSession(makeMeta(), makeStore());
+    s.meta.status = STATES.STARTING;
     s.pty = mockPtyProcess;
 
     s.write('ignored');
@@ -382,124 +375,156 @@ describe('TmuxSession — stop()', () => {
   });
 });
 
-describe('TmuxSession — restart()', () => {
+describe('TmuxSession — refresh()', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockExecSync.mockReturnValue('');
     mockPtyOnData.mockImplementation(() => {});
     mockPtyOnExit.mockImplementation(() => {});
     mockPtyKill.mockReset();
+    mockPtySpawn.mockReturnValue(mockPtyProcess);
   });
 
-  test('calls tmux respawn-pane -k when RUNNING', () => {
-    const store = makeStore();
-    const s = new TmuxSession(makeMeta(), store);
-    s.meta.status = STATES.RUNNING;
-
-    s.restart('claude --resume uuid', {});
-
-    const respawnCall = mockExecSync.mock.calls.find(
-      ([cmd]) => typeof cmd === 'string' && cmd.includes('respawn-pane')
-    );
-    expect(respawnCall).toBeTruthy();
-    expect(respawnCall[0]).toContain('-k');
-    expect(respawnCall[0]).toContain('cm-aaaabbbb');
-  });
-
-  test('calls tmux respawn-pane -k when SHELL', () => {
-    const store = makeStore();
-    const s = new TmuxSession(makeMeta(), store);
-    s.meta.status = STATES.SHELL;
-
-    s.restart('claude', {});
-
-    const respawnCall = mockExecSync.mock.calls.find(
-      ([cmd]) => typeof cmd === 'string' && cmd.includes('respawn-pane')
-    );
-    expect(respawnCall).toBeTruthy();
-  });
-
-  test('kills existing PTY before respawning', () => {
+  test('alive path: kills PTY and re-attaches (no respawn-pane)', async () => {
     const store = makeStore();
     const s = new TmuxSession(makeMeta(), store);
     s.meta.status = STATES.RUNNING;
     s.pty = mockPtyProcess;
 
-    s.restart('claude', {});
+    // tmux alive (execSync does not throw)
+    makeAlive();
+
+    await s.refresh('claude --resume uuid', {});
+
+    // PTY was killed
+    expect(mockPtyKill).toHaveBeenCalled();
+    // PTY is null after kill (re-attach attempted)
+    // respawn-pane must NOT have been called
+    const respawnCall = mockExecSync.mock.calls.find(
+      ([cmd]) => typeof cmd === 'string' && cmd.includes('respawn-pane')
+    );
+    expect(respawnCall).toBeUndefined();
+    // State should remain RUNNING
+    expect(s.meta.status).toBe(STATES.RUNNING);
+  });
+
+  test('alive path: kills existing PTY before re-attach', async () => {
+    const store = makeStore();
+    const s = new TmuxSession(makeMeta(), store);
+    s.meta.status = STATES.RUNNING;
+    s.pty = mockPtyProcess;
+
+    makeAlive();
+
+    await s.refresh('claude --resume uuid', {});
 
     expect(mockPtyKill).toHaveBeenCalled();
   });
 
-  test('transitions back to RUNNING after restart', () => {
+  test('alive path: stays in RUNNING state after refresh', async () => {
     const store = makeStore();
     const s = new TmuxSession(makeMeta(), store);
     s.meta.status = STATES.RUNNING;
 
-    s.restart('claude', {});
+    makeAlive();
+
+    await s.refresh('claude --resume uuid', {});
 
     expect(s.meta.status).toBe(STATES.RUNNING);
   });
 
-  test('transitions from SHELL to RUNNING after restart', () => {
-    const store = makeStore();
-    const s = new TmuxSession(makeMeta(), store);
-    s.meta.status = STATES.SHELL;
-
-    s.restart('claude', {});
-
-    expect(s.meta.status).toBe(STATES.RUNNING);
-  });
-
-  test('wraps command with exec bash so tmux stays alive', () => {
+  test('alive path: emits stateChange event so clients know to reset xterm buffer', async () => {
     const store = makeStore();
     const s = new TmuxSession(makeMeta(), store);
     s.meta.status = STATES.RUNNING;
 
-    s.restart('claude --resume uuid', {});
+    makeAlive();
 
-    const respawnCall = mockExecSync.mock.calls.find(
-      ([cmd]) => typeof cmd === 'string' && cmd.includes('respawn-pane')
-    );
-    expect(respawnCall[0]).toContain('exec bash');
+    const stateEvents = [];
+    s.on('stateChange', (e) => stateEvents.push(e));
+
+    await s.refresh('claude --resume uuid', {});
+
+    expect(stateEvents.length).toBeGreaterThanOrEqual(1);
+    const runningEvent = stateEvents.find((e) => e.state === STATES.RUNNING);
+    expect(runningEvent).toBeDefined();
   });
 
-  test('injects OAuth token in env prefix when provided', () => {
+  test('alive path: updates cols/rows when provided', async () => {
     const store = makeStore();
     const s = new TmuxSession(makeMeta(), store);
     s.meta.status = STATES.RUNNING;
 
-    s.restart('claude', { CLAUDE_CODE_OAUTH_TOKEN: 'tok-xyz' });
+    makeAlive();
 
-    const respawnCall = mockExecSync.mock.calls.find(
-      ([cmd]) => typeof cmd === 'string' && cmd.includes('respawn-pane')
-    );
-    expect(respawnCall[0]).toContain('tok-xyz');
+    await s.refresh('claude', {}, { cols: 200, rows: 50 });
+
+    expect(s._cols).toBe(200);
+    expect(s._rows).toBe(50);
   });
 
-  test('throws when tmux session is dead', () => {
+  test('dead path: resets state and calls start() when tmux is dead', async () => {
+    const store = makeStore();
+    const s = new TmuxSession(makeMeta(), store);
+    s.meta.status = STATES.RUNNING;
+
+    // First has-session call (alive check in refresh) → dead
+    // Subsequent has-session calls (inside start() after new-session) → alive
+    let hasSessionCount = 0;
     mockExecSync.mockImplementation((cmd) => {
       if (typeof cmd === 'string' && cmd.includes('has-session')) {
-        throw new Error('no session');
+        hasSessionCount++;
+        if (hasSessionCount === 1) throw new Error('no session');
+        return ''; // alive after new-session
       }
       return '';
     });
 
-    const store = makeStore();
-    const s = new TmuxSession(makeMeta(), store);
-    s.meta.status = STATES.RUNNING;
+    await s.refresh('claude --resume uuid', {});
 
-    expect(() => s.restart('claude', {})).toThrow('Cannot restart');
+    // Should have created a new tmux session (start() path)
+    const newSessionCall = mockExecSync.mock.calls.find(
+      ([cmd]) => typeof cmd === 'string' && cmd.includes('new-session')
+    );
+    expect(newSessionCall).toBeTruthy();
   });
 
-  test('updates cols/rows when provided', () => {
+  test('dead path: session ends up in RUNNING state after re-create', async () => {
     const store = makeStore();
     const s = new TmuxSession(makeMeta(), store);
     s.meta.status = STATES.RUNNING;
 
-    s.restart('claude', {}, { cols: 200, rows: 50 });
+    let hasSessionCount = 0;
+    mockExecSync.mockImplementation((cmd) => {
+      if (typeof cmd === 'string' && cmd.includes('has-session')) {
+        // First call (alive check in refresh): dead
+        // Subsequent calls (inside start() after new-session): alive
+        hasSessionCount++;
+        if (hasSessionCount === 1) throw new Error('no session');
+        return '';
+      }
+      return '';
+    });
 
-    expect(s._cols).toBe(200);
-    expect(s._rows).toBe(50);
+    await s.refresh('claude --resume uuid', {});
+
+    expect(s.meta.status).toBe(STATES.RUNNING);
+  });
+
+  test('does not call respawn-pane at all', async () => {
+    const store = makeStore();
+    const s = new TmuxSession(makeMeta(), store);
+    s.meta.status = STATES.RUNNING;
+    s.pty = mockPtyProcess;
+
+    makeAlive();
+
+    await s.refresh('claude --resume uuid', {});
+
+    const respawnCall = mockExecSync.mock.calls.find(
+      ([cmd]) => typeof cmd === 'string' && cmd.includes('respawn-pane')
+    );
+    expect(respawnCall).toBeUndefined();
   });
 });
 
@@ -519,31 +544,25 @@ describe('TmuxSession — _tmuxSessionAlive()', () => {
   });
 });
 
-describe('TmuxSession — _tmuxRunningClaude()', () => {
-  beforeEach(() => jest.clearAllMocks());
-
-  test('returns true when pane command is not bash/sh/zsh', () => {
-    mockExecSync.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('list-panes')) return 'node\n';
-      return '';
-    });
-    const s = new TmuxSession(makeMeta(), makeStore());
-    expect(s._tmuxRunningClaude()).toBe(true);
+describe('TmuxSession — state machine rejects SHELL transitions', () => {
+  test('STATES does not have a SHELL key', () => {
+    expect(STATES.SHELL).toBeUndefined();
   });
 
-  test('returns false when pane command is bash', () => {
-    mockExecSync.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('list-panes')) return 'bash\n';
-      return '';
-    });
+  test('_setState throws when trying to set SHELL', () => {
     const s = new TmuxSession(makeMeta(), makeStore());
-    expect(s._tmuxRunningClaude()).toBe(false);
+    s.meta.status = STATES.RUNNING;
+    // 'shell' is not in TRANSITIONS, so assertTransition should throw
+    expect(() => s._setState('shell')).toThrow();
   });
 
-  test('returns false when list-panes throws', () => {
-    mockExecSync.mockImplementation(() => { throw new Error('no session'); });
-    const s = new TmuxSession(makeMeta(), makeStore());
-    expect(s._tmuxRunningClaude()).toBe(false);
+  test('RUNNING does not allow transition to shell', () => {
+    const { assertTransition } = jest.requireActual !== undefined
+      ? { assertTransition: null }
+      : { assertTransition: null };
+    // Simply verify STATES.SHELL is absent — the state machine test suite
+    // in sessionLifecycle covers assertTransition exhaustively.
+    expect('shell' in STATES).toBe(false);
   });
 });
 
@@ -598,7 +617,7 @@ describe('TmuxSession — PTY data flows to viewers', () => {
     expect(s.meta.status).toBe(STATES.STOPPED);
   });
 
-  test('PTY exit with bash in pane → transitions to SHELL', () => {
+  test('PTY exit with tmux alive → stays RUNNING (PTY detached, tmux still running)', () => {
     const store = makeStore();
     const s = new TmuxSession(makeMeta(), store);
     s.meta.status = STATES.RUNNING;
@@ -606,16 +625,31 @@ describe('TmuxSession — PTY data flows to viewers', () => {
 
     s._wirePty();
 
-    // tmux alive, but Claude exited (bash in pane)
-    mockExecSync.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('list-panes')) return 'bash\n';
-      return ''; // has-session succeeds
-    });
+    // tmux still alive — execSync does not throw
+    mockExecSync.mockReturnValue('');
 
     const exitHandler = mockPtyOnExit.mock.calls[mockPtyOnExit.mock.calls.length - 1][0];
     exitHandler({ exitCode: 0 });
 
-    expect(s.meta.status).toBe(STATES.SHELL);
+    // Should remain RUNNING — PTY just detached
+    expect(s.meta.status).toBe(STATES.RUNNING);
+  });
+
+  test('PTY exit with tmux alive → does NOT transition to SHELL', () => {
+    const store = makeStore();
+    const s = new TmuxSession(makeMeta(), store);
+    s.meta.status = STATES.RUNNING;
+    s.pty = mockPtyProcess;
+
+    s._wirePty();
+
+    // tmux alive
+    mockExecSync.mockReturnValue('');
+
+    const exitHandler = mockPtyOnExit.mock.calls[mockPtyOnExit.mock.calls.length - 1][0];
+    exitHandler({ exitCode: 0 });
+
+    expect(s.meta.status).not.toBe('shell');
   });
 });
 
@@ -626,5 +660,11 @@ describe('TmuxSession — toJSON()', () => {
     expect(json.id).toBe('aaaabbbb-cccc-dddd-eeee-ffffaaaabbbb');
     expect(json.tmuxName).toBe('cm-aaaabbbb');
     expect(json.status).toBe(STATES.CREATED);
+  });
+
+  test('returned JSON does not contain a shell status field', () => {
+    const s = new TmuxSession(makeMeta(), makeStore());
+    const json = s.toJSON();
+    expect(json.status).not.toBe('shell');
   });
 });

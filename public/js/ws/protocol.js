@@ -6,7 +6,7 @@ export const CLIENT = {
   SESSION_INPUT:       'session:input',
   SESSION_RESIZE:      'session:resize',
   SESSION_STOP:        'session:stop',
-  SESSION_RESTART:     'session:restart',
+  SESSION_REFRESH:     'session:refresh',
   SESSION_DELETE:      'session:delete',
   TERMINAL_CREATE:     'terminal:create',
   TERMINAL_INPUT:      'terminal:input',

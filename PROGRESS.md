@@ -36,6 +36,7 @@
 | 8 | Evaluation v1 vs v2 | ✅ Done | SWITCH TO v2 — bug fixed, feature parity, 507 tests passing, 10/10 review bugs confirmed fixed |
 | S1 | Snapshot system removal (coding) | ✅ Done | Removed headless xterm, SerializeAddon, @xterm/headless, @xterm/addon-serialize, getSnapshot(), getScrollback(), session:snapshot msg, snapshotsDir, saveSnapshot/loadSnapshot/deleteSnapshot. session:subscribed now triggers xterm.reset() on client. 422 tests passing. |
 | S2 | Snapshot removal review | ✅ Done | Opus review: core files clean (DirectSession, TmuxSession, SessionManager, sessionHandlers, TerminalPane, protocol.js, wsProtocol.test.js). Fixed: stale getSnapshot mocks + snapshot comments in sessionLifecycle.test.js, stale snapshot comment in TerminalPane.js and scrollback.test.js, removed orphan .snap file. WatchdogManager safely guards getScrollback with typeof check + tmux capture fallback. 422 tests, 0 snapshot warnings. |
+| R1 | Refresh redesign (coding) | ✅ Done | Removed SHELL state + transitions; renamed restart→refresh throughout (sessionStates, TmuxSession, DirectSession, SessionManager, sessionHandlers, protocol.js, actions.js, sessionState.js, SessionCard, SessionOverlay); TmuxSession alive-path now kill-PTY+re-attach (no respawn-pane); DirectSession.refresh() throws if no conversation file; SessionManager.subscribe() auto-resumes stopped direct sessions; removed forceResume(); _buildResumeCommand always uses --resume. 440 tests passing, 0 stale references. |
 
 ---
 

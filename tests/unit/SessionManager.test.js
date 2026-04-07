@@ -28,6 +28,7 @@ function makeDirectSessionInstance(meta) {
     meta: { ...meta, status: 'created' },
     start: jest.fn().mockResolvedValue(undefined),
     stop: jest.fn().mockResolvedValue(undefined),
+    refresh: jest.fn().mockResolvedValue(undefined),
     write: jest.fn(),
     resize: jest.fn(),
     addViewer: jest.fn(),
@@ -45,7 +46,7 @@ function makeTmuxSessionInstance(meta) {
     meta: { ...meta, status: 'created', tmuxName: `cm-${meta.id.slice(0, 8)}` },
     start: jest.fn().mockResolvedValue(undefined),
     stop: jest.fn().mockResolvedValue(undefined),
-    restart: jest.fn(),
+    refresh: jest.fn().mockResolvedValue(undefined),
     write: jest.fn(),
     resize: jest.fn(),
     addViewer: jest.fn(),
@@ -412,37 +413,33 @@ describe('_buildAuthEnv()', () => {
   });
 });
 
-// --- restart() ---
+// --- refresh() ---
 
-describe('restart()', () => {
-  test('restart() calls session.restart() for tmux mode', async () => {
+describe('refresh()', () => {
+  test('refresh() calls session.refresh() for tmux mode', async () => {
     const mgr = makeManager();
     const { id } = await mgr.create({ projectId: 'proj-1', mode: 'tmux' });
     const session = mgr.sessions.get(id);
     session.meta.status = STATES.RUNNING;
 
-    await mgr.restart(id);
-    expect(session.restart).toHaveBeenCalled();
+    await mgr.refresh(id);
+    expect(session.refresh).toHaveBeenCalled();
   });
 
-  test('restart() throws for unknown session', async () => {
+  test('refresh() throws for unknown session', async () => {
     const mgr = makeManager();
-    await expect(mgr.restart('ghost')).rejects.toThrow('Session not found');
+    await expect(mgr.refresh('ghost')).rejects.toThrow('Session not found');
   });
 
-  test('restart() for direct mode: calls stop then start', async () => {
+  test('refresh() for direct mode: calls session.refresh()', async () => {
     const mgr = makeManager();
     const { id } = await mgr.create({ projectId: 'proj-1', mode: 'direct' });
     const session = mgr.sessions.get(id);
     session.meta.status = STATES.RUNNING;
-    session.stop.mockImplementation(() => {
-      session.meta.status = STATES.STOPPED;
-    });
 
-    await mgr.restart(id);
+    await mgr.refresh(id);
 
-    expect(session.stop).toHaveBeenCalled();
-    expect(session.start).toHaveBeenCalledTimes(2); // once on create, once on restart
+    expect(session.refresh).toHaveBeenCalled();
   });
 });
 

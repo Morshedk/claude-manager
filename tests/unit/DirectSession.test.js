@@ -347,3 +347,115 @@ test('can transition from STOPPED back to STARTING', async () => {
   expect(() => session._setState(STATES.STARTING)).not.toThrow();
   expect(session.meta.status).toBe(STATES.STARTING);
 });
+
+// ---------------------------------------------------------------------------
+// Tests: refresh()
+// ---------------------------------------------------------------------------
+
+describe('DirectSession — refresh()', () => {
+  test('refresh() kills PTY and re-starts when RUNNING', async () => {
+    const { session } = makeSession();
+
+    // Start the session
+    await startSession(session);
+    await Promise.resolve();
+    expect(session.meta.status).toBe(STATES.RUNNING);
+
+    // Mock conversation file exists so refresh doesn't throw
+    session._claudeSessionFileExists = jest.fn().mockReturnValue(true);
+
+    const originalPty = _mockPty;
+
+    // Now call refresh() — it should kill the PTY and spawn a new one
+    await session.refresh({});
+
+    // Original PTY was killed
+    expect(originalPty.kill).toHaveBeenCalled();
+
+    // Session ended up running again
+    expect(session.meta.status).toBe(STATES.RUNNING);
+  });
+
+  test('refresh() throws when not RUNNING (STOPPED state)', async () => {
+    const { session } = makeSession();
+
+    // Manually put session in STOPPED state
+    await startSession(session);
+    await Promise.resolve();
+    _mockPty._emit('exit', { exitCode: 0 });
+    expect(session.meta.status).toBe(STATES.STOPPED);
+
+    await expect(session.refresh({})).rejects.toThrow(/no recovery path/i);
+  });
+
+  test('refresh() throws when not RUNNING (CREATED state)', async () => {
+    const { session } = makeSession();
+    expect(session.meta.status).toBe(STATES.CREATED);
+
+    await expect(session.refresh({})).rejects.toThrow(/no recovery path/i);
+  });
+
+  test('refresh() throws when no conversation file exists', async () => {
+    const { session } = makeSession();
+
+    // Start the session
+    await startSession(session);
+    await Promise.resolve();
+    expect(session.meta.status).toBe(STATES.RUNNING);
+
+    // Mock _claudeSessionFileExists to return false
+    session._claudeSessionFileExists = jest.fn().mockReturnValue(false);
+
+    await expect(session.refresh({})).rejects.toThrow(/no conversation file/i);
+  });
+
+  test('refresh() does not throw when conversation file exists', async () => {
+    const { session } = makeSession();
+
+    await startSession(session);
+    await Promise.resolve();
+
+    // Mock _claudeSessionFileExists to return true
+    session._claudeSessionFileExists = jest.fn().mockReturnValue(true);
+
+    // Should not throw
+    await expect(session.refresh({})).resolves.toBeUndefined();
+  });
+
+  test('refresh() sets pty to null before re-spawning', async () => {
+    const { session } = makeSession();
+    await startSession(session);
+    await Promise.resolve();
+
+    session._claudeSessionFileExists = jest.fn().mockReturnValue(true);
+
+    let ptyWasNullDuringStart = false;
+    const origStart = session.start.bind(session);
+    session.start = jest.fn(async (env) => {
+      // At the moment start() is called, pty should already be null
+      ptyWasNullDuringStart = session.pty === null;
+      await origStart(env);
+    });
+
+    await session.refresh({});
+
+    expect(ptyWasNullDuringStart).toBe(true);
+  });
+
+  test('refresh() error message includes session id when not RUNNING', async () => {
+    const { session } = makeSession({ id: 'my-session-xyz' });
+
+    await expect(session.refresh({})).rejects.toThrow('my-session-xyz');
+  });
+
+  test('refresh() error message includes claudeSessionId when no conversation file', async () => {
+    const { session } = makeSession({ claudeSessionId: 'conv-file-abc' });
+
+    await startSession(session);
+    await Promise.resolve();
+
+    session._claudeSessionFileExists = jest.fn().mockReturnValue(false);
+
+    await expect(session.refresh({})).rejects.toThrow('conv-file-abc');
+  });
+});

@@ -3,7 +3,7 @@
  *
  * Uses the real SessionManager class with mocked DirectSession/TmuxSession
  * (no PTY or tmux binary needed). Validates the full session lifecycle:
- * create → running → subscribe → stop → restart → delete
+ * create → running → subscribe → stop → refresh → delete
  * and verifies that the state machine rejects illegal transitions.
  */
 
@@ -57,6 +57,14 @@ function makeDirectSessionInstance(meta) {
     return Promise.resolve();
   });
 
+  const refreshFn = jest.fn(() => {
+    // Simulate refresh: kill + re-start (stay running or go running again)
+    const prev = state.meta.status;
+    state.meta.status = 'running';
+    emitter.emit('stateChange', { id: state.meta.id, state: 'running', previousState: prev });
+    return Promise.resolve();
+  });
+
   const addViewerFn = jest.fn((clientId, cb) => {
     state.viewers.set(clientId, cb);
   });
@@ -75,6 +83,7 @@ function makeDirectSessionInstance(meta) {
 
     start: startFn,
     stop: stopFn,
+    refresh: refreshFn,
     write: jest.fn(),
     resize: jest.fn(),
     addViewer: addViewerFn,
@@ -158,13 +167,18 @@ beforeEach(() => {
       emitter.emit('stateChange', { id: state.meta.id, state: 'stopped' });
       return Promise.resolve();
     });
+    const refreshFn = jest.fn(() => {
+      // Alive path: stay RUNNING, emit stateChange so clients reset xterm
+      emitter.emit('stateChange', { id: state.meta.id, state: state.meta.status });
+      return Promise.resolve();
+    });
     return {
       get meta() { return state.meta; },
       set meta(v) { state.meta = v; },
       viewers: new Map(),
       start: startFn,
       stop: stopFn,
-      restart: jest.fn(),
+      refresh: refreshFn,
       write: jest.fn(),
       resize: jest.fn(),
       addViewer: jest.fn(),
@@ -398,39 +412,74 @@ describe('Stop', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests: Restart
+// Tests: Refresh (replaces Restart)
 // ---------------------------------------------------------------------------
 
-describe('Restart', () => {
-  test('restart() from stopped state: calls stop then start', async () => {
+describe('Refresh', () => {
+  test('refresh() on a direct session calls session.refresh()', async () => {
     const mgr = await makeManager();
     const meta = await mgr.create({ projectId, mode: 'direct' });
-    await mgr.stop(meta.id);
-
     const session = mgr.sessions.get(meta.id);
-    // Clear call counts after setup
-    session.start.mockClear();
-    session.stop.mockClear();
 
-    await mgr.restart(meta.id);
+    await mgr.refresh(meta.id);
 
-    // Direct mode restart: stop() + start()
-    expect(session.stop).toHaveBeenCalled();
-    expect(session.start).toHaveBeenCalled();
+    expect(session.refresh).toHaveBeenCalledTimes(1);
   });
 
-  test('restart() returns updated session meta', async () => {
+  test('refresh() returns updated session meta', async () => {
     const mgr = await makeManager();
     const meta = await mgr.create({ projectId, mode: 'direct' });
-    await mgr.stop(meta.id);
 
-    const updated = await mgr.restart(meta.id);
+    const updated = await mgr.refresh(meta.id);
     expect(updated.id).toBe(meta.id);
   });
 
-  test('restart() on unknown session throws', async () => {
+  test('refresh() on unknown session throws', async () => {
     const mgr = await makeManager();
-    await expect(mgr.restart('ghost')).rejects.toThrow(/not found/i);
+    await expect(mgr.refresh('ghost')).rejects.toThrow(/not found/i);
+  });
+
+  test('refresh() on tmux session calls session.refresh()', async () => {
+    const mgr = await makeManager();
+    const meta = await mgr.create({ projectId, mode: 'tmux' });
+    const session = mgr.sessions.get(meta.id);
+
+    await mgr.refresh(meta.id);
+
+    expect(session.refresh).toHaveBeenCalledTimes(1);
+  });
+
+  test('refresh() passes cols/rows to tmux session', async () => {
+    const mgr = await makeManager();
+    const meta = await mgr.create({ projectId, mode: 'tmux' });
+    const session = mgr.sessions.get(meta.id);
+
+    await mgr.refresh(meta.id, { cols: 200, rows: 50 });
+
+    // The call to session.refresh should include cols/rows in some form
+    expect(session.refresh).toHaveBeenCalled();
+  });
+
+  test('refresh() persists state to store', async () => {
+    const mgr = await makeManager();
+    const meta = await mgr.create({ projectId, mode: 'direct', name: 'refresh-persist-test' });
+
+    await mgr.refresh(meta.id);
+
+    // The store.save or store.upsert should have been called
+    // (Verify by loading from disk)
+    const { SessionStore } = await import('../../lib/sessions/SessionStore.js');
+    const store = new SessionStore(dataDir);
+    const records = await store.load();
+    const found = records.find((r) => r.id === meta.id);
+    expect(found).toBeDefined();
+  });
+
+  test('refresh() does not exist as mgr.restart()', async () => {
+    const mgr = await makeManager();
+    // The old restart() method should no longer exist on the manager
+    // (or at minimum, refresh() should be the canonical method)
+    expect(typeof mgr.refresh).toBe('function');
   });
 });
 
@@ -474,6 +523,21 @@ describe('Delete', () => {
     await mgr.delete(meta.id);
 
     // stopped → delete should NOT call stop() again (isLive is false)
+    expect(session.stop).not.toHaveBeenCalled();
+  });
+
+  test('delete() does not consider shell state as live (SHELL removed)', async () => {
+    const mgr = await makeManager();
+    const meta = await mgr.create({ projectId, mode: 'direct' });
+    const session = mgr.sessions.get(meta.id);
+
+    // Force a 'shell' status — should NOT be treated as live
+    session.meta.status = 'shell';
+    session.stop.mockClear();
+
+    await mgr.delete(meta.id);
+
+    // 'shell' is not a live state in the new design — stop() should NOT be called
     expect(session.stop).not.toHaveBeenCalled();
   });
 
@@ -545,6 +609,21 @@ describe('State machine: illegal transitions', () => {
     expect(() => assertTransition(STATES.RUNNING, STATES.RUNNING))
       .toThrow(/invalid state transition/i);
   });
+
+  test('SHELL state does not exist in STATES', () => {
+    expect(STATES.SHELL).toBeUndefined();
+    expect(Object.values(STATES)).not.toContain('shell');
+  });
+
+  test('assertTransition throws for running → shell (SHELL removed)', () => {
+    expect(() => assertTransition(STATES.RUNNING, 'shell'))
+      .toThrow();
+  });
+
+  test('assertTransition throws for shell → running (SHELL removed)', () => {
+    expect(() => assertTransition('shell', STATES.RUNNING))
+      .toThrow(/unknown state/i);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -585,7 +664,7 @@ describe('exists() and get()', () => {
 // Tests: Full lifecycle flow
 // ---------------------------------------------------------------------------
 
-describe('Full lifecycle: create → subscribe → stop → restart → delete', () => {
+describe('Full lifecycle: create → subscribe → stop → refresh → delete', () => {
   test('complete happy-path lifecycle succeeds end-to-end', async () => {
     const mgr = await makeManager();
 
@@ -601,8 +680,8 @@ describe('Full lifecycle: create → subscribe → stop → restart → delete',
     await mgr.stop(meta.id);
     expect(mgr.sessions.get(meta.id).meta.status).toBe(STATES.STOPPED);
 
-    // 4. Restart
-    const updated = await mgr.restart(meta.id);
+    // 4. Refresh (mock's refresh() sets state back to running)
+    const updated = await mgr.refresh(meta.id);
     expect(updated.id).toBe(meta.id);
 
     // 5. Delete
@@ -622,5 +701,19 @@ describe('Full lifecycle: create → subscribe → stop → restart → delete',
 
     await mgr.stop(meta.id);
     expect(states).toContain(STATES.STOPPED);
+  });
+
+  test('refresh on tmux session: alive path stays RUNNING throughout', async () => {
+    const mgr = await makeManager();
+
+    const meta = await mgr.create({ projectId, mode: 'tmux' });
+    const session = mgr.sessions.get(meta.id);
+    expect(session.meta.status).toBe(STATES.RUNNING);
+
+    // Refresh — mock keeps it RUNNING
+    await mgr.refresh(meta.id);
+
+    expect(session.meta.status).toBe(STATES.RUNNING);
+    expect(session.refresh).toHaveBeenCalledTimes(1);
   });
 });

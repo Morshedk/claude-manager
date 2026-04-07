@@ -2,7 +2,7 @@ import { html } from 'htm/preact';
 import {
   attachSession,
   stopSession,
-  restartSession,
+  refreshSession,
   deleteSession,
   showToast,
 } from '../state/actions.js';
@@ -17,7 +17,6 @@ function getBadgeClass(session) {
   switch (s) {
     case 'running':  return 'badge badge-activity badge-activity-busy';
     case 'starting': return 'badge badge-activity badge-activity-busy';
-    case 'shell':    return 'badge badge-activity badge-activity-shell';
     case 'stopping': return 'badge badge-activity badge-activity-idle';
     case 'stopped':
     case 'exited':
@@ -32,7 +31,6 @@ function getBadgeLabel(session) {
   switch (s) {
     case 'running':  return '\u25B6 running';
     case 'starting': return '\u25B6 starting';
-    case 'shell':    return '\u2588 shell';
     case 'stopping': return '\u23F8 stopping';
     case 'stopped':
     case 'exited':   return '\u23F9 stopped';
@@ -44,7 +42,7 @@ function getBadgeLabel(session) {
 
 function isActive(session) {
   const s = session.state || session.status || '';
-  return s === 'running' || s === 'shell' || s === 'starting';
+  return s === 'running' || s === 'starting';
 }
 
 function timeAgo(ts) {
@@ -77,10 +75,10 @@ export function SessionCard({ session }) {
     showToast('Stopping session...', 'info');
   }
 
-  function handleRestart(e) {
+  function handleRefresh(e) {
     e.stopPropagation();
-    restartSession(session.id);
-    showToast('Restarting session...', 'info');
+    refreshSession(session.id);
+    showToast('Refreshing session...', 'info');
   }
 
   function handleDelete(e) {
@@ -143,8 +141,8 @@ export function SessionCard({ session }) {
           ` : html`
             <button
               class="btn btn-primary btn-sm"
-              onClick=${handleRestart}
-            >Restart</button>
+              onClick=${handleRefresh}
+            >Refresh</button>
           `}
 
           ${(!active) ? html`
