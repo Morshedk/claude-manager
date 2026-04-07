@@ -1,0 +1,8 @@
+node_modules/
+data/sessions.json
+data/projects.json
+data/settings.json
+data/snapshots/
+data/activity-logs/
+*.snap
+.env
