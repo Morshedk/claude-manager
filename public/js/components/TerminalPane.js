@@ -18,59 +18,6 @@ const XTERM_THEME = {
 };
 
 /**
- * useScrollControl — attaches scroll tracking to an xterm instance.
- * Auto-scrolls to bottom on new output only when the user is already at bottom.
- * Ports v1 attachScrollControl() as a Preact hook.
- *
- * @param {object} xtermRef - ref whose .current = { xterm, fitAddon } | null
- * @param {HTMLElement} containerEl - the DOM element xterm was opened into
- */
-function useScrollControl(xtermRef, containerEl) {
-  useEffect(() => {
-    if (!containerEl || !xtermRef.current) return;
-
-    const { xterm } = xtermRef.current;
-
-    // xterm renders into a nested .xterm-viewport element
-    const vp = containerEl.querySelector('.xterm-viewport');
-    if (!vp) return;
-
-    let userScrolledUp = false;
-
-    // Use 'scroll' (fires after scrollTop updates), NOT 'wheel' — wheel fires before
-    // xterm updates scrollTop, so at-bottom reads would be stale.
-    const onScroll = () => {
-      const atBottom = Math.abs(vp.scrollTop - (vp.scrollHeight - vp.clientHeight)) < 5;
-      userScrolledUp = !atBottom;
-    };
-    vp.addEventListener('scroll', onScroll, { passive: true });
-
-    // Auto-scroll after each write, but only if user hasn't scrolled up
-    const disposable = xterm.onWriteParsed(() => {
-      if (!userScrolledUp) {
-        vp.scrollTop = vp.scrollHeight;
-      }
-    });
-
-    // Playwright test hooks on viewport element (kept for parity with v1)
-    vp._scrollState = () => ({
-      userScrolledUp,
-      scrollTop: vp.scrollTop,
-      scrollMax: Math.max(0, vp.scrollHeight - vp.clientHeight),
-      bufferLength: xterm.buffer?.active?.length ?? 0,
-      viewportY: xterm.buffer?.active?.viewportY ?? 0,
-    });
-    vp._scrollUp = (lines = 10) => xterm.scrollLines(-lines);
-    vp._scrollToBottom = () => xterm.scrollToBottom();
-
-    return () => {
-      vp.removeEventListener('scroll', onScroll);
-      disposable.dispose();
-    };
-  }, [containerEl, xtermRef.current]);
-}
-
-/**
  * TerminalPane — mounts and manages a full xterm.js terminal for a session.
  *
  * Key design:
@@ -198,6 +145,22 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     // ── 7. Subscribe — server sends snapshot first, then live output ──────────
     send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId, cols, rows });
 
+    // ── 7b. Re-subscribe on WS reconnect ────────────────────────────────────
+    // When the WebSocket drops and reconnects, TerminalPane is still mounted
+    // but the server has lost our subscription. Re-subscribe to get a fresh
+    // snapshot and resume live output.
+    const handleReconnect = () => {
+      xterm.reset();
+      const dims = fitAddon.proposeDimensions();
+      send({
+        type: CLIENT.SESSION_SUBSCRIBE,
+        id: sessionId,
+        cols: dims?.cols || cols,
+        rows: dims?.rows || rows,
+      });
+    };
+    on('connection:open', handleReconnect);
+
     // ── 8. ResizeObserver — keep terminal fitted to container ─────────────────
     const resizeObserver = new ResizeObserver(() => {
       try { fitAddon.fit(); } catch {}
@@ -212,6 +175,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     return () => {
       off(SERVER.SESSION_SNAPSHOT, handleSnapshot);
       off(SERVER.SESSION_OUTPUT, handleOutput);
+      off('connection:open', handleReconnect);
       resizeObserver.disconnect();
       if (scrollDisposable) scrollDisposable.dispose();
       if (inputDisposable) inputDisposable.dispose();
