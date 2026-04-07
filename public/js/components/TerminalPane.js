@@ -140,7 +140,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     on(SERVER.SESSION_SUBSCRIBED, handleSubscribed);
     on(SERVER.SESSION_OUTPUT, handleOutput);
 
-    // ── 7. Subscribe — server sends snapshot first, then live output ──────────
+    // ── 7. Subscribe — server sends session:subscribed, then live output ──────
     send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId, cols, rows });
 
     // ── 7b. Re-subscribe on WS reconnect ────────────────────────────────────

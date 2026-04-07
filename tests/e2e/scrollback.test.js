@@ -290,7 +290,7 @@ async function openSessionOverlay(page, projectName, sessionName) {
     await page.waitForSelector('#session-overlay-terminal', { timeout: 5000 });
     await sleep(3000);
   }
-  await sleep(2000); // let snapshot render
+  await sleep(2000); // let terminal render
 }
 
 // ── Core test for one app ─────────────────────────────────────────────────────

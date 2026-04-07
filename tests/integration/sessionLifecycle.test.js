@@ -3,7 +3,7 @@
  *
  * Uses the real SessionManager class with mocked DirectSession/TmuxSession
  * (no PTY or tmux binary needed). Validates the full session lifecycle:
- * create → running → subscribe → snapshot → stop → restart → delete
+ * create → running → subscribe → stop → restart → delete
  * and verifies that the state machine rejects illegal transitions.
  */
 
@@ -77,7 +77,6 @@ function makeDirectSessionInstance(meta) {
     stop: stopFn,
     write: jest.fn(),
     resize: jest.fn(),
-    getSnapshot: jest.fn().mockResolvedValue('serialized-terminal-snapshot'),
     addViewer: addViewerFn,
     removeViewer: removeViewerFn,
 
@@ -168,7 +167,6 @@ beforeEach(() => {
       restart: jest.fn(),
       write: jest.fn(),
       resize: jest.fn(),
-      getSnapshot: jest.fn().mockResolvedValue('tmux-snapshot'),
       addViewer: jest.fn(),
       removeViewer: jest.fn(),
       on: emitter.on.bind(emitter),
@@ -294,10 +292,10 @@ describe('Running state', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests: Subscribe / snapshot
+// Tests: Subscribe
 // ---------------------------------------------------------------------------
 
-describe('Subscribe and snapshot', () => {
+describe('Subscribe', () => {
   test('subscribe registers viewer callback', async () => {
     const mgr = await makeManager();
     const meta = await mgr.create({ projectId, mode: 'direct' });
@@ -596,8 +594,8 @@ describe('Full lifecycle: create → subscribe → stop → restart → delete',
     expect(mgr.exists(meta.id)).toBe(true);
 
     // 2. Subscribe
-    const snapReceived = [];
-    await mgr.subscribe(meta.id, 'viewer-1', (data) => snapReceived.push(data));
+    const outputReceived = [];
+    await mgr.subscribe(meta.id, 'viewer-1', (data) => outputReceived.push(data));
 
     // 3. Stop
     await mgr.stop(meta.id);
