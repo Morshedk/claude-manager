@@ -28,7 +28,7 @@
 | 5C | TerminalPane + SessionOverlay | ✅ Done | TerminalPane + SessionOverlay + ProjectTerminalPane |
 | 5D | Secondary UI panels | ✅ Done | FileBrowser, TodoPanel, SettingsModal, NewSessionModal, WatchdogPanel |
 | 6A | Review: session core | ✅ Done | Fixed 3 bugs: (1) stateChange event field mismatch (TmuxSession emitted `status` instead of `state`), (2) TmuxSession.addViewer double-sent snapshot via viewer callback AND subscribe protocol, (3) subscribe race condition — snapshot now captured before viewer registration. 306 tests passing. |
-| 6B | Review: terminal frontend | 🔄 Running | Opus |
+| 6B | Review: terminal frontend | ✅ Done | Fixed 5 bugs: WS msg field mismatch (sessionId→id), double-subscribe on attach, dead terminal after reconnect, esm.sh dual-preact instances, missing session:restarted handler. Removed dead useScrollControl hook. Snapshot flow, Unicode11 order, renderer fallback, DA filter, ResizeObserver all correct. |
 | 6C | Integration tests | 🔄 Running | |
 | 6D | E2E Playwright scrollback | 🔄 Running | |
 | 7A | WatchdogManager | 🔄 Running | Built last |

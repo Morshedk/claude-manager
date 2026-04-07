@@ -95,6 +95,11 @@ export function initMessageHandlers() {
   // Todo updates pushed from server
   on(SERVER.TODOS_UPDATED, handleTodosUpdated);
 
+  // Session restarted — update session state and re-subscribe for output
+  on('session:restarted', (msg) => {
+    if (msg.session) upsertSession(msg.session);
+  });
+
   // Terminal errors and session errors → toast
   on(SERVER.SESSION_ERROR, (msg) => {
     showToast(msg.error || 'Session error', 'error');
