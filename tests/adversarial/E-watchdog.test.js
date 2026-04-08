@@ -541,7 +541,7 @@ describe('E.10 — watchdog start/stop lifecycle', () => {
 describe('E.11 — watchdog enable/disable via settings', () => {
   test('PROBE: does tick() check settings.enabled? (may be missing feature)', async () => {
     const settingsStore = {
-      get: jest.fn().mockReturnValue({ watchdog: { enabled: false } }),
+      get: jest.fn().mockResolvedValue({ enabled: false }),
     };
     const wd = new WatchdogManager({ dataDir: tmpDir, settingsStore });
     stubTmux(wd, { exists: true, capture: 'Listening for channel messages', pid: 42 });
@@ -556,14 +556,8 @@ describe('E.11 — watchdog enable/disable via settings', () => {
     await wd.tick();
     wd.stop();
 
-    // ADVERSARIAL NOTE: If watchdog does NOT check settings.enabled,
-    // this will still emit a tick — revealing the missing feature.
-    // The test documents the behavior either way.
-    if (ticksSeen.length > 0) {
-      // Feature is NOT implemented — tick proceeds regardless of settings
-      console.warn('[E.11] FINDING: WatchdogManager does not honor settings.enabled=false — tick executes anyway');
-    }
-    // This test always passes (it documents behavior), but the FINDING is the bug
+    // WatchdogManager now honors settings.enabled=false — tick must be skipped.
+    expect(ticksSeen.length).toBe(0);
     expect(typeof wd._ticking).toBe('boolean'); // Sanity
   });
 });

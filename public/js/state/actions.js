@@ -3,7 +3,8 @@ import { CLIENT } from '../ws/protocol.js';
 import {
   sessions, projects, attachedSessionId,
   selectedProjectId, settings, todos, toasts,
-  newSessionModalOpen, settingsModalOpen,
+  newSessionModalOpen, settingsModalOpen, newProjectModalOpen,
+  editProjectModalOpen, editProjectTarget,
 } from './store.js';
 import { upsertSession, removeSession } from './sessionState.js';
 
@@ -141,6 +142,51 @@ export function closeNewSessionModal() { newSessionModalOpen.value = false; }
 
 export function openSettingsModal() { settingsModalOpen.value = true; }
 export function closeSettingsModal() { settingsModalOpen.value = false; }
+
+export function openNewProjectModal() { newProjectModalOpen.value = true; }
+export function closeNewProjectModal() { newProjectModalOpen.value = false; }
+
+export function openEditProjectModal(project) {
+  editProjectTarget.value = project;
+  editProjectModalOpen.value = true;
+}
+export function closeEditProjectModal() {
+  editProjectModalOpen.value = false;
+  editProjectTarget.value = null;
+}
+
+/** Create a new project via REST API, refresh the project list, and select it. */
+export async function createProject(name, path) {
+  try {
+    const data = await fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, path }),
+    }).then(r => r.json());
+    await loadProjects();
+    if (data && data.id) selectedProjectId.value = data.id;
+    return data;
+  } catch (err) {
+    console.error('[actions] createProject failed:', err);
+    throw err;
+  }
+}
+
+/** Update an existing project via REST API, then refresh the project list. */
+export async function updateProject(id, updates) {
+  try {
+    const data = await fetch(`/api/projects/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    }).then(r => r.json());
+    await loadProjects();
+    return data;
+  } catch (err) {
+    console.error('[actions] updateProject failed:', err);
+    throw err;
+  }
+}
 
 // ── Incoming message handlers (called by ws/connection.js listeners) ──────────
 

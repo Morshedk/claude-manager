@@ -1,6 +1,6 @@
 import { html } from 'htm/preact';
 import { projects, selectedProjectId, sessions } from '../state/store.js';
-import { selectProject, openNewSessionModal } from '../state/actions.js';
+import { selectProject, openNewSessionModal, openNewProjectModal, openEditProjectModal } from '../state/actions.js';
 
 /**
  * ProjectSidebar — left panel listing all projects.
@@ -44,7 +44,7 @@ export function ProjectSidebar() {
                     <button
                       class="btn-item-action"
                       title="Edit"
-                      onClick=${(e) => { e.stopPropagation(); /* edit modal — phase 5D */ }}
+                      onClick=${(e) => { e.stopPropagation(); openEditProjectModal(p); }}
                     >✎</button>
                   </div>
                 </div>
@@ -56,7 +56,7 @@ export function ProjectSidebar() {
       <div class="sidebar-actions">
         <button
           class="btn btn-ghost btn-sm sidebar-new-btn"
-          onClick=${() => { /* new project modal — phase 5D */ }}
+          onClick=${() => openNewProjectModal()}
         >
           <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>

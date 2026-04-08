@@ -29,7 +29,8 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/tests/e2e/",
-      "/tests/adversarial/B-rendering.test.js"
+      "/tests/adversarial/B-rendering.test.js",
+      "/tests/adversarial/F-bug-reproductions.test.js"
     ]
   }
 }

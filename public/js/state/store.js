@@ -62,6 +62,15 @@ export const newSessionModalOpen = signal(false);
 /** Whether the settings modal is open */
 export const settingsModalOpen = signal(false);
 
+/** Whether the new project modal is open */
+export const newProjectModalOpen = signal(false);
+
+/** Whether the edit project modal is open */
+export const editProjectModalOpen = signal(false);
+
+/** The project object being edited (set when editProjectModalOpen opens) */
+export const editProjectTarget = signal(null);
+
 /** Whether the file browser panel is visible */
 export const fileBrowserOpen = signal(false);
 

@@ -376,23 +376,26 @@ describe('DirectSession — refresh()', () => {
     expect(session.meta.status).toBe(STATES.RUNNING);
   });
 
-  test('refresh() throws when not RUNNING (STOPPED state)', async () => {
+  test('refresh() restarts session from STOPPED state (Bug 3 fix)', async () => {
     const { session } = makeSession();
 
-    // Manually put session in STOPPED state
+    // Put session in STOPPED state (PTY exited cleanly)
     await startSession(session);
     await Promise.resolve();
     _mockPty._emit('exit', { exitCode: 0 });
     expect(session.meta.status).toBe(STATES.STOPPED);
 
-    await expect(session.refresh({})).rejects.toThrow(/no recovery path/i);
+    // Bug 3 fix: refresh from STOPPED restarts rather than throwing
+    await session.refresh({});
+    expect(session.meta.status).toBe(STATES.RUNNING);
   });
 
-  test('refresh() throws when not RUNNING (CREATED state)', async () => {
+  test('refresh() throws when session has never been started (CREATED state)', async () => {
     const { session } = makeSession();
     expect(session.meta.status).toBe(STATES.CREATED);
 
-    await expect(session.refresh({})).rejects.toThrow(/no recovery path/i);
+    // CREATED is still blocked — there is nothing to restart
+    await expect(session.refresh({})).rejects.toThrow(/never been started/i);
   });
 
   test('refresh() throws when no conversation file exists', async () => {
