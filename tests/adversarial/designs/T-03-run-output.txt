@@ -1,0 +1,684 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-03-refresh-artifacts.test.js:397:3 › T-03 — Session Refresh Clears Terminal Buffer (No Dot Artifacts) › T-03 — Refresh clears buffer, no dot artifacts (2 rounds)
+[1A[2K[chromium] › tests/adversarial/T-03-refresh-artifacts.test.js:397:3 › T-03 — Session Refresh Clears Terminal Buffer (No Dot Artifacts) › T-03 — Refresh clears buffer, no dot artifacts (2 rounds)
+
+
+[1A[2K
+
+[1A[2K
+  [T-03] tmpDir: /tmp/qa-T03-x0Elzk
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3100
+
+[1A[2K  [T-03] Project created: b0d53574-2d6c-4c01-94d3-0a1c59cab3ac
+
+[1A[2K  [T-03] Server ready on port 3100
+
+[1A[2K
+  [T-03.01] Creating bash session via WS...
+
+[1A[2K  [srv] [ws] client connected: 0f4594d8-9d44-475a-b50f-b787fa845564
+
+[1A[2K  [T-03] No init message received (may be OK)
+
+[1A[2K  [T-03.01] PASS — session created: c58729c9-6f2b-4119-92aa-33911550fe20
+
+[1A[2K  [T-03.01] PASS — session is running
+
+[1A[2K
+  [T-03.02] Producing 10 test lines...
+
+[1A[2K  [T-03.02] PASS — T03-LINE-10 received in WS output
+
+[1A[2K
+  [T-03.03] Opening browser...
+
+[1A[2K  [srv] [ws] client connected: cc27088d-7903-47a3-bb47-9baf3f60e5f6
+
+[1A[2K  [T-03.03] PASS — browser loaded, "Connected" visible
+
+[1A[2K
+  [T-03.04] Clicking session card...
+
+[1A[2K  [T-03.04] Clicked session card after project expand
+
+[1A[2K  [T-03.04] PASS — terminal visible in overlay
+
+[1A[2K
+  [T-03.05] Pre-refresh state capture...
+
+[1A[2K  [T-03.05] Pre-refresh scrollState: {"userScrolledUp":false,"scrollTop":0,"scrollMax":0,"bufferLength":41,"viewportY":0}
+
+[1A[2K  [T-03.05] WARN — Terminal does not have expected content rows (lastContentRow < 5)
+
+[1A[2K  [T-03.05] T03-LINE- content in terminal: false
+
+[1A[2K
+  [T-03.06] Clicking Refresh button (Round 1)...
+
+[1A[2K  [T-03.06] Refresh button clicked
+
+[1A[2K  [T-03.06] Toast "Refreshing" appeared
+
+[1A[2K
+  [T-03.07] Running Round 1 artifact checks...
+
+[1A[2K  [T-03] Old content marker "T03-LINE-" cleared from DOM
+
+[1A[2K
+  [T-03] Artifact scan at T03-round1 t=0:
+
+[1A[2K    lastContentRow: 0
+
+[1A[2K    blankRowArtifacts: []
+
+[1A[2K    suspiciousPatterns: []
+
+[1A[2K    styledBlankRowArtifacts: []
+
+[1A[2K
+  [T-03] Terminal rows at T03-round1 t=0:
+
+[1A[2K    [00] claude-runner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T03-x0Elzk/project$  
+
+[1A[2K    [01] 
+
+[1A[2K    [02] 
+
+[1A[2K    [03] 
+
+[1A[2K    [04] 
+
+[1A[2K    [05] 
+
+[1A[2K    [06] 
+
+[1A[2K    [07] 
+
+[1A[2K    [08] 
+
+[1A[2K    [09] 
+
+[1A[2K    [10] 
+
+[1A[2K    [11] 
+
+[1A[2K    [12] 
+
+[1A[2K    [13] 
+
+[1A[2K    [14] 
+
+[1A[2K    [15] 
+
+[1A[2K    [16] 
+
+[1A[2K    [17] 
+
+[1A[2K    [18] 
+
+[1A[2K    [19] 
+
+[1A[2K    [20] 
+
+[1A[2K    [21] 
+
+[1A[2K    [22] 
+
+[1A[2K    [23] 
+
+[1A[2K    [24] 
+
+[1A[2K    [25] 
+
+[1A[2K    [26] 
+
+[1A[2K    [27] 
+
+[1A[2K    [28] 
+
+[1A[2K    [29] 
+
+[1A[2K    [30] 
+
+[1A[2K    [31] 
+
+[1A[2K    [32] 
+
+[1A[2K    [33] 
+
+[1A[2K    [34] 
+
+[1A[2K    [35] 
+
+[1A[2K    [36] 
+
+[1A[2K    [37] 
+
+[1A[2K    [38] 
+
+[1A[2K    [39] 
+
+[1A[2K    [40] 
+
+[1A[2K  [T-03] T03-round1 t=0 scrollState: {"userScrolledUp":false,"scrollTop":0,"scrollMax":0,"bufferLength":41,"viewportY":0}
+
+[1A[2K
+  [T-03] Artifact scan at T03-round1 t=2:
+
+[1A[2K    lastContentRow: 0
+
+[1A[2K    blankRowArtifacts: []
+
+[1A[2K    suspiciousPatterns: []
+
+[1A[2K    styledBlankRowArtifacts: []
+
+[1A[2K
+  [T-03] Terminal rows at T03-round1 t=2:
+
+[1A[2K    [00] claude-runner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T03-x0Elzk/project$  
+
+[1A[2K    [01] 
+
+[1A[2K    [02] 
+
+[1A[2K    [03] 
+
+[1A[2K    [04] 
+
+[1A[2K    [05] 
+
+[1A[2K    [06] 
+
+[1A[2K    [07] 
+
+[1A[2K    [08] 
+
+[1A[2K    [09] 
+
+[1A[2K    [10] 
+
+[1A[2K    [11] 
+
+[1A[2K    [12] 
+
+[1A[2K    [13] 
+
+[1A[2K    [14] 
+
+[1A[2K    [15] 
+
+[1A[2K    [16] 
+
+[1A[2K    [17] 
+
+[1A[2K    [18] 
+
+[1A[2K    [19] 
+
+[1A[2K    [20] 
+
+[1A[2K    [21] 
+
+[1A[2K    [22] 
+
+[1A[2K    [23] 
+
+[1A[2K    [24] 
+
+[1A[2K    [25] 
+
+[1A[2K    [26] 
+
+[1A[2K    [27] 
+
+[1A[2K    [28] 
+
+[1A[2K    [29] 
+
+[1A[2K    [30] 
+
+[1A[2K    [31] 
+
+[1A[2K    [32] 
+
+[1A[2K    [33] 
+
+[1A[2K    [34] 
+
+[1A[2K    [35] 
+
+[1A[2K    [36] 
+
+[1A[2K    [37] 
+
+[1A[2K    [38] 
+
+[1A[2K    [39] 
+
+[1A[2K    [40] 
+
+[1A[2K
+  [T-03] Artifact scan at T03-round1 t=4:
+
+[1A[2K    lastContentRow: 0
+
+[1A[2K    blankRowArtifacts: []
+
+[1A[2K    suspiciousPatterns: []
+
+[1A[2K    styledBlankRowArtifacts: []
+
+[1A[2K
+  [T-03] Terminal rows at T03-round1 t=4:
+
+[1A[2K    [00] claude-runner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T03-x0Elzk/project$  
+
+[1A[2K    [01] 
+
+[1A[2K    [02] 
+
+[1A[2K    [03] 
+
+[1A[2K    [04] 
+
+[1A[2K    [05] 
+
+[1A[2K    [06] 
+
+[1A[2K    [07] 
+
+[1A[2K    [08] 
+
+[1A[2K    [09] 
+
+[1A[2K    [10] 
+
+[1A[2K    [11] 
+
+[1A[2K    [12] 
+
+[1A[2K    [13] 
+
+[1A[2K    [14] 
+
+[1A[2K    [15] 
+
+[1A[2K    [16] 
+
+[1A[2K    [17] 
+
+[1A[2K    [18] 
+
+[1A[2K    [19] 
+
+[1A[2K    [20] 
+
+[1A[2K    [21] 
+
+[1A[2K    [22] 
+
+[1A[2K    [23] 
+
+[1A[2K    [24] 
+
+[1A[2K    [25] 
+
+[1A[2K    [26] 
+
+[1A[2K    [27] 
+
+[1A[2K    [28] 
+
+[1A[2K    [29] 
+
+[1A[2K    [30] 
+
+[1A[2K    [31] 
+
+[1A[2K    [32] 
+
+[1A[2K    [33] 
+
+[1A[2K    [34] 
+
+[1A[2K    [35] 
+
+[1A[2K    [36] 
+
+[1A[2K    [37] 
+
+[1A[2K    [38] 
+
+[1A[2K    [39] 
+
+[1A[2K    [40] 
+
+[1A[2K  [T-03] PASS — T03-round1 artifact checks all clear
+
+[1A[2K  [T-03.07] PASS — session is running after refresh
+
+[1A[2K
+  [T-03.08] Producing Round 2 content (T03-ROUND2-)...
+
+[1A[2K  [T-03.08] Round 2 content sent
+
+[1A[2K
+  [T-03.09] Clicking Refresh button (Round 2)...
+
+[1A[2K  [T-03.09] Second Refresh clicked
+
+[1A[2K
+  [T-03.10] Running Round 2 artifact checks...
+
+[1A[2K  [T-03] Old content marker "T03-ROUND2-" cleared from DOM
+
+[1A[2K
+  [T-03] Artifact scan at T03-round2 t=0:
+
+[1A[2K    lastContentRow: 0
+
+[1A[2K    blankRowArtifacts: []
+
+[1A[2K    suspiciousPatterns: []
+
+[1A[2K    styledBlankRowArtifacts: []
+
+[1A[2K
+  [T-03] Terminal rows at T03-round2 t=0:
+
+[1A[2K    [00] claude-runner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T03-x0Elzk/project$  
+
+[1A[2K    [01] 
+
+[1A[2K    [02] 
+
+[1A[2K    [03] 
+
+[1A[2K    [04] 
+
+[1A[2K    [05] 
+
+[1A[2K    [06] 
+
+[1A[2K    [07] 
+
+[1A[2K    [08] 
+
+[1A[2K    [09] 
+
+[1A[2K    [10] 
+
+[1A[2K    [11] 
+
+[1A[2K    [12] 
+
+[1A[2K    [13] 
+
+[1A[2K    [14] 
+
+[1A[2K    [15] 
+
+[1A[2K    [16] 
+
+[1A[2K    [17] 
+
+[1A[2K    [18] 
+
+[1A[2K    [19] 
+
+[1A[2K    [20] 
+
+[1A[2K    [21] 
+
+[1A[2K    [22] 
+
+[1A[2K    [23] 
+
+[1A[2K    [24] 
+
+[1A[2K    [25] 
+
+[1A[2K    [26] 
+
+[1A[2K    [27] 
+
+[1A[2K    [28] 
+
+[1A[2K    [29] 
+
+[1A[2K    [30] 
+
+[1A[2K    [31] 
+
+[1A[2K    [32] 
+
+[1A[2K    [33] 
+
+[1A[2K    [34] 
+
+[1A[2K    [35] 
+
+[1A[2K    [36] 
+
+[1A[2K    [37] 
+
+[1A[2K    [38] 
+
+[1A[2K    [39] 
+
+[1A[2K    [40] 
+
+[1A[2K  [T-03] T03-round2 t=0 scrollState: {"userScrolledUp":false,"scrollTop":0,"scrollMax":0,"bufferLength":41,"viewportY":0}
+
+[1A[2K
+  [T-03] Artifact scan at T03-round2 t=2:
+
+[1A[2K    lastContentRow: 0
+
+[1A[2K    blankRowArtifacts: []
+
+[1A[2K    suspiciousPatterns: []
+
+[1A[2K    styledBlankRowArtifacts: []
+
+[1A[2K
+  [T-03] Terminal rows at T03-round2 t=2:
+
+[1A[2K    [00] claude-runner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T03-x0Elzk/project$  
+
+[1A[2K    [01] 
+
+[1A[2K    [02] 
+
+[1A[2K    [03] 
+
+[1A[2K    [04] 
+
+[1A[2K    [05] 
+
+[1A[2K    [06] 
+
+[1A[2K    [07] 
+
+[1A[2K    [08] 
+
+[1A[2K    [09] 
+
+[1A[2K    [10] 
+
+[1A[2K    [11] 
+
+[1A[2K    [12] 
+
+[1A[2K    [13] 
+
+[1A[2K    [14] 
+
+[1A[2K    [15] 
+
+[1A[2K    [16] 
+
+[1A[2K    [17] 
+
+[1A[2K    [18] 
+
+[1A[2K    [19] 
+
+[1A[2K    [20] 
+
+[1A[2K    [21] 
+
+[1A[2K    [22] 
+
+[1A[2K    [23] 
+
+[1A[2K    [24] 
+
+[1A[2K    [25] 
+
+[1A[2K    [26] 
+
+[1A[2K    [27] 
+
+[1A[2K    [28] 
+
+[1A[2K    [29] 
+
+[1A[2K    [30] 
+
+[1A[2K    [31] 
+
+[1A[2K    [32] 
+
+[1A[2K    [33] 
+
+[1A[2K    [34] 
+
+[1A[2K    [35] 
+
+[1A[2K    [36] 
+
+[1A[2K    [37] 
+
+[1A[2K    [38] 
+
+[1A[2K    [39] 
+
+[1A[2K    [40] 
+
+[1A[2K
+  [T-03] Artifact scan at T03-round2 t=4:
+
+[1A[2K    lastContentRow: 0
+
+[1A[2K    blankRowArtifacts: []
+
+[1A[2K    suspiciousPatterns: []
+
+[1A[2K    styledBlankRowArtifacts: []
+
+[1A[2K
+  [T-03] Terminal rows at T03-round2 t=4:
+
+[1A[2K    [00] claude-runner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T03-x0Elzk/project$  
+
+[1A[2K    [01] 
+
+[1A[2K    [02] 
+
+[1A[2K    [03] 
+
+[1A[2K    [04] 
+
+[1A[2K    [05] 
+
+[1A[2K    [06] 
+
+[1A[2K    [07] 
+
+[1A[2K    [08] 
+
+[1A[2K    [09] 
+
+[1A[2K    [10] 
+
+[1A[2K    [11] 
+
+[1A[2K    [12] 
+
+[1A[2K    [13] 
+
+[1A[2K    [14] 
+
+[1A[2K    [15] 
+
+[1A[2K    [16] 
+
+[1A[2K    [17] 
+
+[1A[2K    [18] 
+
+[1A[2K    [19] 
+
+[1A[2K    [20] 
+
+[1A[2K    [21] 
+
+[1A[2K    [22] 
+
+[1A[2K    [23] 
+
+[1A[2K    [24] 
+
+[1A[2K    [25] 
+
+[1A[2K    [26] 
+
+[1A[2K    [27] 
+
+[1A[2K    [28] 
+
+[1A[2K    [29] 
+
+[1A[2K    [30] 
+
+[1A[2K    [31] 
+
+[1A[2K    [32] 
+
+[1A[2K    [33] 
+
+[1A[2K    [34] 
+
+[1A[2K    [35] 
+
+[1A[2K    [36] 
+
+[1A[2K    [37] 
+
+[1A[2K    [38] 
+
+[1A[2K    [39] 
+
+[1A[2K    [40] 
+
+[1A[2K  [T-03] PASS — T03-round2 artifact checks all clear
+
+[1A[2K  [T-03.10] PASS — session is running after 2nd refresh
+
+[1A[2K
+  ✓ T-03 ALL CHECKS PASSED
+
+[1A[2K  [srv] [ws] client disconnected: 0f4594d8-9d44-475a-b50f-b787fa845564 (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: cc27088d-7903-47a3-bb47-9baf3f60e5f6 (code=1001 reason=)
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  1 passed (57.3s)

@@ -1,0 +1,239 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-01-double-click.test.js:198:3 › T-01 — Double-click "Start Session" Creates Duplicate Sessions › T-01 — Double-click "Start Session" must not create duplicate sessions (5 iterations)
+
+
+
+
+[1A[2K
+  [T-01] tmpDir: /tmp/qa-T01-oHrd4f
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3098
+
+[1A[2K  [T-01] Server ready on port 3098
+
+[1A[2K  [T-01] Project created: 784043b9-aa1b-42ea-b8d6-d905de2a33cf (T01-TestProject)
+
+[1A[2K  [srv] [ws] client connected: ce5cf53a-0189-40fc-84dd-bc4ad7a5b406
+
+[1A[2K  [T-01] Sessions area title: "Sessions — T01-TestProject"
+
+[1A[2K
+  [T-01] Pre-test: 0 sessions confirmed
+
+[1A[2K  [T-01] Pre-test: 0 session cards in DOM
+
+[1A[2K  [T-01] Pre-test: "New Claude Session" button visible
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-01] Iteration 1/5
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  [T-01] iter 1: Modal opened (contains "New Session": true)
+
+[1A[2K  [T-01] iter 1: Modal filled — name="test-double" cmd="echo hello"
+
+[1A[2K  [T-01] iter 1: WS session:create messages sent = 2
+
+[1A[2K  [T-01] iter 1: API session count (name=test-double) = 1
+
+[1A[2K  [T-01] iter 1: Total project sessions = 1
+
+[1A[2K  [T-01] iter 1: Session 637c9887-4148-485f-b039-9f8c9e2151a9 state = stopped
+
+[1A[2K  [T-01] iter 1: DOM card count = 1
+
+[1A[2K  [T-01] iter 1: Session card name = "test-double"
+
+[1A[2K  [T-01] iter 1: Badge text = "⏹ stopped", ghost spinner = false
+
+[1A[2K  [T-01] Iteration 1: API count=1, DOM count=1, badge="⏹ stopped" -> PASS
+
+[1A[2K  [srv] [ws] client connected: 149bf84a-ba03-4b04-ba95-38ffbff185cb
+
+[1A[2K  [T-01] Deleted session 637c9887-4148-485f-b039-9f8c9e2151a9
+
+[1A[2K  [srv] [ws] client disconnected: 149bf84a-ba03-4b04-ba95-38ffbff185cb (code=1005 reason=)
+
+[1A[2K  [T-01] After cleanup: 0 sessions remain
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-01] Iteration 2/5
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  [T-01] iter 2: Modal opened (contains "New Session": true)
+
+[1A[2K  [T-01] iter 2: Modal filled — name="test-double" cmd="echo hello"
+
+[1A[2K  [T-01] iter 2: WS session:create messages sent = 2
+
+[1A[2K  [T-01] iter 2: API session count (name=test-double) = 1
+
+[1A[2K  [T-01] iter 2: Total project sessions = 1
+
+[1A[2K  [T-01] iter 2: Session 1de04f43-919a-4b58-aafc-406766175c40 state = stopped
+
+[1A[2K  [T-01] iter 2: DOM card count = 1
+
+[1A[2K  [T-01] iter 2: Session card name = "test-double"
+
+[1A[2K  [T-01] iter 2: Badge text = "⏹ stopped", ghost spinner = false
+
+[1A[2K  [T-01] Iteration 2: API count=1, DOM count=1, badge="⏹ stopped" -> PASS
+
+[1A[2K  [srv] [ws] client connected: 709a33bc-e59f-4226-98d2-79ef4bdaf328
+
+[1A[2K  [T-01] Deleted session 1de04f43-919a-4b58-aafc-406766175c40
+
+[1A[2K  [srv] [ws] client disconnected: 709a33bc-e59f-4226-98d2-79ef4bdaf328 (code=1005 reason=)
+
+[1A[2K  [T-01] After cleanup: 0 sessions remain
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-01] Iteration 3/5
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  [T-01] iter 3: Modal opened (contains "New Session": true)
+
+[1A[2K  [T-01] iter 3: Modal filled — name="test-double" cmd="echo hello"
+
+[1A[2K  [T-01] iter 3: WS session:create messages sent = 2
+
+[1A[2K  [T-01] iter 3: API session count (name=test-double) = 1
+
+[1A[2K  [T-01] iter 3: Total project sessions = 1
+
+[1A[2K  [T-01] iter 3: Session 0435edf3-7c45-4d6b-bae2-4b6e34309a40 state = stopped
+
+[1A[2K  [T-01] iter 3: DOM card count = 1
+
+[1A[2K  [T-01] iter 3: Session card name = "test-double"
+
+[1A[2K  [T-01] iter 3: Badge text = "⏹ stopped", ghost spinner = false
+
+[1A[2K  [T-01] Iteration 3: API count=1, DOM count=1, badge="⏹ stopped" -> PASS
+
+[1A[2K  [srv] [ws] client connected: 9e908822-3c35-487f-9f57-d658744fce6b
+
+[1A[2K  [T-01] Deleted session 0435edf3-7c45-4d6b-bae2-4b6e34309a40
+
+[1A[2K  [srv] [ws] client disconnected: 9e908822-3c35-487f-9f57-d658744fce6b (code=1005 reason=)
+
+[1A[2K  [T-01] After cleanup: 0 sessions remain
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-01] Iteration 4/5
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  [T-01] iter 4: Modal opened (contains "New Session": true)
+
+[1A[2K  [T-01] iter 4: Modal filled — name="test-double" cmd="echo hello"
+
+[1A[2K  [T-01] iter 4: WS session:create messages sent = 2
+
+[1A[2K  [T-01] iter 4: API session count (name=test-double) = 1
+
+[1A[2K  [T-01] iter 4: Total project sessions = 1
+
+[1A[2K  [T-01] iter 4: Session 971cdc87-31cc-4689-a44a-ec02a85a835f state = stopped
+
+[1A[2K  [T-01] iter 4: DOM card count = 1
+
+[1A[2K  [T-01] iter 4: Session card name = "test-double"
+
+[1A[2K  [T-01] iter 4: Badge text = "⏹ stopped", ghost spinner = false
+
+[1A[2K  [T-01] Iteration 4: API count=1, DOM count=1, badge="⏹ stopped" -> PASS
+
+[1A[2K  [srv] [ws] client connected: 79b67550-0295-4d4a-ae2b-1b3719c9c11a
+
+[1A[2K  [T-01] Deleted session 971cdc87-31cc-4689-a44a-ec02a85a835f
+
+[1A[2K  [srv] [ws] client disconnected: 79b67550-0295-4d4a-ae2b-1b3719c9c11a (code=1005 reason=)
+
+[1A[2K  [T-01] After cleanup: 0 sessions remain
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-01] Iteration 5/5
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  [T-01] iter 5: Modal opened (contains "New Session": true)
+
+[1A[2K  [T-01] iter 5: Modal filled — name="test-double" cmd="echo hello"
+
+[1A[2K  [T-01] iter 5: WS session:create messages sent = 2
+
+[1A[2K  [T-01] iter 5: API session count (name=test-double) = 1
+
+[1A[2K  [T-01] iter 5: Total project sessions = 1
+
+[1A[2K  [T-01] iter 5: Session b188a7a5-aca1-42d0-8043-2113da438046 state = stopped
+
+[1A[2K  [T-01] iter 5: DOM card count = 1
+
+[1A[2K  [T-01] iter 5: Session card name = "test-double"
+
+[1A[2K  [T-01] iter 5: Badge text = "⏹ stopped", ghost spinner = false
+
+[1A[2K  [T-01] Iteration 5: API count=1, DOM count=1, badge="⏹ stopped" -> PASS
+
+[1A[2K  [srv] [ws] client connected: 48bd0ae7-4020-4619-8158-48fb843c7ab9
+
+[1A[2K  [T-01] Deleted session b188a7a5-aca1-42d0-8043-2113da438046
+
+[1A[2K  [srv] [ws] client disconnected: 48bd0ae7-4020-4619-8158-48fb843c7ab9 (code=1005 reason=)
+
+[1A[2K  [T-01] After cleanup: 0 sessions remain
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-01] ITERATION SUMMARY
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  Iteration 1: API=1 DOM=1 ws_sends=2 badge="⏹ stopped" -> PASS [GENUINE PASS (2 WS messages sent, server deduplicated)]
+
+[1A[2K  Iteration 2: API=1 DOM=1 ws_sends=2 badge="⏹ stopped" -> PASS [GENUINE PASS (2 WS messages sent, server deduplicated)]
+
+[1A[2K  Iteration 3: API=1 DOM=1 ws_sends=2 badge="⏹ stopped" -> PASS [GENUINE PASS (2 WS messages sent, server deduplicated)]
+
+[1A[2K  Iteration 4: API=1 DOM=1 ws_sends=2 badge="⏹ stopped" -> PASS [GENUINE PASS (2 WS messages sent, server deduplicated)]
+
+[1A[2K  Iteration 5: API=1 DOM=1 ws_sends=2 badge="⏹ stopped" -> PASS [GENUINE PASS (2 WS messages sent, server deduplicated)]
+
+[1A[2K
+  Pass rate: 5/5
+
+[1A[2K
+  [T-01] RESULT: PASS (5/5 iterations produced exactly 1 session)
+
+[1A[2K  NOTE: All 5 iterations confirmed 2 WS messages sent, server handled deduplication correctly (or client-side protection worked).
+
+[1A[2K  [T-01] Test project deleted
+
+[1A[2K  [srv] [ws] client disconnected: ce5cf53a-0189-40fc-84dd-bc4ad7a5b406 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T11:33:50.248Z] SIGTERM received — server exiting (pid=624065)
+
+[1A[2K  [srv:ERR] [2026-04-08T11:33:50.249Z] Server process exiting with code 0 (pid=624065)
+
+
+
+[1A[2K  1 passed (1.1m)

@@ -1,0 +1,151 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-02-browser-reload.test.js:317:3 › T-02 — Browser Hard-Reload Reconnects and Shows Live Session › T-02 — Hard reload 3x: session survives, PTY alive, bidirectional I/O works
+[1A[2K[chromium] › tests/adversarial/T-02-browser-reload.test.js:317:3 › T-02 — Browser Hard-Reload Reconnects and Shows Live Session › T-02 — Hard reload 3x: session survives, PTY alive, bidirectional I/O works
+
+
+[1A[2K
+
+[1A[2K
+  [T-02] dataDir: /tmp/t02-x09nhv
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3099
+
+[1A[2K  [T-02] Server ready on port 3099 (pid: 492065)
+
+[1A[2K  [srv] [ws] client connected: 7f8024d3-0e9d-43b9-8517-727ebee31cfc
+
+[1A[2K
+  [T-02] App loaded and Connected
+
+[1A[2K  [T-02] Project selected
+
+[1A[2K  [T-02] New Session modal opened
+
+[1A[2K  [T-02] Direct mode button background: var(--accent)
+
+[1A[2K  [T-02] Start Session clicked
+
+[1A[2K  [T-02] Session card shows running
+
+[1A[2K  [T-02] Session id=10b63413-efed-4b3a-a18f-dc51d812f706 pid=492643
+
+[1A[2K  [T-02] Baseline marker T02_MARKER_ALPHA appeared
+
+[1A[2K  [T-02] Pre-reload terminal text length: 55105
+
+[1A[2K  [T-02] Server pid=492065 alive
+
+[1A[2K
+  [T-02] === ROUND 1: overlay OPEN at reload ===
+
+[1A[2K  [srv] [ws] client disconnected: 7f8024d3-0e9d-43b9-8517-727ebee31cfc (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: 2bef7577-c83c-451a-b06e-9905e4cc53b3
+
+[1A[2K
+  [T-02] Round 1: post-reload checks starting...
+
+[1A[2K  [T-02] Round 1: Check 1 PASS — #topbar visible
+
+[1A[2K  [T-02] Round 1: Check 2 PASS — Connected dot visible (1162ms)
+
+[1A[2K  [T-02] Round 1: Check 3 PASS — Project list shows T02-Project
+
+[1A[2K  [T-02] Round 1: Check 4 PASS — Session card shows running
+
+[1A[2K  [T-02] Round 1: Check 5 PASS — API confirms running, pid=492643
+
+[1A[2K  [T-02] Round 1: Check 6 PASS — PTY pid=492643 alive
+
+[1A[2K  [T-02] Round 1: Check 7 PASS — Session overlay opened, xterm mounted
+
+[1A[2K  [T-02] Round 1: Check 8a PASS — Terminal not blank (54887 chars)
+
+[1A[2K  [T-02] Round 1: Check 8b PASS — Marker T02_ROUND_1_1775646455264 appeared in terminal
+
+[1A[2K  [T-02] Round 1: All checks PASSED
+
+[1A[2K
+  [T-02] === ROUND 2: overlay CLOSED at reload ===
+
+[1A[2K  [srv] [ws] client disconnected: 2bef7577-c83c-451a-b06e-9905e4cc53b3 (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: 2e03746e-1986-4892-9203-28c8118b1c3e
+
+[1A[2K
+  [T-02] Round 2: post-reload checks starting...
+
+[1A[2K  [T-02] Round 2: Check 1 PASS — #topbar visible
+
+[1A[2K  [T-02] Round 2: Check 2 PASS — Connected dot visible (1288ms)
+
+[1A[2K  [T-02] Round 2: Check 3 PASS — Project list shows T02-Project
+
+[1A[2K  [T-02] Round 2: Check 4 PASS — Session card shows running
+
+[1A[2K  [T-02] Round 2: Check 5 PASS — API confirms running, pid=492643
+
+[1A[2K  [T-02] Round 2: Check 6 PASS — PTY pid=492643 alive
+
+[1A[2K  [T-02] Round 2: Check 7 PASS — Session overlay opened, xterm mounted
+
+[1A[2K  [T-02] Round 2: Check 8a PASS — Terminal not blank (54887 chars)
+
+[1A[2K  [T-02] Round 2: Check 8b PASS — Marker T02_ROUND_2_1775646459848 appeared in terminal
+
+[1A[2K  [T-02] Round 2: All checks PASSED
+
+[1A[2K
+  [T-02] === ROUND 3: overlay OPEN at reload ===
+
+[1A[2K  [srv] [ws] client disconnected: 2e03746e-1986-4892-9203-28c8118b1c3e (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: ab708535-9aa6-427c-995e-caae5eed7269
+
+[1A[2K
+  [T-02] Round 3: post-reload checks starting...
+
+[1A[2K  [T-02] Round 3: Check 1 PASS — #topbar visible
+
+[1A[2K  [T-02] Round 3: Check 2 PASS — Connected dot visible (907ms)
+
+[1A[2K  [T-02] Round 3: Check 3 PASS — Project list shows T02-Project
+
+[1A[2K  [T-02] Round 3: Check 4 PASS — Session card shows running
+
+[1A[2K  [T-02] Round 3: Check 5 PASS — API confirms running, pid=492643
+
+[1A[2K  [T-02] Round 3: Check 6 PASS — PTY pid=492643 alive
+
+[1A[2K  [T-02] Round 3: Check 7 PASS — Session overlay opened, xterm mounted
+
+[1A[2K  [T-02] Round 3: Check 8a PASS — Terminal not blank (54887 chars)
+
+[1A[2K  [T-02] Round 3: Check 8b PASS — Marker T02_ROUND_3_1775646463051 appeared in terminal
+
+[1A[2K  [T-02] Round 3: All checks PASSED
+
+[1A[2K  [T-02] Crash log: no entries during test window
+
+[1A[2K  [T-02] Final check: server pid=492065 still alive
+
+[1A[2K
+  [T-02] ALL 3 ROUNDS PASSED — Test COMPLETE
+
+[1A[2K  [srv] [ws] client disconnected: ab708535-9aa6-427c-995e-caae5eed7269 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T11:07:44.760Z] SIGTERM received — server exiting (pid=492065)
+
+[1A[2K  [srv:ERR] [2026-04-08T11:07:44.764Z] Server process exiting with code 0 (pid=492065)
+
+[1A[2K
+  [T-02] CRASH LOG:
+[2026-04-08T11:07:44.760Z] SIGTERM received — server exiting (pid=492065)
+[2026-04-08T11:07:44.764Z] Server process exiting with code 0 (pid=492065)
+
+
+[1A[2K
+
+[1A[2K  1 passed (28.2s)

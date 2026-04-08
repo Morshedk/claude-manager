@@ -1,0 +1,120 @@
+# T-01 Test Run Output
+
+## Attempt 1 (FAILED — test infrastructure issue)
+Timeout: 120000ms
+Result: Test timed out at 120s
+
+Root cause: `deleteSession()` called a non-existent REST endpoint
+(`DELETE /api/sessions/:id`). The server has no such endpoint — session
+deletion is WS-only. Because deletes failed silently, sessions were not
+cleaned up between iterations, and the DOM `waitForFunction` for cards
+clearing never resolved. After 1 iteration the test timed out.
+
+Additionally, SIGTERM appeared in server output mid-test, which caused
+subsequent API calls to fail silently, leading to the test hanging until
+timeout.
+
+SIGTERM post-mortem: The SIGTERM in attempt 1 and 2 was our own afterAll
+cleanup firing when the test timed out. In attempt 3 (successful run to
+completion), the SIGTERM appears at the very end after all 5 iterations
+completed normally — confirming it was afterAll cleanup, not a bug.
+
+## Attempt 2 (FAILED — same infrastructure issue, different timeout)
+Timeout: 300000ms
+Result: Test timed out at 300s for the same reason (broken REST delete endpoint)
+
+## Attempt 3 (COMPLETED — test infrastructure fixed)
+Timeout: 300000ms
+Result: Test RAN TO COMPLETION with 5/5 iterations all reporting GENUINE FAIL
+
+Fix applied: Replaced `deleteSession()` (REST) with `deleteSessionViaWS()`
+(WebSocket `session:delete` message). Sessions now properly deleted between
+iterations.
+
+Full output:
+
+Running 1 test using 1 worker
+
+  [T-01] tmpDir: /tmp/qa-T01-j8uDru
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3098
+  [T-01] Server ready on port 3098
+  [T-01] Project created: 9d73ef32-c689-4a97-82eb-4d7a04064b5c (T01-TestProject)
+  [T-01] Sessions area title: "Sessions — T01-TestProject"
+
+  [T-01] Pre-test: 0 sessions confirmed
+  [T-01] Pre-test: 0 session cards in DOM
+  [T-01] Pre-test: "New Claude Session" button visible
+
+  ════════════════════════════════════
+  [T-01] Iteration 1/5
+  ════════════════════════════════════
+  [T-01] iter 1: Modal opened (contains "New Session": true)
+  [T-01] iter 1: Modal filled — name="test-double" cmd="echo hello"
+  [T-01] iter 1: WS session:create messages sent = 2
+  [T-01] iter 1: API session count (name=test-double) = 2
+  [T-01] iter 1: Total project sessions = 2
+  [T-01] iter 1: Session 2d4d6467... state = stopped
+  [T-01] iter 1: Session 13d3fd24... state = stopped
+  [T-01] iter 1: DOM card count = 2
+  [T-01] iter 1: Session card name = "test-double"
+  [T-01] iter 1: Badge text = "⏹ stopped", ghost spinner = false
+  [T-01] Iteration 1: API count=2, DOM count=2, badge="⏹ stopped" -> FAIL
+  [T-01] FAIL detail: GENUINE FAIL (2 WS messages sent, server created duplicate)
+  [T-01] Deleted session 2d4d6467...
+  [T-01] Deleted session 13d3fd24...
+  [T-01] After cleanup: 0 sessions remain
+
+  ════════════════════════════════════
+  [T-01] Iteration 2/5
+  ════════════════════════════════════
+  [T-01] iter 2: WS session:create messages sent = 2
+  [T-01] iter 2: API session count (name=test-double) = 2
+  [T-01] iter 2: DOM card count = 2
+  [T-01] Iteration 2: API count=2, DOM count=2, badge="⏹ stopped" -> FAIL
+  [T-01] FAIL detail: GENUINE FAIL (2 WS messages sent, server created duplicate)
+
+  ════════════════════════════════════
+  [T-01] Iteration 3/5
+  ════════════════════════════════════
+  [T-01] iter 3: WS session:create messages sent = 2
+  [T-01] iter 3: API session count (name=test-double) = 2
+  [T-01] iter 3: DOM card count = 2
+  [T-01] Iteration 3: API count=2, DOM count=2, badge="⏹ stopped" -> FAIL
+  [T-01] FAIL detail: GENUINE FAIL (2 WS messages sent, server created duplicate)
+
+  ════════════════════════════════════
+  [T-01] Iteration 4/5
+  ════════════════════════════════════
+  [T-01] iter 4: WS session:create messages sent = 2
+  [T-01] iter 4: API session count (name=test-double) = 2
+  [T-01] iter 4: DOM card count = 2
+  [T-01] Iteration 4: API count=2, DOM count=2, badge="⏹ stopped" -> FAIL
+  [T-01] FAIL detail: GENUINE FAIL (2 WS messages sent, server created duplicate)
+
+  ════════════════════════════════════
+  [T-01] Iteration 5/5
+  ════════════════════════════════════
+  [T-01] iter 5: WS session:create messages sent = 2
+  [T-01] iter 5: API session count (name=test-double) = 2
+  [T-01] iter 5: DOM card count = 2
+  [T-01] Iteration 5: API count=2, DOM count=2, badge="⏹ stopped" -> FAIL
+  [T-01] FAIL detail: GENUINE FAIL (2 WS messages sent, server created duplicate)
+
+  ════════════════════════════════════
+  [T-01] ITERATION SUMMARY
+  ════════════════════════════════════
+  Iteration 1: API=2 DOM=2 ws_sends=2 badge="⏹ stopped" -> FAIL [GENUINE FAIL (2 WS messages sent, server created duplicate)]
+  Iteration 2: API=2 DOM=2 ws_sends=2 badge="⏹ stopped" -> FAIL [GENUINE FAIL (2 WS messages sent, server created duplicate)]
+  Iteration 3: API=2 DOM=2 ws_sends=2 badge="⏹ stopped" -> FAIL [GENUINE FAIL (2 WS messages sent, server created duplicate)]
+  Iteration 4: API=2 DOM=2 ws_sends=2 badge="⏹ stopped" -> FAIL [GENUINE FAIL (2 WS messages sent, server created duplicate)]
+  Iteration 5: API=2 DOM=2 ws_sends=2 badge="⏹ stopped" -> FAIL [GENUINE FAIL (2 WS messages sent, server created duplicate)]
+
+  Pass rate: 0/5
+
+  [T-01] Test project deleted
+
+Error: 5/5 iterations produced duplicates (threshold: ≤1 for pass)
+Expected: <= 1
+Received:    5
+
+1 failed — T-01 duplicate creation bug confirmed

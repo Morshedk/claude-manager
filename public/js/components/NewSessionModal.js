@@ -49,6 +49,7 @@ export function NewSessionModal() {
   const [command, setCommand] = useState(defaultCmd);
   const [mode, setMode] = useState(settingsMode);
   const [telegramEnabled, setTelegramEnabled] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [telegramConfigured, setTelegramConfigured] = useState(true);
   const [checkingTelegram, setCheckingTelegram] = useState(false);
 
@@ -71,10 +72,12 @@ export function NewSessionModal() {
   }, [newSessionModalOpen.value]);
 
   function handleCreate() {
+    if (submitting) return;
     if (!project) {
       showToast('No project selected', 'error');
       return;
     }
+    setSubmitting(true);
     const cmd = command.trim() || 'claude';
     const name = sessionName.trim() || null;
     createSession(project.id, { command: cmd, name, mode, telegram: telegramEnabled });
@@ -204,7 +207,8 @@ export function NewSessionModal() {
           <button
             class="btn btn-primary"
             onClick=${handleCreate}
-            style="padding:8px 18px;border-radius:var(--radius-sm);background:var(--accent);color:#000;font-weight:600;font-size:13px;cursor:pointer;border:none;"
+            disabled=${submitting}
+            style=${`padding:8px 18px;border-radius:var(--radius-sm);background:var(--accent);color:#000;font-weight:600;font-size:13px;border:none;cursor:${submitting ? 'not-allowed' : 'pointer'};opacity:${submitting ? 0.6 : 1};`}
           >Start Session</button>
         </div>
       </div>
