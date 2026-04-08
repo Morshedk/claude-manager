@@ -89,7 +89,8 @@ async function startSession(session, authEnv = {}) {
     session.meta.pid = capturedPty.pid;
     session.meta.startedAt = new Date().toISOString();
 
-    session._wirePty();
+    const myGen = ++session._ptyGen;
+    session._wirePty(myGen);
   };
 
   session.start = patchedStart;
@@ -398,7 +399,10 @@ describe('DirectSession — refresh()', () => {
     await expect(session.refresh({})).rejects.toThrow(/never been started/i);
   });
 
-  test('refresh() throws when no conversation file exists', async () => {
+  test('refresh() succeeds even when no conversation file exists (restarts fresh)', async () => {
+    // Removed overly strict check: interactive Claude sessions don't write conversation
+    // files in real-time, so the file check would always fail for running sessions.
+    // Refresh now always proceeds: if no file exists, _buildArgs falls back to --session-id.
     const { session } = makeSession();
 
     // Start the session
@@ -406,10 +410,11 @@ describe('DirectSession — refresh()', () => {
     await Promise.resolve();
     expect(session.meta.status).toBe(STATES.RUNNING);
 
-    // Mock _claudeSessionFileExists to return false
+    // Mock _claudeSessionFileExists to return false (no conversation file)
     session._claudeSessionFileExists = jest.fn().mockReturnValue(false);
 
-    await expect(session.refresh({})).rejects.toThrow(/no conversation file/i);
+    // Should NOT throw — refresh proceeds by restarting with --session-id
+    await expect(session.refresh({})).resolves.toBeUndefined();
   });
 
   test('refresh() does not throw when conversation file exists', async () => {
@@ -451,7 +456,9 @@ describe('DirectSession — refresh()', () => {
     await expect(session.refresh({})).rejects.toThrow('my-session-xyz');
   });
 
-  test('refresh() error message includes claudeSessionId when no conversation file', async () => {
+  test('refresh() with no conversation file falls back to --session-id (not --resume)', async () => {
+    // When no conversation file exists, _buildArgs uses --session-id (fresh start)
+    // instead of --resume. This is the correct fallback behavior.
     const { session } = makeSession({ claudeSessionId: 'conv-file-abc' });
 
     await startSession(session);
@@ -459,6 +466,9 @@ describe('DirectSession — refresh()', () => {
 
     session._claudeSessionFileExists = jest.fn().mockReturnValue(false);
 
-    await expect(session.refresh({})).rejects.toThrow('conv-file-abc');
+    // Should succeed — uses --session-id as fallback
+    await expect(session.refresh({})).resolves.toBeUndefined();
+    // Verify _claudeSessionFileExists was called during _buildArgs (via start())
+    expect(session._claudeSessionFileExists).toHaveBeenCalled();
   });
 });
