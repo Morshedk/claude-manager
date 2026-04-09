@@ -26,8 +26,8 @@ if [[ "$CURRENT_BRANCH" != "beta" ]]; then
   exit 1
 fi
 
-if [[ -n "$(git status --porcelain)" ]]; then
-  echo "❌ Uncommitted changes on beta. Commit or stash first."
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "❌ Uncommitted tracked changes on beta. Commit or stash first."
   exit 1
 fi
 
