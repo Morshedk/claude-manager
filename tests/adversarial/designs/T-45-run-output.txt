@@ -1,0 +1,66 @@
+Running 5 tests using 1 worker
+
+[1/5] T-45.01 — WS-level stop+refresh race (50ms gap): session reaches stable state
+  [T-45] tmpDir: /tmp/qa-T45-gAo6hZ
+  [T-45] Server started on port 3142
+  [T-45.01] Session created: 4a12b5d4
+  [T-45.01] Session is RUNNING
+  [T-45.01] Sent stop at t=0, refresh at t=50ms
+  [T-45.01] State sequence: stopped@6ms → running@61ms
+  [T-45.01] Final state from API: running
+  [T-45.01] PASS: Final state is stable: running
+  [T-45.01] PASS: State changes count (2) ≤ 5
+
+[2/5] T-45.02 — WS-level stop+refresh race (0ms gap): both messages in same tick
+  [T-45.02] Session created: 91b1c8c8
+  [T-45.02] Session is RUNNING
+  [T-45.02] Sent stop AND refresh in same tick (0ms gap)
+  [T-45.02] State sequence: running@23ms
+  [T-45.02] Final state: running
+  [T-45.02] PASS: Final state is stable: running
+  [T-45.02] PASS: State changes count (1) ≤ 5
+
+[3/5] T-45.03 — No PTY leak after stop+refresh race
+  [T-45.03] All sessions: [{"id":"4a12b5d4","state":"running","pid":3082301},{"id":"91b1c8c8","state":"running","pid":3083023}]
+  [T-45.03] Session 4a12b5d4 PID 3082301: exists=true
+  [T-45.03] Session 91b1c8c8 PID 3083023: exists=true
+  [T-45.03] PASS: No PTY leak, no crashes
+
+[4/5] T-45.04 — Browser-level: click Stop then Refresh within 200ms
+  [T-45.04] Session created for browser test: 4bcc45cb
+  [T-45.04] Session is RUNNING
+  [T-45.04] Overlay opened
+  [T-45.04] Stop button visible: true
+  [T-45.04] Refresh button visible: true
+  [T-45.04] Stop clicked at t=67ms
+  [T-45.04] Refresh clicked at t=236ms (gap: 169ms)
+  [T-45.04] Final badge text: "▶ running"
+  [T-45.04] PASS: Browser shows stable state: "▶ running"
+  [T-45.04] States observed during stability check: ["▶ running"]
+  [T-45.04] PASS: No badge oscillation detected
+
+[5/5] T-45.05 — Server is healthy after all race scenarios
+  [T-45.05] PASS: Server healthy, sessions: 3, no crashes
+
+  5 passed (26.7s)
+
+Notes:
+- Fix attempt 1: T-45.01 — session:create fired but sessions:list RUNNING broadcast
+  was missed (received before WS listener started). Fixed with API polling.
+- Fix attempt 2: Same for T-45.02 and T-45.04.
+- Fix attempt 3: All 5 pass.
+
+Key observations:
+- T-45.01 (50ms gap): State sequence = stopped@6ms → running@61ms.
+  Stop fired and set STOPPED synchronously. Refresh arrived at 50ms → restart → RUNNING.
+  Clean 2-state sequence. No oscillation.
+- T-45.02 (0ms gap): State sequence = running@23ms only.
+  Both messages arrived in the same event loop tick. Server processed stop first (synchronous),
+  then refresh. The sessions:list broadcast only showed RUNNING (stop+refresh happened so fast
+  the intermediate STOPPED broadcast was merged with the RUNNING one).
+- T-45.03: Both sessions have live PIDs in /proc. No duplicate PTYs.
+- T-45.04: Browser test: Stop clicked, Refresh clicked 169ms later. Session settled to
+  "▶ running" immediately. No oscillation over 3 second stability check.
+
+The _ptyGen counter in DirectSession.js correctly guards against stale PTY exit events.
+DirectSession.stop() synchronous design prevents any race window between stop and refresh states.

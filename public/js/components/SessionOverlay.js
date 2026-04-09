@@ -1,6 +1,7 @@
 import { html } from 'htm/preact';
+import { useRef } from 'preact/hooks';
 import { TerminalPane } from './TerminalPane.js';
-import { attachedSession, splitView } from '../state/store.js';
+import { attachedSession, splitView, splitPosition } from '../state/store.js';
 import { detachSession, refreshSession, stopSession, showToast } from '../state/actions.js';
 
 /**
@@ -18,7 +19,39 @@ export function SessionOverlay() {
 
   const isSplit = splitView.value;
 
-  const toggleSplit = () => { splitView.value = !splitView.value; };
+  const toggleSplit = () => {
+    splitView.value = !splitView.value;
+    try { localStorage.setItem('splitView', String(splitView.value)); } catch {}
+  };
+
+  // ── Split resize handle drag logic ──────────────────────────────────────────
+  const isDragging = useRef(false);
+
+  const handleResizeMouseDown = (e) => {
+    e.preventDefault();
+    isDragging.current = true;
+    const handle = e.currentTarget;
+    handle.classList.add('dragging');
+
+    const onMouseMove = (ev) => {
+      if (!isDragging.current) return;
+      const pct = Math.min(85, Math.max(20, (ev.clientX / window.innerWidth) * 100));
+      document.documentElement.style.setProperty('--split-pos', pct + '%');
+    };
+
+    const onMouseUp = (ev) => {
+      isDragging.current = false;
+      handle.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      const pct = Math.min(85, Math.max(20, (ev.clientX / window.innerWidth) * 100));
+      splitPosition.value = pct;
+      try { localStorage.setItem('splitPosition', String(pct)); } catch {}
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
 
   const handleRefresh = () => {
     refreshSession(session.id);
@@ -50,7 +83,7 @@ export function SessionOverlay() {
       id="session-overlay"
       style="
         position: fixed;
-        ${isSplit ? 'left: 50%;' : 'left: 0;'}
+        ${isSplit ? 'left: var(--split-pos, 50%);' : 'left: 0;'}
         right: 0;
         top: var(--topbar-h);
         bottom: 0;
@@ -61,6 +94,13 @@ export function SessionOverlay() {
         border-left: ${isSplit ? '1px solid var(--border)' : 'none'};
       "
     >
+      ${isSplit ? html`
+        <div
+          class="split-resize-handle"
+          onMouseDown=${handleResizeMouseDown}
+          title="Drag to resize"
+        ></div>
+      ` : null}
       <!-- Header -->
       <header
         class="overlay-header"

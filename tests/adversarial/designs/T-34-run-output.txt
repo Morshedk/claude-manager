@@ -1,0 +1,42 @@
+Running 1 test using 1 worker
+
+[chromium] › tests/adversarial/T-34-todo-filters.test.js:166:3 › T-34 — TODO Priority Filters Hide/Show Items › priority filters correctly show/hide todo items
+
+  [T-34] tmpDir: /tmp/qa-T34-DJSXWg
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3131
+  [T-34] projectId: 4454ba3c-f5cc-485f-9b6f-75be50e4bff8
+  [T-34] Seeded: Task H (high) id=28185656-780a-42bc-a9b1-15d3ca97dd9f
+  [T-34] Seeded: Task M (medium) id=e3bd3530-60d3-4990-9a9e-7999f3486e68
+  [T-34] Seeded: Task L (low) id=2b32deca-8d5f-4706-9379-abfba488ac80
+  [T-34] Harness written: /home/claude-runner/apps/claude-web-app-v2/public/test-harness-T34.html
+  [T-34] TodoPanel mounted
+  [T-34] Initial state: 3 items visible (expected 3)
+  [T-34] All 3 tasks confirmed visible in initial state
+  [T-34] Filter buttons found: ["all","high","medium","low","pending","completed","all"]
+  [T-34] After "high" filter: 1 items visible
+  [T-34] PASS: "high" filter shows only Task H, hides Task M and Task L
+  [T-34] After "medium" filter: 1 items visible
+  [T-34] PASS: "medium" filter shows only Task M
+  [T-34] After "low" filter: 1 items visible
+  [T-34] PASS: "low" filter shows only Task L
+  [T-34] After "all" filter restored: 3 items visible
+  [T-34] PASS: All 3 items restored after clicking "all" filter
+  [T-34] PASS: "all" filter button has "active" class: "todo-filter-btn active"
+
+  1 passed (6.1s)
+
+## Execution Summary
+
+**Result:** PASS
+**Attempts:** 1
+
+**Key observations:**
+1. Initial state: all 3 items (Task H high, Task M medium, Task L low) visible — count=3 confirmed before filtering.
+2. "high" filter: exactly 1 item visible (Task H), Task M and Task L absent from DOM (not CSS-hidden, truly not rendered).
+3. "medium" filter: exactly 1 item (Task M).
+4. "low" filter: exactly 1 item (Task L).
+5. "all" filter: all 3 restored.
+6. Filter buttons: ["all","high","medium","low","pending","completed","all"] — two "all" buttons (one for priority, one for status filters). Used `.first()` to target the priority "all" button.
+7. "active" class confirmed on selected filter button.
+
+**Important finding:** TodoPanel is NOT mounted in the main App.js UI. A test harness HTML page was required to mount the component. The harness uses the same importmap from index.html and imports the component from the server's /js/ route.

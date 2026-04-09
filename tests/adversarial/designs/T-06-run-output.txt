@@ -1,0 +1,139 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-06-ws-reconnect.test.js:193:3 › T-06 — WebSocket Auto-Reconnect: Terminal Re-Subscribes Without User Action › T-06 — WS force-close: auto-reconnect, terminal re-subscribes, live output resumes
+[1A[2K[chromium] › tests/adversarial/T-06-ws-reconnect.test.js:193:3 › T-06 — WebSocket Auto-Reconnect: Terminal Re-Subscribes Without User Action › T-06 — WS force-close: auto-reconnect, terminal re-subscribes, live output resumes
+
+
+[1A[2K
+
+[1A[2K
+  [T-06] dataDir: /tmp/t06-FqhnQH
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3103
+
+[1A[2K  [T-06] Server ready on port 3103 (pid: 2949960)
+
+[1A[2K  [srv] [ws] client connected: 975d737e-e1c8-4379-b1e2-a835ef1bc3c7
+
+[1A[2K  [browser:log] [ws] connected
+
+[1A[2K
+  [T-06] App loaded and Connected
+
+[1A[2K  [T-06] Project selected
+
+[1A[2K  [T-06] Start Session clicked
+
+[1A[2K  [T-06] Session card shows running
+
+[1A[2K  [T-06] Session id=7a533d41-f64f-4102-a23b-9c783337236c pid=2950180
+
+[1A[2K  [browser:log] [TEST-INTERCEPT] session:subscribe sent, count: 1 id: 7a533d41-f64f-4102-a23b-9c783337236c
+
+[1A[2K  [T-06] Session overlay open
+
+[1A[2K  [T-06] Baseline marker T06_BASELINE appeared
+
+[1A[2K  [T-06] Baseline subscribe count: 1
+
+[1A[2K  [T-06] WS intercept confirmed: _testWs is OPEN
+
+[1A[2K
+  [T-06] === ROUND 1: Forcing WS close ===
+
+[1A[2K  [T-06] WS close result: closed_from_state_1
+
+[1A[2K  [srv] [ws] client disconnected: 975d737e-e1c8-4379-b1e2-a835ef1bc3c7 (code=1005 reason=)
+
+[1A[2K  [browser:log] [ws] disconnected — reconnecting in 3000 ms
+
+[1A[2K  [T-06] ROUND 1 P2 PASS — Disconnect detected in 26ms
+
+[1A[2K  [srv] [ws] client connected: ecd2dd32-f51c-4e3d-96ae-46de45e6aa43
+
+[1A[2K  [browser:log] [ws] connected
+
+[1A[2K  [browser:log] [TEST-INTERCEPT] session:subscribe sent, count: 2 id: 7a533d41-f64f-4102-a23b-9c783337236c
+
+[1A[2K  [T-06] ROUND 1 P1 PASS — Reconnect detected in 3510ms
+
+[1A[2K  [T-06] ROUND 1 P4 PASS — Terminal not blank (54951 chars)
+
+[1A[2K  [T-06] ROUND 1 P3 PASS — Live output marker T06_RECONNECT1_1775677904195 appeared
+
+[1A[2K  [T-06] ROUND 1 subscribe count: 2 (was 1)
+
+[1A[2K  [T-06] ROUND 1 last subscribe ID: 7a533d41-f64f-4102-a23b-9c783337236c
+
+[1A[2K  [T-06] ROUND 1 P7: "DUPCHK1_1775677904368" appears 2x in terminal (expect <=3 for no dup)
+
+[1A[2K  [T-06] ROUND 1 server check PASS — running, pid=2950180
+
+[1A[2K  [T-06] ROUND 1 PTY pid=2950180 alive
+
+[1A[2K  [T-06] ROUND 1 COMPLETE — reconnect=3510ms, all checks PASS
+
+[1A[2K
+  [T-06] === ROUND 2: Second WS drop (reliability check) ===
+
+[1A[2K  [srv] [ws] client disconnected: ecd2dd32-f51c-4e3d-96ae-46de45e6aa43 (code=1005 reason=)
+
+[1A[2K  [T-06] ROUND 2 WS close result: closed_from_state_1
+
+[1A[2K  [browser:log] [ws] disconnected — reconnecting in 3000 ms
+
+[1A[2K  [T-06] ROUND 2: Disconnect in 18ms
+
+[1A[2K  [srv] [ws] client connected: f79753ee-33b4-4032-9ee8-68e3bf75fb62
+
+[1A[2K  [browser:log] [ws] connected
+
+[1A[2K  [browser:log] [TEST-INTERCEPT] session:subscribe sent, count: 3 id: 7a533d41-f64f-4102-a23b-9c783337236c
+
+[1A[2K  [T-06] ROUND 2: Reconnect in 3212ms
+
+[1A[2K  [T-06] ROUND 2: Terminal not blank (54951 chars)
+
+[1A[2K  [T-06] ROUND 2: Live output marker T06_RECONNECT2_1775677909640 appeared
+
+[1A[2K  [T-06] ROUND 2 subscribe count: 3 (was 2)
+
+[1A[2K  [T-06] ROUND 2 COMPLETE — reconnect=3212ms, all checks PASS
+
+[1A[2K  [T-06] Crash log: clean
+
+[1A[2K  [T-06] Final check: server pid=2949960 alive
+
+[1A[2K
+  [T-06] Subscribe intercept log (3 entries):
+
+[1A[2K    [TEST-INTERCEPT] session:subscribe sent, count: 1 id: 7a533d41-f64f-4102-a23b-9c783337236c
+
+[1A[2K    [TEST-INTERCEPT] session:subscribe sent, count: 2 id: 7a533d41-f64f-4102-a23b-9c783337236c
+
+[1A[2K    [TEST-INTERCEPT] session:subscribe sent, count: 3 id: 7a533d41-f64f-4102-a23b-9c783337236c
+
+[1A[2K
+  [T-06] ALL CHECKS PASSED
+
+[1A[2K  Round 1: drop→connected=3510ms
+
+[1A[2K  Round 2: drop→connected=3212ms
+
+[1A[2K  Total subscribes sent: 3 (initial=1, +1 per round = correct)
+
+[1A[2K  [srv] [ws] client disconnected: f79753ee-33b4-4032-9ee8-68e3bf75fb62 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:51:51.083Z] SIGTERM received — server exiting (pid=2949960)
+[2026-04-08T19:51:51.084Z] Server process exiting with code 0 (pid=2949960)
+
+[1A[2K
+  [T-06] CRASH LOG:
+[2026-04-08T19:51:51.083Z] SIGTERM received — server exiting (pid=2949960)
+[2026-04-08T19:51:51.084Z] Server process exiting with code 0 (pid=2949960)
+
+
+[1A[2K
+
+[1A[2K  1 passed (20.9s)

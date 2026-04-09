@@ -1,0 +1,218 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-18-project-switch-race.test.js:129:3 › T-18 — Switching Projects While a Session Is Starting › session created in Project A survives immediate switch to Project B
+[1A[2K[chromium] › tests/adversarial/T-18-project-switch-race.test.js:129:3 › T-18 — Switching Projects While a Session Is Starting › session created in Project A survives immediate switch to Project B
+
+
+[1A[2K
+
+[1A[2K
+  [T-18] tmpDir: /tmp/qa-T18-CZpMVx
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3115
+
+[1A[2K  [T-18] Server ready on port 3115
+
+[1A[2K  [T-18] Project A: 17ff8b75-3041-4891-baaf-905d07d48eb7 (T18-ProjectA)
+
+[1A[2K  [T-18] Project B: e47949d7-fe54-408a-94d4-bcd710818569 (T18-ProjectB)
+
+[1A[2K
+  ── Iteration 1/3 ──────────────────────────
+
+[1A[2K  [srv] [ws] client connected: 192a0813-a25b-499f-a53a-95e845df39d4
+
+[1A[2K  [T-18] iter 1: Project A selected
+
+[1A[2K  [T-18] iter 1: Modal filled — ready for race
+
+[1A[2K  [T-18] iter 1: WS sent session:create projectId=17ff8b75-3041-4891-baaf-905d07d48eb7
+
+[1A[2K  [T-18] iter 1: WS received session:created id=ba1c8099-d154-4867-acbb-b44ac01d9259
+
+[1A[2K  [T-18] iter 1: Switched to Project B in 264ms after Start Session
+
+[1A[2K  [T-18] iter 1: Title on B view: "Sessions — T18-ProjectB"
+
+[1A[2K  [T-18] iter 1: Session cards visible while on Project B: 0
+
+[1A[2K  [T-18] iter 1: Clicked back to Project A
+
+[1A[2K  [T-18] iter 1: Session cards in Project A: 1
+
+[1A[2K  [T-18] iter 1: Card names: ["T18-race-session"]
+
+[1A[2K  [T-18] iter 1: Has correct name: true
+
+[1A[2K  [T-18] iter 1: Badge: "▶ running"
+
+[1A[2K  [T-18] iter 1: API sessions in A: 1, sessions in B: 0
+
+[1A[2K  [T-18] iter 1: Target session in A: YES id=ba1c8099-d154-4867-acbb-b44ac01d9259
+
+[1A[2K  [T-18] iter 1: Target session in B: NO
+
+[1A[2K  [T-18] iter 1: Session state=running, projectId=17ff8b75-3041-4891-baaf-905d07d48eb7
+
+[1A[2K  [T-18] iter 1: Session cards in Project B (after nav back): 0
+
+[1A[2K  [T-18] iter 1: WS events: sent:session:create@+28ms, received:session:created@+98ms
+
+[1A[2K  [T-18] iter 1: session:create→session:created latency: 70ms
+
+[1A[2K  [T-18] iter 1: Race exercised (switched before session:created): false
+
+[1A[2K
+  [T-18] iter 1: ✓ PASS
+
+[1A[2K  [srv] [ws] client connected: b9031d2a-d654-4663-88f7-d782e37eb9f7
+
+[1A[2K  [T-18] iter 1: Deleted session ba1c8099-d154-4867-acbb-b44ac01d9259
+
+[1A[2K  [srv] [ws] client disconnected: b9031d2a-d654-4663-88f7-d782e37eb9f7 (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: 192a0813-a25b-499f-a53a-95e845df39d4 (code=1001 reason=)
+
+[1A[2K
+  ── Iteration 2/3 ──────────────────────────
+
+[1A[2K  [srv] [ws] client connected: eec12fe5-8137-42a3-a5eb-ac24889f91eb
+
+[1A[2K  [T-18] iter 2: Project A selected
+
+[1A[2K  [T-18] iter 2: Modal filled — ready for race
+
+[1A[2K  [T-18] iter 2: WS sent session:create projectId=17ff8b75-3041-4891-baaf-905d07d48eb7
+
+[1A[2K  [T-18] iter 2: WS received session:created id=8c37082f-64f6-4a5e-9647-37d87fca8620
+
+[1A[2K  [T-18] iter 2: Switched to Project B in 237ms after Start Session
+
+[1A[2K  [T-18] iter 2: Title on B view: "Sessions — T18-ProjectB"
+
+[1A[2K  [T-18] iter 2: Session cards visible while on Project B: 0
+
+[1A[2K  [T-18] iter 2: Clicked back to Project A
+
+[1A[2K  [T-18] iter 2: Session cards in Project A: 1
+
+[1A[2K  [T-18] iter 2: Card names: ["T18-race-session"]
+
+[1A[2K  [T-18] iter 2: Has correct name: true
+
+[1A[2K  [T-18] iter 2: Badge: "▶ running"
+
+[1A[2K  [T-18] iter 2: API sessions in A: 1, sessions in B: 0
+
+[1A[2K  [T-18] iter 2: Target session in A: YES id=8c37082f-64f6-4a5e-9647-37d87fca8620
+
+[1A[2K  [T-18] iter 2: Target session in B: NO
+
+[1A[2K  [T-18] iter 2: Session state=running, projectId=17ff8b75-3041-4891-baaf-905d07d48eb7
+
+[1A[2K  [T-18] iter 2: Session cards in Project B (after nav back): 0
+
+[1A[2K  [T-18] iter 2: WS events: sent:session:create@+27ms, received:session:created@+56ms
+
+[1A[2K  [T-18] iter 2: session:create→session:created latency: 29ms
+
+[1A[2K  [T-18] iter 2: Race exercised (switched before session:created): false
+
+[1A[2K
+  [T-18] iter 2: ✓ PASS
+
+[1A[2K  [srv] [ws] client connected: 0c581020-da1c-4afb-af6b-a38e531c8a5b
+
+[1A[2K  [T-18] iter 2: Deleted session 8c37082f-64f6-4a5e-9647-37d87fca8620
+
+[1A[2K  [srv] [ws] client disconnected: 0c581020-da1c-4afb-af6b-a38e531c8a5b (code=1005 reason=)
+
+[1A[2K
+  ── Iteration 3/3 ──────────────────────────
+
+[1A[2K  [srv] [ws] client disconnected: eec12fe5-8137-42a3-a5eb-ac24889f91eb (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: 040e4289-544f-4c31-961e-01f987b3679f
+
+[1A[2K  [T-18] iter 3: Project A selected
+
+[1A[2K  [T-18] iter 3: Modal filled — ready for race
+
+[1A[2K  [T-18] iter 3: WS sent session:create projectId=17ff8b75-3041-4891-baaf-905d07d48eb7
+
+[1A[2K  [T-18] iter 3: WS received session:created id=1f72c230-97ac-4a21-b722-1a577353fc92
+
+[1A[2K  [T-18] iter 3: Switched to Project B in 219ms after Start Session
+
+[1A[2K  [T-18] iter 3: Title on B view: "Sessions — T18-ProjectB"
+
+[1A[2K  [T-18] iter 3: Session cards visible while on Project B: 0
+
+[1A[2K  [T-18] iter 3: Clicked back to Project A
+
+[1A[2K  [T-18] iter 3: Session cards in Project A: 1
+
+[1A[2K  [T-18] iter 3: Card names: ["T18-race-session"]
+
+[1A[2K  [T-18] iter 3: Has correct name: true
+
+[1A[2K  [T-18] iter 3: Badge: "▶ running"
+
+[1A[2K  [T-18] iter 3: API sessions in A: 1, sessions in B: 0
+
+[1A[2K  [T-18] iter 3: Target session in A: YES id=1f72c230-97ac-4a21-b722-1a577353fc92
+
+[1A[2K  [T-18] iter 3: Target session in B: NO
+
+[1A[2K  [T-18] iter 3: Session state=running, projectId=17ff8b75-3041-4891-baaf-905d07d48eb7
+
+[1A[2K  [T-18] iter 3: Session cards in Project B (after nav back): 0
+
+[1A[2K  [T-18] iter 3: WS events: sent:session:create@+22ms, received:session:created@+44ms
+
+[1A[2K  [T-18] iter 3: session:create→session:created latency: 22ms
+
+[1A[2K  [T-18] iter 3: Race exercised (switched before session:created): false
+
+[1A[2K
+  [T-18] iter 3: ✓ PASS
+
+[1A[2K  [srv] [ws] client connected: d9b82355-c258-4301-b1fe-b693675bd6c9
+
+[1A[2K  [T-18] iter 3: Deleted session 1f72c230-97ac-4a21-b722-1a577353fc92
+
+[1A[2K  [srv] [ws] client disconnected: d9b82355-c258-4301-b1fe-b693675bd6c9 (code=1005 reason=)
+
+[1A[2K
+  ════════════════════════════════════════════════
+
+[1A[2K  [T-18] FINAL SUMMARY
+
+[1A[2K  ════════════════════════════════════════════════
+
+[1A[2K  Iter 1: cards_in_A=1 correct_name=true session_in_A=true session_in_B=false b_cards=0 badge="▶ running" switch=264ms [race not exercised (too slow)] → PASS
+
+[1A[2K  Iter 2: cards_in_A=1 correct_name=true session_in_A=true session_in_B=false b_cards=0 badge="▶ running" switch=237ms [race not exercised (too slow)] → PASS
+
+[1A[2K  Iter 3: cards_in_A=1 correct_name=true session_in_A=true session_in_B=false b_cards=0 badge="▶ running" switch=219ms [race not exercised (too slow)] → PASS
+
+[1A[2K
+  Pass rate: 3/3
+
+[1A[2K  WARN: Race was NOT exercised in any iteration (all switches happened AFTER session:created arrived)
+
+[1A[2K  WARN: Test may not be validating the race condition — consider increasing browser startup overhead
+
+[1A[2K
+  [T-18] RESULT: PASS
+
+[1A[2K  [srv] [ws] client disconnected: 040e4289-544f-4c31-961e-01f987b3679f (code=1001 reason=)
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  [T-18] Cleanup done
+
+[1A[2K  1 passed (40.8s)

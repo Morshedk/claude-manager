@@ -1,0 +1,214 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests/adversarial/T-43-haiku-endurance.test.js:250:3 › T-43 — Haiku Endurance: 20 ACKs + Refresh + Reload + Overlay lifecycle › T-43 — 20 ACK endurance: refresh + reload + overlay lifecycle
+[chromium] › tests/adversarial/T-43-haiku-endurance.test.js:250:3 › T-43 — Haiku Endurance: 20 ACKs + Refresh + Reload + Overlay lifecycle › T-43 — 20 ACK endurance: refresh + reload + overlay lifecycle
+
+
+
+
+
+  [T43.setup] tmpDir: /tmp/qa-T43-RE2AQx
+
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3140
+
+  [T43.setup] Project created: 016320d2-3a8a-4ec8-80ef-baa58a02e4bd
+
+  [T43.setup] Server ready on port 3140
+
+
+  [T43.01] +0.2s Opening browser...
+
+  [srv] [ws] client connected: 9f9e361a-88ef-4adf-af0b-43b078474187
+
+  [T43.01] +2.0s PASS — browser opened
+
+
+  [T43.02] +2.0s Selecting project...
+
+  [T43.02] +2.9s PASS — project selected
+
+
+  [T43.03] +2.9s Creating Claude haiku session via WS...
+
+  [srv] [ws] client connected: ac172ce9-4231-4c3f-99ba-971785649243
+
+  [T43.03] +3.2s PASS — session created: d13ddb85-6748-474f-a716-ca710ceaeb89
+
+
+  [T43.04] +3.2s Attaching buffer collector, waiting for RUNNING...
+
+  [T43.04] +3.2s Session RUNNING
+
+
+  [T43.05] +3.2s Opening session overlay in browser...
+
+  [srv] [ws] client disconnected: 9f9e361a-88ef-4adf-af0b-43b078474187 (code=1001 reason=)
+
+  [srv] [ws] client connected: 45a63292-4ce4-4b3d-8433-e036c4a49b78
+
+  [T43.05] +6.1s PASS — session overlay opened
+
+  [tui-wait] +6.1s Waiting for TUI ready (initial)...
+
+  [tui-wait] +6.1s TUI ready (initial, buffer length: 3352)
+
+
+  [T43.07] +6.1s Sending sentinel setup, waiting for ACK_1 (up to 45s)...
+
+  [T43.07] +8.9s PASS — ACK_1 received
+
+
+  [T43.08] +8.9s Sending messages 2-7...
+
+  [T43.08] +13.2s ACK_2 received
+
+  [T43.08] +17.7s ACK_3 received
+
+  [T43.08] +22.5s ACK_4 received
+
+  [T43.08] +27.0s ACK_5 received
+
+  [T43.08] +33.5s ACK_6 received
+
+  [T43.08] +38.4s ACK_7 received
+
+  [T43.08] +38.4s PASS — ACK_2 through ACK_7 received
+
+  [T43.08] lastLine after ACK_7: ""
+
+
+  [T43.09] +40.5s Clicking browser Refresh button...
+
+  [ws] session:subscribed received (xterm reset signal)
+
+  [T43.09] +40.6s Refresh button clicked
+
+  [T43.09] +40.7s Session RUNNING after Refresh
+
+  [T43.09] session:subscribed received — xterm reset confirmed
+
+  [ws] collector WS closed: code=1005 reason=
+
+  [srv] [ws] client disconnected: ac172ce9-4231-4c3f-99ba-971785649243 (code=1005 reason=)
+
+  [srv] [ws] client connected: bfc01188-1f54-41b6-a608-34a3db837beb
+
+  [T43.09] +40.9s Re-subscribed with fresh WS after Refresh
+
+  [tui-wait] +40.9s Waiting for TUI ready (post-Refresh)...
+
+  [tui-wait] +42.1s TUI ready (post-Refresh, buffer length: 3058)
+
+  [T43.09] +42.1s Sending NEXT, waiting for ACK_8...
+
+  [T43.09] +44.0s PASS — ACK_8 received after Refresh
+
+
+  [T43.10] +44.3s Sending messages 9-12...
+
+  [T43.10] +49.1s ACK_9 received
+
+  [T43.10] +53.4s ACK_10 received
+
+  [T43.10] +58.3s ACK_11 received
+
+  [T43.10] +64.5s ACK_12 received
+
+  [T43.10] +64.5s PASS — ACK_9 through ACK_12 received
+
+  [T43.10] lastLine after ACK_12: ""
+
+
+  [T43.11] +66.6s Hard-reloading browser (CDP cache bypass)...
+
+  [srv] [ws] client disconnected: 45a63292-4ce4-4b3d-8433-e036c4a49b78 (code=1001 reason=)
+
+  [srv] [ws] client connected: e1131584-2c52-46b4-aed6-45bf5c36e2be
+
+  [T43.11] +68.0s Browser reloaded, WS reconnected
+
+  [T43.11] +69.0s Overlay reopened after reload
+
+  [T43.11] +71.0s Sending NEXT, waiting for ACK_13...
+
+  [T43.11] +72.6s PASS — ACK_13 received after hard reload
+
+
+  [T43.12] +72.7s Sending messages 14-16...
+
+  [T43.12] +77.2s ACK_14 received
+
+  [T43.12] +81.7s ACK_15 received
+
+  [T43.12] +87.7s ACK_16 received
+
+  [T43.12] +87.7s PASS — ACK_14 through ACK_16 received
+
+
+  [T43.13] +87.7s Closing terminal overlay (✕ button)...
+
+  [T43.13] +87.8s Overlay closed
+
+  [T43.13] +88.5s Overlay reopened
+
+  [T43.13] +89.5s Sending NEXT, waiting for ACK_17...
+
+  [T43.13] +91.8s PASS — ACK_17 received after overlay close/reopen
+
+
+  [T43.14] +91.9s Sending messages 18-20...
+
+  [T43.14] +96.6s ACK_18 received
+
+  [T43.14] +101.2s ACK_19 received
+
+  [T43.14] +106.1s ACK_20 received
+
+  [T43.14] +106.1s PASS — ACK_18 through ACK_20 received
+
+  [T43.14] lastLine after ACK_20: ""
+
+
+  [T43.15] +108.2s Stopping session via Stop button...
+
+  [T43.15] +108.3s Stop button clicked
+
+  [T43.15] +108.3s PASS — session stopped
+
+
+  [T43.16] +108.4s Deleting session via browser Delete button...
+
+  [T43.16] Dialog: "Delete session "T43-haiku"?" — accepting
+
+  [T43.16] +109.1s PASS — session card gone from browser UI
+
+  [T43.16] +109.1s PASS — session deleted from API
+
+
+  ── FINAL ASSERTIONS ──
+
+  [PASS] All 20 ACKs received in order (ACK_1 through ACK_20)
+
+  [PASS] Refresh preserved conversation continuity (ACK_8 arrived)
+
+  [PASS] Hard reload preserved conversation continuity (ACK_13 arrived)
+
+  [PASS] Overlay close/reopen preserved conversation continuity (ACK_17 arrived)
+
+  [PASS] Session stopped cleanly
+
+  [PASS] Session card removed from UI and API after delete
+
+
+  ✓ T-43 ALL STEPS PASSED — +109.2s elapsed
+
+  [ws] collector WS closed: code=1005 reason=
+
+  [srv] [ws] client disconnected: bfc01188-1f54-41b6-a608-34a3db837beb (code=1005 reason=)
+
+  [srv] [ws] client disconnected: e1131584-2c52-46b4-aed6-45bf5c36e2be (code=1001 reason=)
+
+
+
+  1 passed (1.9m)

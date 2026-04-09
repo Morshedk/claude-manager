@@ -1,0 +1,47 @@
+
+Running 2 tests using 1 worker
+
+
+  [T-11] tmpDir: /tmp/qa-T11-I9fru1
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3108
+  [T-11] Server ready on port 3108
+  [T-11] PRE-CONDITION: Server has 0 projects — clean state confirmed
+
+  [T-11] Step 1: Navigate and verify empty state
+  [srv] [ws] client connected: 05c408c0-56df-4525-b4e3-d2c5c97d343e
+  [T-11] Empty state: "No projects yet — add one below" ✓
+  [T-11] Step 2: Open New Project modal
+  [T-11] New Project modal opened ✓
+  [T-11] Step 3: Fill project form
+  [T-11] Form filled ✓
+  [T-11] Step 4: Submit project form
+  [T-11] Modal closed ✓
+  [T-11] "My First Project" appears in sidebar ✓
+  [T-11] Step 5: Verify auto-selection
+  [T-11] Main pane shows "Sessions — My First Project" ✓
+  [T-11] Sessions empty state: "No sessions — start one with the button above" ✓
+  [T-11] Step 6: Open New Claude Session modal
+  [T-11] New Session modal opened ✓
+  [T-11] Step 7: Fill session form
+  [T-11] Haiku selected — command: "claude --model claude-haiku-4-5-20251001" ✓
+  [T-11] Step 8: Start session
+  [T-11] Session modal closed ✓
+  [T-11] Session card "my-first-session" appears ✓
+  [T-11] Session badge text: "▶ running"
+  [T-11] Badge shows valid state: "▶ running" ✓
+  [T-11] Step 9 (bonus): Check if overlay auto-opens
+  [T-11] Session overlay did not auto-open (non-critical)
+  [T-11] No critical console errors ✓
+
+  [T-11] ✅ ALL STEPS PASSED
+  [srv] [ws] client disconnected: 05c408c0-56df-4525-b4e3-d2c5c97d343e (code=1001 reason=)
+  ✓  1 [chromium] › tests/adversarial/T-11-first-5-minutes.test.js:89:3 › T-11 — New User First 5 Minutes › T-11 — full new user flow: empty state → project → session card (8.1s)
+  [srv] [ws] client connected: 2763dbed-70a3-4387-a28a-3704729466ac
+  [T-11b] Empty name validation works ✓
+  [T-11b] Modal stays open after validation error ✓
+  [srv] [ws] client disconnected: 2763dbed-70a3-4387-a28a-3704729466ac (code=1001 reason=)
+  [srv:ERR] [2026-04-08T19:57:56.526Z] SIGTERM received — server exiting (pid=2993590)
+[2026-04-08T19:57:56.527Z] Server process exiting with code 0 (pid=2993590)
+  ✓  2 [chromium] › tests/adversarial/T-11-first-5-minutes.test.js:272:3 › T-11 — New User First 5 Minutes › T-11b — empty project name shows validation error (4.5s)
+
+  2 passed (16.5s)

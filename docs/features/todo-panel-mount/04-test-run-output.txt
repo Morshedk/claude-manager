@@ -1,0 +1,85 @@
+=== T-1: TodoPanel reachable via UI — empty state for fresh project ===
+Result: PASS
+Attempts: 1
+Duration: 8.7s (test) / 45.9s (total with startup)
+Key observations:
+  - #todos-tab-btn found in DOM after project selection
+  - Clicking tab mounted #todo-panel-container
+  - .todo-header-title = "TODO List"
+  - .todo-empty visible: "📋No TODOs yet Items will auto-generate from session activity, or add your own."
+  - #project-sessions-list correctly absent from DOM while on TODOs tab
+  - No JS console errors
+Fix applied: None — passed on first attempt
+
+=== T-2: Add a TODO and see it appear ===
+Result: PASS
+Attempts: 1
+Duration: 15.5s (test) / 22.0s (total)
+Key observations:
+  - Empty state confirmed before adding
+  - Add form appeared on "+ Add" click
+  - "Fix the login bug" appeared in .todo-item after form submit
+  - Empty state correctly gone after adding
+  - REST GET /api/todos/proj-t2 confirmed item persisted on server immediately
+  - After full page reload + re-navigation: "Fix the login bug" still present
+  - No JS errors
+Fix applied: None — passed on first attempt
+
+=== T-3: Priority filter works — High filter hides Medium items ===
+Result: PASS
+Attempts: 1
+Duration: 7.4s (test) / 15.2s (total)
+Key observations:
+  - Both high and medium items visible initially (2 items confirmed)
+  - After "high" filter click: exactly 1 item visible, confirmed "High priority task"
+  - "Medium priority task" text absent from .todo-list
+  - After resetting to "all" filter: both items visible again (2 confirmed)
+Fix applied: None — passed on first attempt
+
+=== T-4: TODO persists after browser reload ===
+Result: PASS
+Attempts: 1
+Duration: 11.4s (test) / 15.5s (total)
+Key observations:
+  - "Persisted task" appeared on first visit after REST seed
+  - Priority "low" badge visible
+  - After full page reload + re-navigation: "Persisted task" still present
+  - Priority "low" preserved after reload
+Fix applied: None — passed on first attempt
+
+=== T-5: Adversarial — Empty title is blocked ===
+Result: PASS
+Attempts: 1
+Duration: 8.6s (test) / 13.3s (total)
+Key observations:
+  - Opened add form, left title empty
+  - Clicked "Add" button: 0 .todo-item elements created
+  - Add form remained open
+  - Pressed Enter with empty title: still 0 .todo-item elements
+  - REST GET /api/todos/proj-t5 confirmed 0 items stored (empty title guard worked)
+Fix applied: None — passed on first attempt
+
+=== T-6: Project switching — TODOs are isolated per project ===
+Result: PASS (after 2 attempts due to infrastructure bug)
+Attempts: 2
+Duration: 7.8s (test) / 12.0s (total, attempt 2)
+Key observations (attempt 1 - FAIL):
+  - Used `path: '/tmp'` for both projects
+  - ProjectStore._dedup() deduplicates by path, so Project Beta was silently dropped
+  - 'text=Project Beta' selector timeout (only Alpha existed)
+Key observations (attempt 2 - PASS):
+  - Used distinct tmpDir subdirectory paths (tmpDir/alpha, tmpDir/beta) for each project
+  - Both projects loaded correctly
+  - Alpha's "Alpha task" confirmed visible on Alpha project's TODOs tab
+  - After switching to Beta: "Alpha task" NOT in DOM
+  - Beta shows ".todo-empty" with "No TODOs yet"
+  - Project isolation confirmed: separate useEffect([projectId]) fetch for each project
+Fix applied: Changed both projects to have unique directory paths (tmpDir/alpha, tmpDir/beta) to avoid ProjectStore path-based deduplication. Infrastructure bug — test selector was correct, precondition setup was wrong.
+
+=== SUMMARY ===
+Tests: 6/6 PASS
+Total test time: ~120s across all 6 tests
+Infrastructure discoveries:
+  - ProjectStore deduplicates projects by path — use distinct paths in multi-project tests
+  - Must use `node --experimental-vm-modules` to run ESM jest tests
+  - Chromium binary at: /home/claude-runner/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome

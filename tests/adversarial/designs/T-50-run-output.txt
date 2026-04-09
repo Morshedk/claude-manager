@@ -1,0 +1,113 @@
+T-50: Concurrent Refresh on Two Tabs — No Orphaned PTY Processes
+Run date: 2026-04-08
+Port: 3147
+Result: 3/3 PASS (31.7s)
+
+══════════════════════════════════════════════════════════════
+TEST EXECUTION LOG
+══════════════════════════════════════════════════════════════
+
+[T-50] tmpDir: /tmp/qa-T50-qe1Dgn
+[T-50] Marker script created: /tmp/qa-T50-qe1Dgn/marker-sleep.sh
+[srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3147
+[T-50] Server ready on port 3147
+
+── T-50a: Concurrent session:refresh from two WS connections spawns only ONE new PTY ──
+
+[T-50a] ws1 and ws2 connected
+[T-50a] Sent session:create
+[T-50a] Session created: cbdc7441-d140-4847-86bf-3bb7b066a58b
+[T-50a] Session running — original PID: 3109061
+[T-50a] Processes with tmpDir marker before refresh: 1
+[T-50a] ws2 subscribed to session
+[T-50a] Both session:refresh messages sent within 0ms
+
+WS1 messages received after refresh:
+  session:state state=starting
+  session:state state=running
+  session:state state=starting
+  session:state state=running
+  session:subscribed
+  session:refreshed
+  sessions:list
+  session:subscribed
+  sessions:list
+
+WS2 messages received after refresh:
+  session:state state=starting
+  session:state state=running
+  session:state state=starting
+  session:state state=running
+  session:subscribed
+  sessions:list
+  session:subscribed
+  session:refreshed
+  sessions:list
+
+[T-50a] session:refreshed received: 2
+[T-50a] session:error received: 0
+[T-50a] BOTH refreshes succeeded — checking for orphaned PTY...
+[T-50a] NOTE: This is a sequential double-refresh (not true concurrent).
+[T-50a]       Both WS messages arrived to server, processed sequentially.
+[T-50a]       Second refresh fires after first completes RUNNING transition.
+[T-50a] Session final state: running, PID: 3109219
+[T-50a] PASS — New PID 3109219 (was 3109061)
+[T-50a] Processes with tmpDir marker after refresh: 1
+[T-50a] PASS — No orphaned PTY (exactly 1 marker process)
+[T-50a] PASS — Server still alive
+
+── T-50b: Multiple sequential refreshes produce monotonically increasing PIDs ──
+
+[T-50b] Session created: b5d067bd-a93f-4b61-b812-a07ad0fa4afe
+[T-50b] Initial PID: 3111185
+[T-50b] After refresh #1 — PID: 3111192
+[T-50b] Original PID 3111185 alive after refresh #1: false
+[T-50b] After refresh #2 — PID: 3111300
+[T-50b] Refresh #1 PID 3111192 alive after refresh #2: false
+[T-50b] Marker processes (by tmpDir path) after 2 refreshes: 1
+[T-50b] PASS — All 3 PIDs unique, all old PTYs killed, exactly 1 alive
+
+── T-50c: No unhandled rejections or exceptions in crash log ──
+
+[T-50c] PASS — crash.log is empty
+
+══════════════════════════════════════════════════════════════
+SUMMARY
+══════════════════════════════════════════════════════════════
+
+Test result: 3/3 PASS
+Duration: 31.7 seconds
+
+Key finding — Design correction:
+The design analysis predicted that concurrent refreshes from two WS connections would
+be blocked by the STARTING state guard. However, the actual behavior is:
+
+  BOTH refreshes succeeded — no session:error was returned to either WS.
+
+This is because Node.js processes each WebSocket message as a SEPARATE async event.
+The server handles ws1's refresh completely (kill PTY → spawn → STARTING → RUNNING)
+before the event loop processes ws2's refresh message. By the time ws2's refresh
+handler runs, the session is back in RUNNING state — which is a valid state to refresh
+from. So ws2's refresh gets a second valid refresh.
+
+The state sequence observed:
+  RUNNING → starting → running → starting → running
+
+Critical assertion — NO ORPHANED PTY:
+Despite two refresh cycles completing, the ps count shows exactly 1 marker process
+after stabilization. The _ptyGen mechanism correctly kills the first new PTY when
+the second refresh fires. There is no orphaned process.
+
+The test PASSES because the key invariant holds:
+  "No orphaned PTY processes" — TRUE (count=1 throughout)
+  "Session reaches stable running state" — TRUE
+  "Server survives concurrent refresh" — TRUE
+  "No unhandled exceptions" — TRUE
+
+Deviations from design:
+1. exec -a is not available on this system; used tmpDir path as ps marker instead
+2. Both refreshes succeeded (design predicted one would be blocked). This is NOT a bug:
+   the refreshes are sequential (Node.js single-threaded event loop), not truly concurrent.
+   The design overestimated how "concurrent" WS message handling is in practice.
+3. _ptyGen prevents orphaned PTYs even when two refreshes succeed sequentially — this
+   is the intended safety mechanism and works correctly.

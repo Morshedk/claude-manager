@@ -1,0 +1,273 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-12-tmux-survives-close.test.js:212:3 › T-12 — Tmux Session Survives Browser Tab Close and Re-Open › T-12 — Tmux session survives browser close: tmux alive, card running, content preserved
+[1A[2K[chromium] › tests/adversarial/T-12-tmux-survives-close.test.js:212:3 › T-12 — Tmux Session Survives Browser Tab Close and Re-Open › T-12 — Tmux session survives browser close: tmux alive, card running, content preserved
+
+
+[1A[2K
+
+[1A[2K
+  [T-12] dataDir: /tmp/t12-RxoTXK
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3109
+
+[1A[2K  [T-12] Server ready on port 3109 (pid: 2969039)
+
+[1A[2K  [srv] [ws] client connected: 1538a26c-c793-4dc2-b261-3ccf758d1650
+
+[1A[2K
+  [T-12] Phase 1: App loaded and Connected
+
+[1A[2K  [T-12] Project selected
+
+[1A[2K  [T-12] New Session modal opened
+
+[1A[2K  [T-12] Tmux mode selected
+
+[1A[2K  [T-12] Start Session clicked
+
+[1A[2K  [T-12] Session card shows running
+
+[1A[2K  [T-12] Session id=d240c031-0c40-4eb6-a9ad-d2a416d2dc47 tmuxName=cm-d240c031
+
+[1A[2K  [T-12] tmuxName format correct: cm-d240c031
+
+[1A[2K
+
+[1A[2K  [T-12] Check PASS: tmux session cm-d240c031 alive on OS
+
+[1A[2K  [T-12] Terminal overlay opened
+
+[1A[2K  [T-12] Pre-close marker: T12_PRE_CLOSE_1775678065318
+
+[1A[2K  [T-12] Pre-close marker visible in terminal
+
+[1A[2K  [T-12] Closing browser 1 (simulating tab close)...
+
+[1A[2K  [srv] [ws] client disconnected: 1538a26c-c793-4dc2-b261-3ccf758d1650 (code=1001 reason=)
+
+[1A[2K  [T-12] Waiting 5 seconds after browser close...
+
+[1A[2K
+
+[1A[2K  [T-12] Check PASS: tmux session cm-d240c031 alive 5s after browser close
+
+[1A[2K
+
+[1A[2K  [T-12] tmux ls output:
+cm-001fdad6: 1 windows (created Wed Apr  8 03:42:20 2026)
+cm-03602710: 1 windows (created Wed Apr  8 08:49:45 2026)
+cm-040aa645: 1 windows (created Wed Apr  8 06:12:46 2026)
+cm-0ba50d79: 1 windows (created Wed Apr  8 03:44:13 2026)
+cm-0c4286b0: 1 windows (created Tue Apr  7 20:11:53 2026)
+cm-0d56e858: 1 windows (created Tue Apr  7 20:26:18 2026)
+cm-0df10ac2: 1 windows (created Tue Apr  7 21:10:25 2026)
+cm-0eb606ee: 1 windows (created Tue Apr  7 21:16:43 2026)
+cm-124cd621: 1 windows (created Tue Apr  7 20:06:25 2026)
+cm-14982473: 1 windows (created Tue Apr  7 21:10:31 2026)
+cm-14bc0a4c: 1 windows (created Tue Apr  7 20:55:47 2026)
+cm-1506c50b: 1 windows (created Tue Apr  7 22:24:47 2026)
+cm-1508cf40: 1 windows (created Tue Apr  7 21:16:17 2026)
+cm-153792cc: 1 windows (created Wed Apr  8 19:51:21 2026)
+cm-1902d684: 1 windows (created Tue Apr  7 22:24:52 2026)
+cm-19071c9e: 1 windows (created Wed Apr  8 03:38:01 2026)
+cm-1989f8be: 1 windows (created Wed Apr  8 06:39:24 2026)
+cm-1c069f0d: 1 windows (created Wed Apr  8 03:29:53 2026)
+cm-2045a0f6: 1 windows (created Tue Apr  7 20:07:44 2026)
+cm-22dd97b6: 1 windows (created Tue Apr  7 20:13:54 2026)
+cm-262ca582: 1 windows (created Tue Apr  7 21:44:01 2026)
+cm-27f3d69a: 1 windows (created Tue Apr  7 21:11:31 2026)
+cm-29c40790: 1 windows (created Wed Apr  8 06:39:30 2026)
+cm-2cbd39dc: 1 windows (created Wed Apr  8 04:02:13 2026)
+cm-2ce6258e: 1 windows (created Wed Apr  8 09:03:13 2026)
+cm-2f14b9f7: 1 windows (created Tue Apr  7 21:46:38 2026)
+cm-3044be2f: 1 windows (created Wed Apr  8 04:05:00 2026)
+cm-32c40f24: 1 windows (created Tue Apr  7 15:56:20 2026) (attached)
+cm-33d12465: 1 windows (created Tue Apr  7 20:14:19 2026)
+cm-36c03b7e: 1 windows (created Wed Apr  8 03:15:16 2026)
+cm-38f4dca0: 1 windows (created Wed Apr  8 04:02:19 2026)
+cm-39e74df4: 1 windows (created Tue Apr  7 14:47:02 2026)
+cm-39fc6edd: 1 windows (created Tue Apr  7 20:47:29 2026)
+cm-3b0558fd: 1 windows (created Wed Apr  8 05:38:46 2026)
+cm-3d6fef00: 1 windows (created Tue Apr  7 20:55:42 2026)
+cm-3ebdc34d: 1 windows (created Wed Apr  8 06:09:41 2026)
+cm-4237ed7b: 1 windows (created Wed Apr  8 05:41:38 2026)
+cm-43aca9b7: 1 windows (created Tue Apr  7 22:10:56 2026)
+cm-4517a93e: 1 windows (created Wed Apr  8 03:44:08 2026)
+cm-48aac6aa: 1 windows (created Tue Apr  7 20:45:44 2026)
+cm-49b7c5bf: 1 windows (created Wed Apr  8 00:02:17 2026) (attached)
+cm-4a2a9c00: 1 windows (created Tue Apr  7 20:34:50 2026)
+cm-4a631641: 1 windows (created Tue Apr  7 21:40:40 2026)
+cm-4ba201dc: 1 windows (created Wed Apr  8 03:13:12 2026)
+cm-4e5a8ce5: 1 windows (created Wed Apr  8 03:35:56 2026)
+cm-4f3eb9f5: 1 windows (created Tue Apr  7 21:11:21 2026)
+cm-502733d6: 1 windows (created Wed Apr  8 06:09:37 2026)
+cm-514584fa: 1 windows (created Tue Apr  7 20:10:50 2026)
+cm-5430f2ce: 1 windows (created Tue Apr  7 22:20:38 2026)
+cm-55a9cade: 1 windows (created Tue Apr  7 20:54:54 2026)
+cm-5732dc1b: 1 windows (created Wed Apr  8 05:38:41 2026)
+cm-586f6c4d: 1 windows (created Tue Apr  7 22:10:50 2026)
+cm-5aafd38e: 1 windows (created Tue Apr  7 11:03:55 2026) (attached)
+cm-5c20bc7b: 1 windows (created Tue Apr  7 21:40:35 2026)
+cm-5e44f80e: 1 windows (created Wed Apr  8 11:35:57 2026)
+cm-5f135d46: 1 windows (created Wed Apr  8 03:55:40 2026)
+cm-5f7d05d1: 1 windows (created Wed Apr  8 08:47:19 2026)
+cm-5fb0285d: 1 windows (created Wed Apr  8 03:15:22 2026)
+cm-610e3bdf: 1 windows (created Tue Apr  7 21:43:55 2026)
+cm-611c32e9: 1 windows (created Wed Apr  8 03:46:14 2026)
+cm-6206d660: 1 windows (created Tue Apr  7 20:58:46 2026)
+cm-620f4cb7: 1 windows (created Tue Apr  7 20:09:00 2026)
+cm-62b6d3c8: 1 windows (created Tue Apr  7 04:08:49 2026) (attached)
+cm-639b11fa: 1 windows (created Wed Apr  8 09:03:07 2026)
+cm-6829c029: 1 windows (created Wed Apr  8 03:37:55 2026)
+cm-684d9d97: 1 windows (created Wed Apr  8 03:29:48 2026)
+cm-6974e59f: 1 windows (created Tue Apr  7 21:16:12 2026)
+cm-6a056c3f: 1 windows (created Tue Apr  7 21:39:56 2026)
+cm-6bac5153: 1 windows (created Tue Apr  7 20:35:05 2026)
+cm-6dbce8d8: 1 windows (created Tue Apr  7 20:59:26 2026)
+cm-70a4faf1: 1 windows (created Tue Apr  7 20:28:09 2026)
+cm-717c4659: 1 windows (created Tue Apr  7 20:54:30 2026)
+cm-75751876: 1 windows (created Wed Apr  8 03:35:51 2026)
+cm-77194c55: 1 windows (created Tue Apr  7 20:30:51 2026)
+cm-786e046b: 1 windows (created Tue Apr  7 21:17:23 2026)
+cm-7945c0e5: 1 windows (created Wed Apr  8 03:45:42 2026)
+cm-79a7eb2b: 1 windows (created Wed Apr  8 09:10:32 2026)
+cm-7a116e3f: 1 windows (created Wed Apr  8 08:47:24 2026)
+cm-7cff062c: 1 windows (created Wed Apr  8 09:06:17 2026)
+cm-7dec2bc0: 1 windows (created Wed Apr  8 08:57:16 2026)
+cm-7e7adc33: 1 windows (created Wed Apr  8 08:58:18 2026)
+cm-7e840de9: 1 windows (created Tue Apr  7 21:37:40 2026)
+cm-82bed00a: 1 windows (created Wed Apr  8 11:35:52 2026)
+cm-83abd5cf: 1 windows (created Wed Apr  8 03:42:13 2026)
+cm-844ff541: 1 windows (created Tue Apr  7 22:20:31 2026)
+cm-8522f800: 1 windows (created Wed Apr  8 09:06:22 2026)
+cm-85c8dcbf: 1 windows (created Wed Apr  8 04:05:05 2026)
+cm-8ad58881: 1 windows (created Wed Apr  8 11:37:56 2026)
+cm-8fd6375e: 1 windows (created Wed Apr  8 11:38:59 2026)
+cm-92d1e184: 1 windows (created Wed Apr  8 03:46:19 2026)
+cm-9396a638: 1 windows (created Wed Apr  8 09:10:25 2026)
+cm-97697d46: 1 windows (created Wed Apr  8 03:48:22 2026)
+cm-9b1fec6f: 1 windows (created Wed Apr  8 03:56:49 2026)
+cm-9c74e427: 1 windows (created Tue Apr  7 20:58:52 2026)
+cm-a0407298: 1 windows (created Wed Apr  8 08:57:20 2026)
+cm-a36116ff: 1 windows (created Wed Apr  8 03:55:34 2026)
+cm-a3ca4664: 1 windows (created Tue Apr  7 11:07:15 2026)
+cm-a59547a4: 1 windows (created Wed Apr  8 03:31:38 2026)
+cm-a685c2a3: 1 windows (created Tue Apr  7 20:27:58 2026)
+cm-a7076e0f: 1 windows (created Wed Apr  8 03:56:44 2026)
+cm-a9da6382: 1 windows (created Wed Apr  8 08:49:49 2026)
+cm-ab07fa50: 1 windows (created Wed Apr  8 03:31:32 2026)
+cm-ad2e0ee0: 1 windows (created Wed Apr  8 04:00:14 2026)
+cm-b0e8b50b: 1 windows (created Wed Apr  8 05:36:01 2026)
+cm-b26df2b6: 1 windows (created Tue Apr  7 20:10:48 2026)
+cm-b35ef333: 1 windows (created Tue Apr  7 20:10:10 2026)
+cm-b3602094: 1 windows (created Wed Apr  8 04:00:27 2026)
+cm-b3b0556d: 1 windows (created Wed Apr  8 03:48:18 2026)
+cm-b411b8ae: 1 windows (created Tue Apr  7 21:17:17 2026)
+cm-b45d581f: 1 windows (created Wed Apr  8 03:49:02 2026)
+cm-b5891a44: 1 windows (created Tue Apr  7 11:10:39 2026)
+cm-b7a6db40: 1 windows (created Tue Apr  7 21:07:15 2026)
+cm-b9eb05f8: 1 windows (created Wed Apr  8 05:41:44 2026)
+cm-bd22e4d2: 1 windows (created Tue Apr  7 16:10:45 2026) (attached)
+cm-bd7ad503: 1 windows (created Tue Apr  7 21:07:09 2026)
+cm-c02d0af0: 1 windows (created Wed Apr  8 08:58:14 2026)
+cm-c250c5cb: 1 windows (created Wed Apr  8 08:53:47 2026)
+cm-c29a97a3: 1 windows (created Tue Apr  7 21:46:47 2026)
+cm-c2b98e5a: 1 windows (created Wed Apr  8 03:48:56 2026)
+cm-c3348db8: 1 windows (created Wed Apr  8 03:13:08 2026)
+cm-c539cd73: 1 windows (created Tue Apr  7 21:42:08 2026)
+cm-c698572e: 1 windows (created Wed Apr  8 03:54:26 2026)
+cm-cacff1cf: 1 windows (created Tue Apr  7 10:59:11 2026)
+cm-cc3cf128: 1 windows (created Wed Apr  8 03:42:14 2026)
+cm-ce0e768a: 1 windows (created Tue Apr  7 21:39:51 2026)
+cm-cfa01dbb: 1 windows (created Wed Apr  8 03:54:19 2026)
+cm-d240c031: 1 windows (created Wed Apr  8 19:54:22 2026) (attached)
+cm-d2efc909: 1 windows (created Tue Apr  7 20:54:25 2026)
+cm-d8579b67: 1 windows (created Tue Apr  7 20:26:11 2026)
+cm-d872ddbe: 1 windows (created Tue Apr  7 03:50:11 2026)
+cm-d9330b87: 1 windows (created Wed Apr  8 05:35:55 2026)
+cm-d936b27e: 1 windows (created Wed Apr  8 11:39:02 2026)
+cm-d97955df: 1 windows (created Wed Apr  8 08:53:52 2026)
+cm-db827826: 1 windows (created Wed Apr  8 03:42:21 2026)
+cm-de0f8d55: 1 windows (created Wed Apr  8 11:38:01 2026)
+cm-e4389feb: 1 windows (created Tue Apr  7 20:59:20 2026)
+cm-e9bb7731: 1 windows (created Tue Apr  7 21:42:13 2026)
+cm-ed3b1738: 1 windows (created Tue Apr  7 11:11:31 2026)
+cm-ed5604aa: 1 windows (created Tue Apr  7 20:20:34 2026)
+cm-edb04ee7: 1 windows (created Tue Apr  7 21:37:45 2026)
+cm-ede4871a: 1 windows (created Tue Apr  7 11:05:26 2026)
+cm-f0ba51c3: 1 windows (created Tue Apr  7 11:11:59 2026)
+cm-f0fa3114: 1 windows (created Tue Apr  7 20:19:18 2026)
+cm-f110f828: 1 windows (created Tue Apr  7 21:16:38 2026)
+cm-f47f696e: 1 windows (created Wed Apr  8 03:45:48 2026)
+cm-f612b913: 1 windows (created Tue Apr  7 20:24:25 2026)
+cm-f61440fb: 1 windows (created Wed Apr  8 06:12:41 2026)
+cm-f6d9a68a: 1 windows (created Tue Apr  7 01:18:59 2026)
+cm-f71903c4: 1 windows (created Mon Apr  6 18:53:28 2026)
+cm-f99c510c: 1 windows (created Tue Apr  7 03:38:39 2026)
+cm-fa628708: 1 windows (created Tue Apr  7 20:54:59 2026)
+cm-fb211257: 1 windows (created Tue Apr  7 02:22:49 2026)
+cm-fff7ca10: 1 windows (created Tue Apr  7 20:17:32 2026)
+factory: 1 windows (created Wed Apr  8 12:40:14 2026)
+factory2: 1 windows (created Wed Apr  8 12:40:24 2026)
+
+
+[1A[2K
+
+[1A[2K  [T-12] tmux capture-pane (817 chars), looking for T12_PRE_CLOSE_1775678065318...
+
+[1A[2K  [T-12] Check PASS: pre-close marker found in tmux pane history
+
+[1A[2K
+  [T-12] Phase 3: Reopening browser...
+
+[1A[2K  [srv] [ws] client connected: b46653f3-98f7-47ac-9ed3-4b7e68ad6e69
+
+[1A[2K  [T-12] Phase 3: App loaded in browser 2, Connected
+
+[1A[2K  [T-12] Project re-selected
+
+[1A[2K  [T-12] Check PASS: Session card shows "running" after reopen
+
+[1A[2K
+
+[1A[2K  [T-12] Check PASS: tmux session cm-d240c031 alive after browser reopen
+
+[1A[2K  [T-12] Check PASS: API confirms session running after reopen
+
+[1A[2K  [T-12] Terminal overlay opened in browser 2
+
+[1A[2K  [T-12] Terminal text length after reopen: 54887
+
+[1A[2K  [T-12] Check PASS: Terminal is non-blank after reopen
+
+[1A[2K  [T-12] INFO: pre-close marker not in browser terminal view (may only show new output) — tmux capture-pane confirmed it above
+
+[1A[2K  [T-12] Post-open I/O marker: T12_POST_OPEN_1775678075477
+
+[1A[2K  [T-12] Check PASS: Post-open I/O marker appeared in terminal (bidirectional I/O works)
+
+[1A[2K  [T-12] Crash log: no entries during test window
+
+[1A[2K
+  [T-12] ALL CHECKS PASSED — Test COMPLETE
+
+[1A[2K  [srv] [ws] client disconnected: b46653f3-98f7-47ac-9ed3-4b7e68ad6e69 (code=1001 reason=)
+
+[1A[2K
+
+[1A[2K  [srv:ERR] [2026-04-08T19:54:35.783Z] SIGTERM received — server exiting (pid=2969039)
+[2026-04-08T19:54:35.784Z] Server process exiting with code 0 (pid=2969039)
+
+[1A[2K
+  [T-12] CRASH LOG:
+[2026-04-08T19:54:35.783Z] SIGTERM received — server exiting (pid=2969039)
+[2026-04-08T19:54:35.784Z] Server process exiting with code 0 (pid=2969039)
+
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  1 passed (21.2s)

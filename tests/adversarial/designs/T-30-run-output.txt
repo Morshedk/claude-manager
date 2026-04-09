@@ -1,0 +1,41 @@
+Running 1 test using 1 worker (after 2 attempts — fix applied)
+
+=== ATTEMPT 1 (FAILED) ===
+  [T-30] Session created: fb70721c-...
+  [T-30] PID before refresh: 3019730
+  Error: [received].[toBe]([expected])
+  Expected: "3019730"
+  Received: "3019971"
+  → PID CHANGED. Investigation revealed the bug was in the test, not the app.
+
+=== ROOT CAUSE OF INITIAL FAILURE ===
+  The test used: execSync(`tmux send-keys -t ... "echo PIDMARKER=$$" Enter`)
+  $$ is expanded by execSync's sh -c shell (a new process each time), NOT by
+  the bash inside the tmux pane. So each invocation captured a different PID —
+  the PID of the ephemeral sh subprocess, not the stable bash inside tmux.
+
+  Fix: use `tmux display-message -p '#{pane_pid}'` which queries the tmux server
+  directly for the PID of the process running inside the pane. No shell expansion.
+
+=== ATTEMPT 2 (PASSED) ===
+  [T-30] tmpDir: /tmp/qa-T30-ogC3y7
+  [T-30] Server ready on port 3127
+  [T-30] Step 1: Creating tmux bash session...
+  [T-30] Session created: 6bade30d-dafb-...
+  [T-30] Expected tmux name: cm-6bade30d
+  [T-30] Session running
+  [T-30] Confirmed tmux session "cm-6bade30d" exists
+  [T-30] Step 3: Getting PID before refresh...
+  [T-30] PID before refresh: 3054280
+  [T-30] Step 4: Sending session:refresh...
+  [T-30] session:subscribed received (PTY re-attached)
+  [T-30] session:refreshed received
+  [T-30] Step 5: Verifying tmux session still alive...
+  [T-30] Confirmed tmux session "cm-6bade30d" still alive after refresh
+  [T-30] Step 6: Getting PID after refresh...
+  [T-30] PID after refresh: 3054280
+  [T-30] Comparing PIDs: before=3054280, after=3054280
+  [T-30] PASS: PID unchanged — process inside tmux was not killed by refresh
+  [T-30] Browser confirms session still running after refresh
+
+  1 passed (9.6s)

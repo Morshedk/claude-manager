@@ -1,0 +1,217 @@
+
+Running 3 tests using 1 worker
+
+[1A[2K[1/3] [chromium] › tests/adversarial/T-14-delete-cancel.test.js:269:3 › T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact › T-14.A — Cancel on delete dialog leaves session intact (3 iterations)
+[1A[2K[chromium] › tests/adversarial/T-14-delete-cancel.test.js:269:3 › T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact › T-14.A — Cancel on delete dialog leaves session intact (3 iterations)
+
+
+[1A[2K
+
+[1A[2K
+  [T-14] tmpDir: /tmp/qa-T14-chb7pS
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3111
+
+[1A[2K  [T-14] Server ready on port 3111
+
+[1A[2K  [T-14] Project created: 480f5c79-7150-4398-8427-84773c7da91a (T14-project)
+
+[1A[2K  [srv] [ws] client connected: 9267598b-2471-4be9-af91-ff6d7814abb7
+
+[1A[2K
+  [T-14] === Cancel iteration 1/3 ===
+
+[1A[2K  [T-14] Creating session: T14-repeat-1
+
+[1A[2K  [srv] [ws] client connected: e8e1f87a-5da6-41db-b30a-7058f4629e2f
+
+[1A[2K  [T-14] Session created: 63a2d5ef-8c28-43e3-8943-59bffc28844e
+
+[1A[2K  [T-14] Stopping session 63a2d5ef-8c28-43e3-8943-59bffc28844e...
+
+[1A[2K  [srv] [ws] client connected: 3db31423-2b93-417c-925e-ad2c7d92ae69
+[ws] client disconnected: e8e1f87a-5da6-41db-b30a-7058f4629e2f (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: 3db31423-2b93-417c-925e-ad2c7d92ae69 (code=1005 reason=)
+
+[1A[2K  [T-14] Session state: stopped ✓
+
+[1A[2K  [T-14] Clicking Delete button for "T14-repeat-1"...
+
+[1A[2K  [T-14] Dialog fired: type="confirm" msg="Delete session "T14-repeat-1"?"
+
+[1A[2K  [T-14] ✓ Dialog appeared
+
+[1A[2K  [T-14] ✓ Dialog type is 'confirm'
+
+[1A[2K  [T-14] ✓ Dialog message contains session name
+
+[1A[2K  [T-14] ✓ No session:delete WS message sent
+
+[1A[2K  [T-14] ✓ Session card still visible in DOM
+
+[1A[2K  [T-14] ✓ Session still exists on server (REST)
+
+[1A[2K  [T-14] ✓ Session card shows no error state
+
+[1A[2K  [T-14] ✓ Iteration 1 PASSED
+
+[1A[2K
+  [T-14] === Cancel iteration 2/3 ===
+
+[1A[2K  [T-14] Creating session: T14-repeat-2
+
+[1A[2K  [srv] [ws] client connected: 6909dddd-df7a-4789-81ca-7884132b9658
+
+[1A[2K  [T-14] Session created: 5d577234-7ae1-4f00-b56d-7ea01e4757da
+
+[1A[2K  [T-14] Stopping session 5d577234-7ae1-4f00-b56d-7ea01e4757da...
+
+[1A[2K  [srv] [ws] client connected: ca2bb375-6e17-4275-9884-e8e1b5f6b276
+[ws] client disconnected: 6909dddd-df7a-4789-81ca-7884132b9658 (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: ca2bb375-6e17-4275-9884-e8e1b5f6b276 (code=1005 reason=)
+
+[1A[2K  [T-14] Session state: stopped ✓
+
+[1A[2K  [srv] [ws] client disconnected: 9267598b-2471-4be9-af91-ff6d7814abb7 (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: b9680a7f-cd2a-4786-96b2-6ec30eb603a7
+
+[1A[2K  [T-14] Clicking Delete button for "T14-repeat-2"...
+
+[1A[2K  [T-14] Dialog fired: type="confirm" msg="Delete session "T14-repeat-2"?"
+
+[1A[2K  [T-14] ✓ Dialog appeared
+
+[1A[2K  [T-14] ✓ Dialog type is 'confirm'
+
+[1A[2K  [T-14] ✓ Dialog message contains session name
+
+[1A[2K  [T-14] ✓ No session:delete WS message sent
+
+[1A[2K  [T-14] ✓ Session card still visible in DOM
+
+[1A[2K  [T-14] ✓ Session still exists on server (REST)
+
+[1A[2K  [T-14] ✓ Session card shows no error state
+
+[1A[2K  [T-14] ✓ Iteration 2 PASSED
+
+[1A[2K
+  [T-14] === Cancel iteration 3/3 ===
+
+[1A[2K  [T-14] Creating session: T14-repeat-3
+
+[1A[2K  [srv] [ws] client connected: f62bdd03-7d9a-46c6-8c72-b4cb57a36568
+
+[1A[2K  [T-14] Session created: 7d43bcd0-c2ce-4a9e-a532-7c887a7d473c
+
+[1A[2K  [T-14] Stopping session 7d43bcd0-c2ce-4a9e-a532-7c887a7d473c...
+
+[1A[2K  [srv] [ws] client disconnected: f62bdd03-7d9a-46c6-8c72-b4cb57a36568 (code=1005 reason=)
+[ws] client connected: c2e50fbc-281c-4a28-8e91-9915d73fe4ce
+
+[1A[2K  [T-14] Session state: stopped ✓
+
+[1A[2K  [srv] [ws] client disconnected: c2e50fbc-281c-4a28-8e91-9915d73fe4ce (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: b9680a7f-cd2a-4786-96b2-6ec30eb603a7 (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: 85d2d968-d402-4ef4-91eb-7edd5c04bdd5
+
+[1A[2K  [T-14] Clicking Delete button for "T14-repeat-3"...
+
+[1A[2K  [T-14] Dialog fired: type="confirm" msg="Delete session "T14-repeat-3"?"
+
+[1A[2K  [T-14] ✓ Dialog appeared
+
+[1A[2K  [T-14] ✓ Dialog type is 'confirm'
+
+[1A[2K  [T-14] ✓ Dialog message contains session name
+
+[1A[2K  [T-14] ✓ No session:delete WS message sent
+
+[1A[2K  [T-14] ✓ Session card still visible in DOM
+
+[1A[2K  [T-14] ✓ Session still exists on server (REST)
+
+[1A[2K  [T-14] ✓ Session card shows no error state
+
+[1A[2K  [T-14] ✓ Iteration 3 PASSED
+
+[1A[2K
+  [T-14] All 3 cancel iterations PASSED
+
+[1A[2K  [srv] [ws] client disconnected: 85d2d968-d402-4ef4-91eb-7edd5c04bdd5 (code=1001 reason=)
+
+[1A[2K[2/3] [chromium] › tests/adversarial/T-14-delete-cancel.test.js:404:3 › T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact › T-14.B — Accept on delete dialog actually deletes the session
+[1A[2K[chromium] › tests/adversarial/T-14-delete-cancel.test.js:404:3 › T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact › T-14.B — Accept on delete dialog actually deletes the session
+  [srv] [ws] client connected: f826ca7f-dd7d-4192-82e5-32ee57320cb4
+
+[1A[2K
+  [T-14.B] Creating session: T14-accept-delete
+
+[1A[2K  [srv] [ws] client connected: d1ebc0f8-822b-41e5-9985-39550c219f5b
+
+[1A[2K  [T-14.B] Session created: 919fa3d9-4477-43e8-b32d-46f99f84b05f
+
+[1A[2K  [T-14.B] Stopping session...
+
+[1A[2K  [srv] [ws] client disconnected: d1ebc0f8-822b-41e5-9985-39550c219f5b (code=1005 reason=)
+[ws] client connected: 21ef43a0-8048-4db8-bba4-29daa60c7a9e
+
+[1A[2K  [srv] [ws] client disconnected: 21ef43a0-8048-4db8-bba4-29daa60c7a9e (code=1005 reason=)
+
+[1A[2K  [T-14.B] Session state: stopped ✓
+
+[1A[2K  [T-14.B] Clicking Delete (will accept)...
+
+[1A[2K  [T-14.B] Dialog fired: dismissing with ACCEPT
+
+[1A[2K  [T-14.B] ✓ Dialog appeared
+
+[1A[2K  [T-14.B] ✓ session:delete WS message sent
+
+[1A[2K  [T-14.B] ✓ Session card removed from DOM
+
+[1A[2K  [T-14.B] ✓ Session removed from server (REST)
+
+[1A[2K
+  [T-14.B] Accept-delete path PASSED
+
+[1A[2K  [srv] [ws] client disconnected: f826ca7f-dd7d-4192-82e5-32ee57320cb4 (code=1001 reason=)
+
+[1A[2K[3/3] [chromium] › tests/adversarial/T-14-delete-cancel.test.js:495:3 › T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact › T-14.C — Active session has no Delete button
+[1A[2K[chromium] › tests/adversarial/T-14-delete-cancel.test.js:495:3 › T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact › T-14.C — Active session has no Delete button
+  [srv] [ws] client connected: 26883ff3-0c78-40d1-8caf-118c878f5b0c
+
+[1A[2K
+  [T-14.C] Creating session: T14-active-no-delete
+
+[1A[2K  [srv] [ws] client connected: d09a1a9e-feb4-427b-8b58-51af332d06d6
+
+[1A[2K  [T-14.C] Session created: a97f1fdc-e27c-4392-a15c-2ba794f04ee7 (should be running)
+
+[1A[2K  [srv] [ws] client disconnected: d09a1a9e-feb4-427b-8b58-51af332d06d6 (code=1005 reason=)
+
+[1A[2K  [T-14.C] ✓ Running session has no Delete button
+
+[1A[2K  [srv] [ws] client connected: d4efd5eb-5558-4347-bb9b-c47c4b355ad5
+
+[1A[2K
+  [T-14.C] Active-session guard PASSED
+
+[1A[2K  [srv] [ws] client disconnected: d4efd5eb-5558-4347-bb9b-c47c4b355ad5 (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: 26883ff3-0c78-40d1-8caf-118c878f5b0c (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:53:52.972Z] SIGTERM received — server exiting (pid=2963141)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:53:52.972Z] Server process exiting with code 0 (pid=2963141)
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  3 passed (34.9s)

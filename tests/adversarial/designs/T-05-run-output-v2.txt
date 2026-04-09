@@ -1,0 +1,145 @@
+
+Running 1 test using 1 worker
+
+
+  [setup] tmpDir: /tmp/qa-T05-OHreNu
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3102
+  [setup] +0.5s Server ready on port 3102
+
+  ════════════════════════════════════════
+  [T-05] +0.8s Iter-1 (ACK_1→2, expect ACK_3) — START
+  ════════════════════════════════════════
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 1: Creating Claude session...
+  [srv] [ws] client connected: df84c6a9-9bee-4f81-b4e3-5397522189cc
+  [Iter-1 (ACK_1→2, expect ACK_3)] Session created: af9e8cb5-acf6-4a12-bfee-e74e883fe1a7
+  [Iter-1 (ACK_1→2, expect ACK_3)] Claude session ID: bb666887-695f-4c28-858a-ab0bbc836109
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 2: Waiting for RUNNING...
+  [Iter-1 (ACK_1→2, expect ACK_3)] +1.1s Session RUNNING
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 3: Waiting for Claude TUI ready...
+  [tui] TUI ready signal received (buffer length: 1634)
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 4: Sending sentinel setup, waiting for ACK_1...
+  [Iter-1 (ACK_1→2, expect ACK_3)] +5.8s ACK_1 received
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 5: Waiting for TUI to return to prompt, then sending NEXT...
+  [Iter-1 (ACK_1→2, expect ACK_3)] +10.8s ACK_2 received
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 6: Stopping session to flush conversation file...
+  [Iter-1 (ACK_1→2, expect ACK_3)] Conversation file: /home/claude-runner/.claude/projects/-tmp-qa-T05-project/bb666887-695f-4c28-858a-ab0bbc836109.jsonl
+  [Iter-1 (ACK_1→2, expect ACK_3)] Conversation file exists: true
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 7: Opening browser to click Refresh...
+  [srv] [ws] client connected: 12a6b8b9-730f-4cef-a972-24932b524052
+  [Iter-1 (ACK_1→2, expect ACK_3)] Session cards found: ["T05-haiku-iter1"]
+  [ws] session:subscribed received (xterm reset signal)
+  [Iter-1 (ACK_1→2, expect ACK_3)] +16.4s Refresh clicked on session card
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 8: Waiting for session RUNNING after refresh...
+  [Iter-1 (ACK_1→2, expect ACK_3)] +16.4s Session RUNNING after refresh
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 9: Fresh WS subscribe, waiting for TUI ready...
+  [srv] [ws] client disconnected: 12a6b8b9-730f-4cef-a972-24932b524052 (code=1001 reason=)
+  [ws] closed: code=1005
+  [srv] [ws] client connected: 2acb86cf-b164-4f23-85bb-f8310f4edac6
+[ws] client disconnected: df84c6a9-9bee-4f81-b4e3-5397522189cc (code=1005 reason=)
+  [tui] TUI ready signal received (buffer length: 2191)
+  [Iter-1 (ACK_1→2, expect ACK_3)] Step 10: Sending NEXT, expecting ACK_3 (continuity proof)...
+  [Iter-1 (ACK_1→2, expect ACK_3)] +19.5s ACK_3 received — CONVERSATION CONTINUITY CONFIRMED
+  [srv] [ws] client connected: 426d1f15-2f82-4256-bd3b-d3de6d5310ff
+  [srv] [ws] client disconnected: 426d1f15-2f82-4256-bd3b-d3de6d5310ff (code=1001 reason=)
+  [ws] closed: code=1005
+  [srv] [ws] client connected: 8e2fc181-ecd5-4308-a57d-b9427e7f12d9
+[ws] client disconnected: 2acb86cf-b164-4f23-85bb-f8310f4edac6 (code=1005 reason=)
+  [srv] [ws] client disconnected: 8e2fc181-ecd5-4308-a57d-b9427e7f12d9 (code=1005 reason=)
+  [T-05] Iter-1 (ACK_1→2, expect ACK_3) — PASS
+  Notes: sessionId=af9e8cb5-acf6-4a12-bfee-e74e883fe1a7 | claudeSessionId=bb666887-695f-4c28-858a-ab0bbc836109 | pre-refresh: ACK_1 and ACK_2 received | convFile=/home/claude-runner/.claude/projects/-tmp-qa-T05-project/bb666887-695f-4c28-858a-ab0bbc836109.jsonl | convFileExists=true | post-refresh: ACK_3 received | PASS: conversation memory preserved via --resume
+
+  ════════════════════════════════════════
+  [T-05] +24.2s Iter-2 (ACK_10→11, expect ACK_12) — START
+  ════════════════════════════════════════
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 1: Creating Claude session...
+  [srv] [ws] client connected: 7d80d771-a598-43cc-bb9f-fdd44c1e31c9
+  [Iter-2 (ACK_10→11, expect ACK_12)] Session created: 8f2c8bc1-64db-4208-af6b-047f6275beae
+  [Iter-2 (ACK_10→11, expect ACK_12)] Claude session ID: c037330b-d42b-4d4c-b4d5-35177e94b720
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 2: Waiting for RUNNING...
+  [Iter-2 (ACK_10→11, expect ACK_12)] +24.5s Session RUNNING
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 3: Waiting for Claude TUI ready...
+  [tui] TUI ready signal received (buffer length: 1634)
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 4: Sending sentinel setup, waiting for ACK_10...
+  [Iter-2 (ACK_10→11, expect ACK_12)] +28.0s ACK_10 received
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 5: Waiting for TUI to return to prompt, then sending NEXT...
+  [Iter-2 (ACK_10→11, expect ACK_12)] +33.8s ACK_11 received
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 6: Stopping session to flush conversation file...
+  [Iter-2 (ACK_10→11, expect ACK_12)] Conversation file: /home/claude-runner/.claude/projects/-tmp-qa-T05-project/c037330b-d42b-4d4c-b4d5-35177e94b720.jsonl
+  [Iter-2 (ACK_10→11, expect ACK_12)] Conversation file exists: true
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 7: Opening browser to click Refresh...
+  [srv] [ws] client connected: 6abfead1-46e9-4c1e-837b-b81e8a5c977d
+  [Iter-2 (ACK_10→11, expect ACK_12)] Session cards found: ["T05-haiku-iter2"]
+  [ws] session:subscribed received (xterm reset signal)
+  [Iter-2 (ACK_10→11, expect ACK_12)] +39.9s Refresh clicked on session card
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 8: Waiting for session RUNNING after refresh...
+  [Iter-2 (ACK_10→11, expect ACK_12)] +39.9s Session RUNNING after refresh
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 9: Fresh WS subscribe, waiting for TUI ready...
+  [srv] [ws] client disconnected: 6abfead1-46e9-4c1e-837b-b81e8a5c977d (code=1001 reason=)
+  [ws] closed: code=1005
+  [srv] [ws] client connected: 523e0107-114b-46e5-bb83-dadcac5a2a58
+[ws] client disconnected: 7d80d771-a598-43cc-bb9f-fdd44c1e31c9 (code=1005 reason=)
+  [tui] TUI ready signal received (buffer length: 2193)
+  [Iter-2 (ACK_10→11, expect ACK_12)] Step 10: Sending NEXT, expecting ACK_12 (continuity proof)...
+  [Iter-2 (ACK_10→11, expect ACK_12)] +44.0s ACK_12 received — CONVERSATION CONTINUITY CONFIRMED
+  [srv] [ws] client connected: 5f45d6f1-8130-4def-98aa-03f8ee39fb59
+  [srv] [ws] client disconnected: 5f45d6f1-8130-4def-98aa-03f8ee39fb59 (code=1001 reason=)
+  [srv] [ws] client connected: c3f67139-17b4-4f8c-9a77-fba5dab5e1fd
+  [ws] closed: code=1005
+  [srv] [ws] client disconnected: 523e0107-114b-46e5-bb83-dadcac5a2a58 (code=1005 reason=)
+  [srv] [ws] client disconnected: c3f67139-17b4-4f8c-9a77-fba5dab5e1fd (code=1005 reason=)
+  [T-05] Iter-2 (ACK_10→11, expect ACK_12) — PASS
+  Notes: sessionId=8f2c8bc1-64db-4208-af6b-047f6275beae | claudeSessionId=c037330b-d42b-4d4c-b4d5-35177e94b720 | pre-refresh: ACK_10 and ACK_11 received | convFile=/home/claude-runner/.claude/projects/-tmp-qa-T05-project/c037330b-d42b-4d4c-b4d5-35177e94b720.jsonl | convFileExists=true | post-refresh: ACK_12 received | PASS: conversation memory preserved via --resume
+
+  ════════════════════════════════════════
+  [T-05] +48.9s Iter-3 (ACK_20→21, expect ACK_22) — START
+  ════════════════════════════════════════
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 1: Creating Claude session...
+  [srv] [ws] client connected: 2bc7ff08-7b99-4c75-bd24-a12189634746
+  [Iter-3 (ACK_20→21, expect ACK_22)] Session created: 09d5771c-da5c-4756-a2ff-1d09bc2dc0d8
+  [Iter-3 (ACK_20→21, expect ACK_22)] Claude session ID: d5067abb-9dd2-4f81-9329-15f256bbb76a
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 2: Waiting for RUNNING...
+  [Iter-3 (ACK_20→21, expect ACK_22)] +49.2s Session RUNNING
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 3: Waiting for Claude TUI ready...
+  [tui] TUI ready signal received (buffer length: 1642)
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 4: Sending sentinel setup, waiting for ACK_20...
+  [Iter-3 (ACK_20→21, expect ACK_22)] +53.1s ACK_20 received
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 5: Waiting for TUI to return to prompt, then sending NEXT...
+  [Iter-3 (ACK_20→21, expect ACK_22)] +57.4s ACK_21 received
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 6: Stopping session to flush conversation file...
+  [Iter-3 (ACK_20→21, expect ACK_22)] Conversation file: /home/claude-runner/.claude/projects/-tmp-qa-T05-project/d5067abb-9dd2-4f81-9329-15f256bbb76a.jsonl
+  [Iter-3 (ACK_20→21, expect ACK_22)] Conversation file exists: true
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 7: Opening browser to click Refresh...
+  [srv] [ws] client connected: a8f108ef-b92e-4094-a6c8-a3fdf06ea050
+  [Iter-3 (ACK_20→21, expect ACK_22)] Session cards found: ["T05-haiku-iter3"]
+  [ws] session:subscribed received (xterm reset signal)
+  [Iter-3 (ACK_20→21, expect ACK_22)] +63.7s Refresh clicked on session card
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 8: Waiting for session RUNNING after refresh...
+  [Iter-3 (ACK_20→21, expect ACK_22)] +63.7s Session RUNNING after refresh
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 9: Fresh WS subscribe, waiting for TUI ready...
+  [ws] closed: code=1005
+  [srv] [ws] client connected: 2b2a99cc-aea9-4a65-af64-2ade9f6b8130
+  [srv] [ws] client disconnected: a8f108ef-b92e-4094-a6c8-a3fdf06ea050 (code=1001 reason=)
+[ws] client disconnected: 2bc7ff08-7b99-4c75-bd24-a12189634746 (code=1005 reason=)
+  [tui] TUI ready signal received (buffer length: 2201)
+  [Iter-3 (ACK_20→21, expect ACK_22)] Step 10: Sending NEXT, expecting ACK_22 (continuity proof)...
+  [Iter-3 (ACK_20→21, expect ACK_22)] +66.4s ACK_22 received — CONVERSATION CONTINUITY CONFIRMED
+  [srv] [ws] client connected: 83758cb4-f63d-468d-99c6-c95ba485d7bb
+  [ws] closed: code=1005
+  [srv] [ws] client disconnected: 83758cb4-f63d-468d-99c6-c95ba485d7bb (code=1001 reason=)
+[ws] client connected: fbb01d60-89cb-4e49-a64e-28a73420e30a
+[ws] client disconnected: 2b2a99cc-aea9-4a65-af64-2ade9f6b8130 (code=1005 reason=)
+  [srv] [ws] client disconnected: fbb01d60-89cb-4e49-a64e-28a73420e30a (code=1005 reason=)
+  [T-05] Iter-3 (ACK_20→21, expect ACK_22) — PASS
+  Notes: sessionId=09d5771c-da5c-4756-a2ff-1d09bc2dc0d8 | claudeSessionId=d5067abb-9dd2-4f81-9329-15f256bbb76a | pre-refresh: ACK_20 and ACK_21 received | convFile=/home/claude-runner/.claude/projects/-tmp-qa-T05-project/d5067abb-9dd2-4f81-9329-15f256bbb76a.jsonl | convFileExists=true | post-refresh: ACK_22 received | PASS: conversation memory preserved via --resume
+
+  ════════════════════════════════════════
+  [T-05] FINAL RESULTS
+  ════════════════════════════════════════
+  Iter-1 (ACK_1→2, expect ACK_3): PASS
+  Iter-2 (ACK_10→11, expect ACK_12): PASS
+  Iter-3 (ACK_20→21, expect ACK_22): PASS
+  Score: 3/3
+
+  ✓  1 [chromium] › tests/adversarial/T-05-resume-on-refresh.test.js:260:3 › T-05 — Refresh preserves conversation (--resume) › T-05 — Refresh preserves conversation via --resume (3 iterations) (1.2m)
+
+  1 passed (1.2m)

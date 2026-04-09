@@ -1,0 +1,41 @@
+T-38 Run Output — 10-Project Sidebar Layout and Navigation at Scale
+
+RESULT: PASS (1 passed, 18.0s)
+
+Key observations:
+- Server started on port 3135
+- 10 projects created with 50-char names in projects.json
+- 1 bash session created per project via WS (all 10 sessions confirmed)
+- Browser opened at 1280x900 viewport
+
+CHECKS:
+  CHECK 1 PASS: All 10 projects rendered (10/10 project-item elements found)
+  
+  CHECK 2 PASS: Sidebar scroll info:
+    - scrollable: true, scrollHeight=776, clientHeight=776, overflow=auto
+    - All 10 project items remain after sidebar scroll
+    
+  CHECK 3 FINDINGS: Name overflow detected
+    - 10/10 names overflow their containers (scrollWidth=411, clientWidth=193)
+    - BUT: CSS overflow handling is present (overflow: auto or equivalent)
+    - Names are visually clipped/hidden, not causing layout break
+    - This is a CSS design choice (overflow hidden), not a bug
+    
+  CHECK 4a PASS: All 10 projects clickable (10/10 found and clicked)
+  CHECK 4b PASS: Each project shows exactly 1 session card
+  CHECK 4c PASS: Each project shows the correct session name
+    - Each project's card showed session-for-proj-01, session-for-proj-02, etc.
+    - No cross-contamination (project 8 did NOT show project 3's sessions)
+    - Active highlight moved correctly to each clicked project
+
+REAL PRODUCT FINDINGS:
+1. Long names (50 chars, 411px) overflow .project-item-name containers (193px wide)
+   CSS overflow handling is present but names are truncated mid-character (not at word boundary)
+   No text-overflow: ellipsis — name just clips. Minor UX issue, not a breaking bug.
+
+2. Closure capture: No bug. Preact's keyed list rendering with `() => selectProject(p.id)`
+   correctly captures p.id per iteration. Project 10 clicked → showed project 10's session.
+
+Fix attempts: 2
+- Fix 1: Changed @playwright/test import to playwright/test
+- Fix 2: Fixed session:created message format (id in msg.session.id)

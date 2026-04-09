@@ -1,0 +1,127 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-26-split-view.test.js:167:3 › T-26 — Split view terminal fully functional after toggle › T-26 — Split/Full toggle: terminal resizes and input works in both modes
+[1A[2K[chromium] › tests/adversarial/T-26-split-view.test.js:167:3 › T-26 — Split view terminal fully functional after toggle › T-26 — Split/Full toggle: terminal resizes and input works in both modes
+
+
+[1A[2K
+
+[1A[2K
+  [T-26] tmpDir: /tmp/qa-T26-s83lJh
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3123
+
+[1A[2K  [T-26] Server ready on port 3123
+
+[1A[2K  [T-26] Project created: 912e5eec-7919-40ea-8c07-575b952060e2 (T26-TestProject)
+
+[1A[2K  [srv] [ws] client connected: 43bc22c3-9229-45c8-a35c-cc471315294c
+
+[1A[2K  [T-26] App loaded
+
+[1A[2K  [T-26] Navigated to T26-TestProject
+
+[1A[2K  [T-26] Session creation submitted (cmd=bash)
+
+[1A[2K  [T-26] Session card appeared
+
+[1A[2K  [T-26] Session is running
+
+[1A[2K  [T-26] Session overlay appeared
+
+[1A[2K  [T-26] Terminal rows rendered
+
+[1A[2K  [T-26] FULL mode dimensions: {"containerWidth":1280,"containerHeight":704,"overlayLeft":0,"overlayWidth":1280,"xtermRowCount":46,"scrollState":{"userScrolledUp":false,"scrollTop":0,"scrollMax":0,"bufferLength":46,"viewportY":0},"windowWidth":1280}
+
+[1A[2K
+  [T-26] STEP A: Typing echo marker in FULL mode
+
+[1A[2K  [T-26] STEP A: Marker found in terminal = true
+
+[1A[2K  [T-26] STEP A: PASS — input works in full mode
+
+[1A[2K
+  [T-26] STEP B: Clicking Split button
+
+[1A[2K  [T-26] SPLIT mode dimensions: {"containerWidth":639,"containerHeight":704,"overlayLeft":640,"overlayWidth":640,"xtermRowCount":46,"scrollState":{"userScrolledUp":false,"scrollTop":0,"scrollMax":0,"bufferLength":46,"viewportY":0},"windowWidth":1280}
+
+[1A[2K  [T-26] SPLIT: overlay.left=640, expected ~640
+
+[1A[2K  [T-26] SPLIT: containerWidth=639 (was 1280 in full)
+
+[1A[2K  [T-26] STEP B: SESSION_RESIZE sent after split = 1
+
+[1A[2K  [T-26] STEP B: Last resize sent = {"cols":79,"rows":46,"ts":1775678163534}
+
+[1A[2K  [T-26] STEP B: Split mode PTY cols=79 (should be < full-width cols)
+
+[1A[2K  [T-26] STEP B: PASS — split mode dimensions verified
+
+[1A[2K
+  [T-26] STEP C: Typing echo marker in SPLIT mode
+
+[1A[2K  [T-26] STEP C: Marker found in terminal = true
+
+[1A[2K  [T-26] STEP C: PASS — input works in split mode
+
+[1A[2K
+  [T-26] STEP D: Clicking Full button
+
+[1A[2K  [T-26] FULL (restored) mode dimensions: {"containerWidth":1280,"containerHeight":704,"overlayLeft":0,"overlayWidth":1280,"xtermRowCount":46,"scrollState":{"userScrolledUp":false,"scrollTop":0,"scrollMax":0,"bufferLength":46,"viewportY":0},"windowWidth":1280}
+
+[1A[2K  [T-26] STEP D: SESSION_RESIZE sent after full toggle = 1
+
+[1A[2K  [T-26] STEP D: PASS — full mode dimensions verified
+
+[1A[2K
+  [T-26] STEP E: Typing echo marker in FULL mode (restored)
+
+[1A[2K  [T-26] STEP E: Marker found in terminal = true
+
+[1A[2K  [T-26] STEP E: PASS — input works in restored full mode
+
+[1A[2K
+  [T-26] All SESSION_RESIZE messages sent: [
+  {
+    "cols": 161,
+    "rows": 46,
+    "ts": 1775678159819
+  },
+  {
+    "cols": 79,
+    "rows": 46,
+    "ts": 1775678163534
+  },
+  {
+    "cols": 161,
+    "rows": 46,
+    "ts": 1775678165805
+  }
+]
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-26] FINAL RESULT: PASS
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  A: Full mode input      → PASS
+
+[1A[2K  B: Split mode resize    → PASS
+
+[1A[2K  C: Split mode input     → PASS
+
+[1A[2K  D: Full mode resize     → PASS
+
+[1A[2K  E: Full mode input      → PASS
+
+[1A[2K  [srv] [ws] client disconnected: 43bc22c3-9229-45c8-a35c-cc471315294c (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:56:08.070Z] SIGTERM received — server exiting (pid=2980333)
+[2026-04-08T19:56:08.071Z] Server process exiting with code 0 (pid=2980333)
+
+[1A[2K
+
+[1A[2K  1 passed (21.1s)

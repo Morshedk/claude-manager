@@ -158,11 +158,13 @@ export function closeEditProjectModal() {
 /** Create a new project via REST API, refresh the project list, and select it. */
 export async function createProject(name, path) {
   try {
-    const data = await fetch('/api/projects', {
+    const r = await fetch('/api/projects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, path }),
-    }).then(r => r.json());
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || `Server error ${r.status}`);
     await loadProjects();
     if (data && data.id) selectedProjectId.value = data.id;
     return data;
@@ -191,7 +193,10 @@ export async function updateProject(id, updates) {
 // ── Incoming message handlers (called by ws/connection.js listeners) ──────────
 
 export function handleSessionCreated(msg) {
-  if (msg.session) upsertSession(msg.session);
+  if (msg.session) {
+    upsertSession(msg.session);
+    attachSession(msg.session.id);
+  }
 }
 
 export function handleSessionState(msg) {

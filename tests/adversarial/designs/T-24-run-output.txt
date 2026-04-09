@@ -1,0 +1,43 @@
+
+Running 2 tests using 1 worker
+
+
+  [T-24] tmpDir: /tmp/qa-T24-DtYnPn
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3121
+  [T-24] Server ready on port 3121
+  [T-24] projectId: b50b974b-8f2f-4b43-bd46-3faec9de26ef
+
+  [T-24] Step 1: Setting up 500 intercept on /api/watchdog/logs
+  [T-24] Step 2: Navigate to app
+  [srv] [ws] client connected: 98ee9996-4a81-4a79-8349-390fc26e39bb
+  [T-24] Step 3: Verify app loads normally
+  [T-24] Sidebar shows T24-WatchdogTest ✓
+  [T-24] Step 4: Test watchdog fetch error handling via page.evaluate
+  [T-24] Intercepted /api/watchdog/logs request #1 → 500
+  [T-24] fetch result: caughtError="Not available", logs.length=0, uncaughtRejection=false
+  [T-24] Error caught correctly: "Not available" ✓
+  [T-24] Logs set to [] (empty state) ✓
+  [T-24] No unhandled promise rejection ✓
+  [T-24] Route intercept fired 1 time(s) ✓
+  [T-24] Total console errors: 1, critical: 0
+  [T-24] No critical console errors ✓
+  [T-24] Step 7: Verify app remains functional after 500
+  [T-24] App still functional (project selection works) ✓
+  [T-24] Step 8: Test retry (Refresh button behavior)
+  [T-24] Intercepted /api/watchdog/logs request #2 → 500
+  [T-24] Retry also handles 500 gracefully ✓
+  [T-24] Total intercepts: 2
+
+  [T-24] ✅ ALL ASSERTIONS PASSED
+  [srv] [ws] client disconnected: 98ee9996-4a81-4a79-8349-390fc26e39bb (code=1001 reason=)
+  ✓  1 [chromium] › tests/adversarial/T-24-watchdog-500.test.js:94:3 › T-24 — Watchdog 500 Error Resilience › T-24 — watchdog /api/watchdog/logs 500 → empty state, no crash (2.8s)
+  [srv] [ws] client connected: 6372bc8a-4a47-405d-b5b1-3d25b792a3dc
+
+  [T-24b] Real endpoint: status=200, ok=true
+  [T-24b] Real endpoint returns 200 ✓
+  [srv] [ws] client disconnected: 6372bc8a-4a47-405d-b5b1-3d25b792a3dc (code=1001 reason=)
+  [srv:ERR] [2026-04-08T20:04:28.141Z] SIGTERM received — server exiting (pid=3036556)
+[2026-04-08T20:04:28.142Z] Server process exiting with code 0 (pid=3036556)
+  ✓  2 [chromium] › tests/adversarial/T-24-watchdog-500.test.js:255:3 › T-24 — Watchdog 500 Error Resilience › T-24b — real /api/watchdog/logs endpoint baseline (no intercept) (966ms)
+
+  2 passed (9.5s)

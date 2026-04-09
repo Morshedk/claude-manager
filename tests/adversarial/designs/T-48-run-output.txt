@@ -1,0 +1,171 @@
+
+Running 3 tests using 1 worker
+
+[1A[2K[1/3] [chromium] › tests/adversarial/T-48-settings-escape.test.js:138:3 › T-48 — Settings Escape Key Discards Changes › T-48A — Escape closes Settings modal and discards changes (no terminal)
+[1A[2K[chromium] › tests/adversarial/T-48-settings-escape.test.js:138:3 › T-48 — Settings Escape Key Discards Changes › T-48A — Escape closes Settings modal and discards changes (no terminal)
+
+
+[1A[2K
+
+[1A[2K
+  [T-48] dataDir: /tmp/t48-e0g8EL
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3145
+
+[1A[2K  [T-48] Server ready on port 3145
+
+[1A[2K  [srv] [ws] client connected: d03ffe5c-01e1-45a9-ab80-324ab5f45d58
+
+[1A[2K
+  [T-48A] App loaded, connected
+
+[1A[2K  [T-48A] Initial API model: sonnet
+
+[1A[2K  [T-48A] Current model in form: sonnet
+
+[1A[2K  [T-48A] Changing model from "sonnet" to "haiku"
+
+[1A[2K  [T-48A] Model select changed to: haiku
+
+[1A[2K  [T-48A] Pressing Escape...
+
+[1A[2K  [T-48A] Modal open after Escape: true
+
+[1A[2K  [T-48A] FAIL: Modal is still open after pressing Escape
+
+[1A[2K  [srv] [ws] client disconnected: d03ffe5c-01e1-45a9-ab80-324ab5f45d58 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:04:11.543Z] SIGTERM received — server exiting (pid=3034457)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:04:11.544Z] Server process exiting with code 0 (pid=3034457)
+
+[1A[2K
+  [T-48] CRASH LOG:
+[2026-04-08T20:04:11.543Z] SIGTERM received — server exiting (pid=3034457)
+[2026-04-08T20:04:11.544Z] Server process exiting with code 0 (pid=3034457)
+
+
+[1A[2K
+
+[1A[2K  1) [chromium] › tests/adversarial/T-48-settings-escape.test.js:138:3 › T-48 — Settings Escape Key Discards Changes › T-48A — Escape closes Settings modal and discards changes (no terminal) 
+
+    Error: Modal must be CLOSED after pressing Escape
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mfalse[39m
+    Received: [31mtrue[39m
+
+      210 |         await page.locator('.modal-wide .btn-ghost').click().catch(() => {});
+      211 |       }
+    > 212 |       expect(modalOpenAfterEscape, 'Modal must be CLOSED after pressing Escape').toBe(false);
+          |                                                                                  ^
+      213 |
+      214 |       // ── A6: Assert settings NOT saved ────────────────────────────────────────
+      215 |       const settingsAfterEscape = await getApiSettings();
+        at /home/claude-runner/apps/claude-web-app-v2/tests/adversarial/T-48-settings-escape.test.js:212:82
+
+    Error Context: test-results/adversarial-T-48-settings--3dcb0-scards-changes-no-terminal--chromium/error-context.md
+
+    Error Context: test-results/adversarial-T-48-settings--3dcb0-scards-changes-no-terminal--chromium/error-context.md
+
+
+[1A[2K[2/3] [chromium] › tests/adversarial/T-48-settings-escape.test.js:238:3 › T-48 — Settings Escape Key Discards Changes › T-48B — Escape closes Settings modal with terminal overlay active
+[1A[2K[chromium] › tests/adversarial/T-48-settings-escape.test.js:238:3 › T-48 — Settings Escape Key Discards Changes › T-48B — Escape closes Settings modal with terminal overlay active
+
+
+[1A[2K
+
+[1A[2K
+  [T-48] dataDir: /tmp/t48-RkApOI
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3145
+
+[1A[2K  [T-48] Server ready on port 3145
+
+[1A[2K  [srv] [ws] client connected: 9ae48c15-bea7-4059-94a5-22b9650366a2
+
+[1A[2K
+  [T-48B] App loaded, connected
+
+[1A[2K  [T-48B] Initial API model: sonnet
+
+[1A[2K  [T-48B] Session running
+
+[1A[2K  [T-48B] Terminal overlay open, xterm has focus
+
+[1A[2K  [T-48B] Settings modal opened (while terminal active)
+
+[1A[2K  [T-48B] Changing model from "sonnet" to "haiku"
+
+[1A[2K  [T-48B] Pressing Escape...
+
+[1A[2K  [T-48B] Modal open after Escape: true
+
+[1A[2K  [T-48B] FAIL: Modal is still open after Escape (likely xterm intercepted it)
+
+[1A[2K  [srv] [ws] client disconnected: 9ae48c15-bea7-4059-94a5-22b9650366a2 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:04:18.827Z] SIGTERM received — server exiting (pid=3035507)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:04:18.828Z] Server process exiting with code 0 (pid=3035507)
+
+[1A[2K
+  [T-48] CRASH LOG:
+[2026-04-08T20:04:18.827Z] SIGTERM received — server exiting (pid=3035507)
+[2026-04-08T20:04:18.828Z] Server process exiting with code 0 (pid=3035507)
+
+
+[1A[2K
+
+[1A[2K  2) [chromium] › tests/adversarial/T-48-settings-escape.test.js:238:3 › T-48 — Settings Escape Key Discards Changes › T-48B — Escape closes Settings modal with terminal overlay active 
+
+    Error: Modal must be CLOSED after Escape even with terminal overlay
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mfalse[39m
+    Received: [31mtrue[39m
+
+      337 |         await page.locator('.modal-wide .btn-ghost').click().catch(() => {});
+      338 |       }
+    > 339 |       expect(modalOpenAfterEscape, 'Modal must be CLOSED after Escape even with terminal overlay').toBe(false);
+          |                                                                                                    ^
+      340 |
+      341 |       // ── B6: Assert settings NOT saved ────────────────────────────────────────
+      342 |       const settingsAfterB = await getApiSettings();
+        at /home/claude-runner/apps/claude-web-app-v2/tests/adversarial/T-48-settings-escape.test.js:339:100
+
+    Error Context: test-results/adversarial-T-48-settings--080fe-ith-terminal-overlay-active-chromium/error-context.md
+
+    Error Context: test-results/adversarial-T-48-settings--080fe-ith-terminal-overlay-active-chromium/error-context.md
+
+
+[1A[2K[3/3] [chromium] › tests/adversarial/T-48-settings-escape.test.js:373:3 › T-48 — Settings Escape Key Discards Changes › T-48 — crash log clean
+[1A[2K[chromium] › tests/adversarial/T-48-settings-escape.test.js:373:3 › T-48 — Settings Escape Key Discards Changes › T-48 — crash log clean
+
+
+[1A[2K
+
+[1A[2K
+  [T-48] dataDir: /tmp/t48-Q6PuVN
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3145
+
+[1A[2K  [T-48] Server ready on port 3145
+
+[1A[2K  [srv:ERR] [2026-04-08T20:04:23.931Z] SIGTERM received — server exiting (pid=3036534)
+[2026-04-08T20:04:23.931Z] Server process exiting with code 0 (pid=3036534)
+
+[1A[2K
+  [T-48] CRASH LOG:
+[2026-04-08T20:04:23.931Z] SIGTERM received — server exiting (pid=3036534)
+[2026-04-08T20:04:23.931Z] Server process exiting with code 0 (pid=3036534)
+
+
+[1A[2K
+
+[1A[2K  2 failed
+    [chromium] › tests/adversarial/T-48-settings-escape.test.js:138:3 › T-48 — Settings Escape Key Discards Changes › T-48A — Escape closes Settings modal and discards changes (no terminal) 
+    [chromium] › tests/adversarial/T-48-settings-escape.test.js:238:3 › T-48 — Settings Escape Key Discards Changes › T-48B — Escape closes Settings modal with terminal overlay active 
+  1 passed (21.7s)

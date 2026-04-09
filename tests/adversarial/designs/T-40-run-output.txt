@@ -1,0 +1,63 @@
+T-40 Run Output — Session Name with Special Characters — No Injection or Display Break
+
+RESULT: PASS (1 passed, 10.6s)
+
+Key observations:
+- Server started on port 3137
+- 3 sessions created via WS with special names:
+  - "xss":       <img src=x onerror=alert(1)>
+  - "traversal": ../../etc/passwd
+  - "long":      "A" * 256
+
+CHECKS:
+  CHECK 0 PASS: All 3 sessions created successfully
+  
+  CHECK 1a PASS: XSS name stored literally in API
+    - GET /api/sessions.managed returns session with name = '<img src=x onerror=alert(1)>'
+    
+  CHECK 1b PASS: Path traversal name stored literally
+    - name = '../../etc/passwd' stored as-is in sessions
+    
+  CHECK 1c: Long name stored at length=256 (no truncation server-side)
+  
+  CHECK 2a PASS: No alert() fired (no XSS execution)
+    - dialog handler registered BEFORE navigation
+    - 0 dialogs fired during full test run
+    
+  CHECK 3 PASS: XSS payload NOT rendered as HTML
+    - document.querySelector('.session-card img[src="x"]') → null
+    - innerHTML check: no raw <img> tags in session card DOM
+    
+  CHECK 4 PASS: XSS payload HTML-escaped in DOM
+    - .session-card-name textContent: "<img src=x onerror=alert(1)>"
+    - .session-card-name innerHTML:   "&lt;img src=x onerror=alert(1)&gt;"
+    - Preact/htm escapes template literal interpolations → proper entity encoding
+    
+  CHECK 5 PASS: Server still alive after path traversal name rendered
+    - path traversal name visible in browser as plain text
+    - GET /api/sessions still returns HTTP 200
+    
+  CHECK 6 PASS: 256-char name displayed without breaking
+    - textLength=256, scrollWidth=1850, clientWidth=200
+    - Has overflow handling: true (overflow hidden/clip)
+    - No layout crash, no record parser failure
+    
+  Console errors: 0
+
+KEY SECURITY FINDINGS:
+1. XSS: NOT vulnerable. Preact's htm template literals auto-escape HTML entities.
+   innerHTML is &lt;img src=x onerror=alert(1)&gt; — properly escaped.
+
+2. Path traversal: No file system access via session name. The name is stored as a
+   JSON string, never interpolated into filesystem paths.
+
+3. Long names: Server accepts and stores 256-char names. Client-side display clips
+   via CSS overflow (no text-overflow:ellipsis, but no crash either).
+
+4. Minor: 256-char name has scrollWidth=1850 vs clientWidth=200 — 
+   significant overflow, but visually contained by CSS. UX could be improved 
+   with text-overflow: ellipsis on session card names.
+
+Fix attempts: 2
+- Fix 1: Changed @playwright/test import to playwright/test
+- Fix 2: Fixed API response shape (managed not sessions field) and session ID extraction

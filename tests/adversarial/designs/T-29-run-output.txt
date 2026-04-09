@@ -1,0 +1,25 @@
+Running 1 test using 1 worker
+
+  [T-29] tmpDir: /tmp/qa-T29-B2wZK6
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3126
+  [T-29] Server ready on port 3126
+
+  [T-29] Step 1: Navigate to app and select project...
+  [srv] [ws] client connected: 1c626ebb-18a7-4587-9fa3-c63f075fa5f9
+  [T-29] WS connected
+  [T-29] Step 2: Creating session with telegram:true via WS...
+  [srv] [ws] client connected: 1ed2cdb8-b7a4-46bd-9130-5fe4342459c0
+  [T-29] Session created: 1c7f97bb-255c-4d9e-b8b5-1c00fc845e44
+  [T-29] Session running
+  [T-29] Step 3: Checking for TG badge before reload...
+  [srv] [ws] client disconnected: 1ed2cdb8-... (code=1005 reason=)
+  [T-29] Badge before reload: "TG"
+  [T-29] Step 4: Hard-reloading browser...
+  [srv] [ws] client disconnected: 1c626ebb-... (code=1001 reason=)
+  [srv] [ws] client connected: 196e35a9-...
+  [T-29] After reload: WS reconnected
+  [T-29] Step 5: Checking for TG badge after reload...
+  [T-29] Badge after reload: "TG"
+  [T-29] PASS: TG badge persists after hard reload
+
+  1 passed (10.2s)

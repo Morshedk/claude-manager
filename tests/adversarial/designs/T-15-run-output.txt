@@ -1,0 +1,92 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-15-scroll-freeze.test.js:235:3 › T-15 — Scroll Freeze While Streaming + Input While Scrolled Up › T-15.1: viewport stays frozen while streaming, input works while scrolled up
+[1A[2K[chromium] › tests/adversarial/T-15-scroll-freeze.test.js:235:3 › T-15 — Scroll Freeze While Streaming + Input While Scrolled Up › T-15.1: viewport stays frozen while streaming, input works while scrolled up
+
+
+[1A[2K
+
+[1A[2K
+  [T-15] tmpDir: /tmp/qa-T15-1gCkej
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3112
+
+[1A[2K  [T-15] Server ready on port 3112
+
+[1A[2K  [srv] [ws] client connected: 9b0d624c-e900-44b2-8b59-cee703c3521a
+
+[1A[2K  [T-15] Session created: 16b98708-7a31-4dba-aa73-2e9928e886f3
+
+[1A[2K  [T-15] Pre-fill complete (60 lines)
+
+[1A[2K  [srv] [ws] client connected: 91406ab8-06c4-400d-92d6-84a196b6ab60
+
+[1A[2K  [T-15] Initial scroll state: {"userScrolledUp":false,"scrollTop":0,"scrollMax":0,"bufferLength":41,"viewportY":0}
+
+[1A[2K  [T-15] WARNING: scrollMax=0, generating more lines...
+
+[1A[2K  [T-15] After extra lines: {"userScrolledUp":false,"scrollTop":315,"scrollMax":315,"bufferLength":62,"viewportY":21}
+
+[1A[2K  [T-15] After scroll up: {"userScrolledUp":true,"scrollTop":0,"scrollMax":315,"bufferLength":62,"viewportY":0}
+
+[1A[2K  [T-15] Viewport frozen at scrollTop=0
+
+[1A[2K  [T-15] Streaming started (STREAM-LINE-5 received)
+
+[1A[2K  [T-15] Poll 1/10: scrollTop=0 scrollMax=12075 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 2/10: scrollTop=0 scrollMax=19275 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 3/10: scrollTop=0 scrollMax=26475 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 4/10: scrollTop=0 scrollMax=34575 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 5/10: scrollTop=0 scrollMax=41775 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 6/10: scrollTop=0 scrollMax=52575 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 7/10: scrollTop=0 scrollMax=58890 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 8/10: scrollTop=0 scrollMax=66075 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 9/10: scrollTop=0 scrollMax=74175 userScrolledUp=true
+
+[1A[2K  [T-15] Poll 10/10: scrollTop=0 scrollMax=82275 userScrolledUp=true
+
+[1A[2K  [T-15] scrollMax: first=12075 last=82275
+
+[1A[2K  [T-15] scrollTop variance=0 (min=0 max=0)
+
+[1A[2K  [T-15] C5 PASS: STREAM-LINE-50 received in WS buffer
+
+[1A[2K  [T-15] After scroll-to-bottom: {"userScrolledUp":false,"scrollTop":91275,"scrollMax":91275,"bufferLength":6126,"viewportY":6085}
+
+[1A[2K  [T-15] Re-scrolled state: {"userScrolledUp":true,"scrollTop":88980,"scrollMax":102975,"bufferLength":6906,"viewportY":5932}
+
+[1A[2K  [T-15] C7: Input while scrolled up received: true
+
+[1A[2K
+  [T-15] ALL 7 CRITERIA PASSED
+
+[1A[2K  C1: userScrolledUp=true after scroll up — PASS
+
+[1A[2K  C2: scrollMax grew 12075 -> 82275 — PASS
+
+[1A[2K  C3: scrollTop variance 0px < 50px — PASS
+
+[1A[2K  C4: userScrolledUp=true throughout all 10 polls — PASS
+
+[1A[2K  C5: STREAM-LINE-50+ received in WS buffer — PASS
+
+[1A[2K  C6: userScrolledUp=false after scroll-to-bottom — PASS
+
+[1A[2K  C7: Input received by PTY while scrolled up — PASS
+
+[1A[2K  [srv] [ws] client disconnected: 91406ab8-06c4-400d-92d6-84a196b6ab60 (code=1001 reason=)
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  1 passed (21.5s)

@@ -1,0 +1,95 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-28-no-delete-while-running.test.js:197:3 › T-28 — Delete button absent on running session › Running session shows Stop but not Delete
+[1A[2K[chromium] › tests/adversarial/T-28-no-delete-while-running.test.js:197:3 › T-28 — Delete button absent on running session › Running session shows Stop but not Delete
+
+
+[1A[2K
+
+[1A[2K
+  [T-28] tmpDir: /tmp/qa-T28-kUEDwe
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3125
+
+[1A[2K  [T-28] Server ready on port 3125
+
+[1A[2K
+  [T-28] Step 1: Creating bash session via WS...
+
+[1A[2K  [srv] [ws] client connected: 55fb4550-271f-4663-b021-5d0c2aac63f5
+
+[1A[2K  [T-28] Session created: c58e6f45-ae17-4503-84c4-b07f56bb2b8e
+
+[1A[2K  [T-28] Step 2: Polling REST API for running state...
+
+[1A[2K  [srv] [ws] client disconnected: 55fb4550-271f-4663-b021-5d0c2aac63f5 (code=1005 reason=)
+
+[1A[2K  [T-28] Session is running
+
+[1A[2K  [T-28] Step 3: Opening browser...
+
+[1A[2K  [srv] [ws] client connected: 39a48d27-6e6e-452e-915e-7ff87cb97cb6
+
+[1A[2K  [T-28] Step 4: Selecting project...
+
+[1A[2K  [T-28] Project selected
+
+[1A[2K  [T-28] Step 5: Waiting for session card with running badge...
+
+[1A[2K  [T-28] Session card shows running badge
+
+[1A[2K  [T-28] Step 6: Checking Stop button is present...
+
+[1A[2K  [T-28] PASS — Stop button is present
+
+[1A[2K  [T-28] Step 7: Checking Delete button is absent...
+
+[1A[2K  [T-28] PASS — Delete button is absent (count=0)
+
+[1A[2K  [T-28] Step 8: Checking Refresh button is absent...
+
+[1A[2K  [T-28] PASS — Refresh button is absent (count=0)
+
+[1A[2K  [T-28] Step 9: Full DOM check for any delete-related button...
+
+[1A[2K  [T-28] PASS — No delete-related elements in running session card DOM
+
+[1A[2K
+  [T-28] Step 10: Stopping session to verify stopped-state buttons...
+
+[1A[2K  [srv] [ws] client connected: 133b5f3a-299a-454b-8dde-2511262cc3d8
+
+[1A[2K  [srv] [ws] client disconnected: 133b5f3a-299a-454b-8dde-2511262cc3d8 (code=1005 reason=)
+
+[1A[2K  [T-28] Session stopped
+
+[1A[2K  [T-28] Session card shows stopped badge
+
+[1A[2K  [T-28] Step 11: Checking Delete button appears after stop...
+
+[1A[2K  [T-28] PASS — Delete button IS present on stopped session
+
+[1A[2K  [T-28] Step 12: Checking Stop button is absent when stopped...
+
+[1A[2K  [T-28] PASS — Stop button absent on stopped session
+
+[1A[2K  [T-28] Step 13: Checking Refresh button appears when stopped...
+
+[1A[2K  [T-28] PASS — Refresh button IS present on stopped session
+
+[1A[2K
+  [T-28] ALL CHECKS PASSED
+
+[1A[2K  [srv] [ws] client disconnected: 39a48d27-6e6e-452e-915e-7ff87cb97cb6 (code=1001 reason=)
+
+[1A[2K
+  [T-28] Checking crash log...
+
+[1A[2K  [srv:ERR] [2026-04-08T19:58:14.088Z] SIGTERM received — server exiting (pid=2996530)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:58:14.089Z] Server process exiting with code 0 (pid=2996530)
+
+[1A[2K
+
+[1A[2K  1 passed (9.8s)

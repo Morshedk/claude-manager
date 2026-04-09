@@ -1,0 +1,23 @@
+Running 1 test using 1 worker
+
+  [T-32] tmpDir: /tmp/qa-T32-2ibaum
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3129
+  [T-32] Server ready on port 3129
+
+  [T-32] Step 1: Navigate to app...
+  [T-32] WS connected
+  [T-32] Step 2: Waiting for project in sidebar...
+  [T-32] Found project in sidebar: "T32-Project"
+  [T-32] Step 3: Clicking project...
+  [T-32] Sessions area visible
+  [T-32] Step 4: Checking for empty state message...
+  [T-32] Empty state text: "No sessions — start one with the button above"
+  [T-32] Empty state text matches expected
+  [T-32] Step 5: Checking for absence of errors and spinners...
+  [T-32] No error elements or spinners found
+  [T-32] Step 6: Checking for "New Claude Session" button...
+  [T-32] "New Claude Session" button found
+  [T-32] Area title: "Sessions — T32-Project"
+  [T-32] PASS: Empty state renders correctly with expected message
+
+  1 passed (8.1s)

@@ -1,0 +1,68 @@
+
+Running 4 tests using 1 worker
+
+[1A[2K[1/4] [chromium] › tests/adversarial/T-23-telegram-unconfigured.test.js:121:3 › T-23 — Telegram Toggle: Unconfigured State Is Disabled › T-23.1 — API returns configured: false on fresh server
+[1A[2K[chromium] › tests/adversarial/T-23-telegram-unconfigured.test.js:121:3 › T-23 — Telegram Toggle: Unconfigured State Is Disabled › T-23.1 — API returns configured: false on fresh server
+
+
+[1A[2K
+
+[1A[2K
+  [T-23] tmpDir: /tmp/qa-T23-38eiO8
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3120
+
+[1A[2K  [T-23] Server ready on port 3120
+
+[1A[2K  [T-23] Project created: e843a848-372e-4205-abbc-1461067621e3 (T23-TestProject)
+
+[1A[2K  [T-23.1] telegram/status response: {"configured":false,"hasToken":false,"hasAccessPolicy":false,"pending":{},"allowFrom":[]}
+
+[1A[2K[2/4] [chromium] › tests/adversarial/T-23-telegram-unconfigured.test.js:130:3 › T-23 — Telegram Toggle: Unconfigured State Is Disabled › T-23.2 — Telegram button disabled with correct attributes and help text
+[1A[2K[chromium] › tests/adversarial/T-23-telegram-unconfigured.test.js:130:3 › T-23 — Telegram Toggle: Unconfigured State Is Disabled › T-23.2 — Telegram button disabled with correct attributes and help text
+  [srv] [ws] client connected: 08186085-b658-4bb5-b74d-31a831b0b4fe
+
+[1A[2K  [T-23.2] Selecting project in sidebar...
+
+[1A[2K  [T-23.2] Opening New Session modal...
+
+[1A[2K  [T-23.2] Waiting for Telegram section...
+
+[1A[2K  [T-23.2] Button disabled attribute: true
+
+[1A[2K  [T-23.2] Button opacity: 0.4
+
+[1A[2K  [T-23.2] Help text: "Telegram not configured — run /telegram:configure first"
+
+[1A[2K  [T-23.2] Button cursor: not-allowed
+
+[1A[2K  [srv] [ws] client disconnected: 08186085-b658-4bb5-b74d-31a831b0b4fe (code=1001 reason=)
+
+[1A[2K[3/4] [chromium] › tests/adversarial/T-23-telegram-unconfigured.test.js:230:3 › T-23 — Telegram Toggle: Unconfigured State Is Disabled › T-23.3 — Clicking disabled Telegram button has no effect, no JS error
+[1A[2K[chromium] › tests/adversarial/T-23-telegram-unconfigured.test.js:230:3 › T-23 — Telegram Toggle: Unconfigured State Is Disabled › T-23.3 — Clicking disabled Telegram button has no effect, no JS error
+  [srv] [ws] client connected: 7cf2d237-f08d-4432-be16-a2124ba56191
+
+[1A[2K  [T-23.3] Button text before click: "Enable Telegram"
+
+[1A[2K  [T-23.3] Button text after click: "Enable Telegram"
+
+[1A[2K  [T-23.3] Button still disabled: true
+
+[1A[2K  [srv] [ws] client disconnected: 7cf2d237-f08d-4432-be16-a2124ba56191 (code=1001 reason=)
+
+[1A[2K[4/4] [chromium] › tests/adversarial/T-23-telegram-unconfigured.test.js:300:3 › T-23 — Telegram Toggle: Unconfigured State Is Disabled › T-23.4 — No silent flag corruption — session:create not sent with telegram:true
+[1A[2K[chromium] › tests/adversarial/T-23-telegram-unconfigured.test.js:300:3 › T-23 — Telegram Toggle: Unconfigured State Is Disabled › T-23.4 — No silent flag corruption — session:create not sent with telegram:true
+  [srv] [ws] client connected: 9af707cb-970f-446b-8cf9-079eda478a61
+
+[1A[2K  [T-23.4] Captured session:create messages: [{"type":"session:create","projectId":"e843a848-372e-4205-abbc-1461067621e3","command":"bash","name":"t23-flag-test","mode":"direct","telegram":false}]
+
+[1A[2K  [T-23.4] session:create telegram flag: false
+
+[1A[2K  [srv] [ws] client disconnected: 9af707cb-970f-446b-8cf9-079eda478a61 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:00:32.633Z] SIGTERM received — server exiting (pid=3009257)
+[2026-04-08T20:00:32.634Z] Server process exiting with code 0 (pid=3009257)
+
+[1A[2K
+
+[1A[2K  4 passed (24.6s)

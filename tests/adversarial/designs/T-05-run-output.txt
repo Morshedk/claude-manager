@@ -1,0 +1,36 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-05-resume-on-refresh.test.js:245:3 › T-05 — Refresh preserves conversation (--resume) › T-05 — Refresh preserves conversation via --resume (3 iterations)
+[1A[2K[chromium] › tests/adversarial/T-05-resume-on-refresh.test.js:245:3 › T-05 — Refresh preserves conversation (--resume) › T-05 — Refresh preserves conversation via --resume (3 iterations)
+
+
+[1A[2K
+
+[1A[2K
+  [setup] tmpDir: /tmp/qa-T05-Ib1HuI
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  1) [chromium] › tests/adversarial/T-05-resume-on-refresh.test.js:245:3 › T-05 — Refresh preserves conversation (--resume) › T-05 — Refresh preserves conversation via --resume (3 iterations) 
+
+    Error: Test server failed to start within 25s
+
+       97 |       await sleep(400);
+       98 |     }
+    >  99 |     if (!ready) throw new Error('Test server failed to start within 25s');
+          |                       ^
+      100 |     console.log(`  [setup] ${ts()} Server ready on port ${PORT}`);
+      101 |
+      102 |     browser = await chromium.launch({
+        at /home/claude-runner/apps/claude-web-app-v2/tests/adversarial/T-05-resume-on-refresh.test.js:99:23
+
+    Error Context: test-results/adversarial-T-05-resume-on-6db49--via---resume-3-iterations--chromium/error-context.md
+
+    Error Context: test-results/adversarial-T-05-resume-on-6db49--via---resume-3-iterations--chromium/error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] › tests/adversarial/T-05-resume-on-refresh.test.js:245:3 › T-05 — Refresh preserves conversation (--resume) › T-05 — Refresh preserves conversation via --resume (3 iterations) 

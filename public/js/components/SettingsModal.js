@@ -116,6 +116,19 @@ export function SettingsModal() {
 
   const [saving, setSaving] = useState(false);
 
+  // Escape key closes modal without saving (document-level to work regardless of focus)
+  useEffect(() => {
+    if (!settingsModalOpen.value) return;
+    const handler = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        closeSettingsModal();
+      }
+    };
+    document.addEventListener('keydown', handler, true);
+    return () => document.removeEventListener('keydown', handler, true);
+  }, [settingsModalOpen.value]);
+
   // Re-sync from settings signal when modal opens
   useEffect(() => {
     if (!settingsModalOpen.value) return;

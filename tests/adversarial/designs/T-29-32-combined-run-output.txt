@@ -1,0 +1,242 @@
+
+Running 4 tests using 1 worker
+
+[1A[2K[1/4] [chromium] › tests/adversarial/T-29-telegram-badge-reload.test.js:135:3 › T-29 — Telegram badge persists after browser reload › TG badge persists after hard browser reload
+[1A[2K[chromium] › tests/adversarial/T-29-telegram-badge-reload.test.js:135:3 › T-29 — Telegram badge persists after browser reload › TG badge persists after hard browser reload
+
+
+[1A[2K
+
+[1A[2K
+  [T-29] tmpDir: /tmp/qa-T29-B2wZK6
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3126
+
+[1A[2K  [T-29] Server ready on port 3126
+
+[1A[2K
+  [T-29] Step 1: Navigate to app and select project...
+
+[1A[2K  [srv] [ws] client connected: 1c626ebb-18a7-4587-9fa3-c63f075fa5f9
+
+[1A[2K  [T-29] WS connected
+
+[1A[2K  [T-29] Step 2: Creating session with telegram:true via WS...
+
+[1A[2K  [srv] [ws] client connected: 1ed2cdb8-b7a4-46bd-9130-5fe4342459c0
+
+[1A[2K  [T-29] Session created: 1c7f97bb-255c-4d9e-b8b5-1c00fc845e44
+
+[1A[2K  [T-29] Session running
+
+[1A[2K  [T-29] Step 3: Checking for TG badge before reload...
+
+[1A[2K  [srv] [ws] client disconnected: 1ed2cdb8-b7a4-46bd-9130-5fe4342459c0 (code=1005 reason=)
+
+[1A[2K  [T-29] Badge before reload: "TG"
+
+[1A[2K  [T-29] Step 4: Hard-reloading browser...
+
+[1A[2K  [srv] [ws] client disconnected: 1c626ebb-18a7-4587-9fa3-c63f075fa5f9 (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: 196e35a9-0598-4172-98db-00102a3ffb15
+
+[1A[2K  [T-29] After reload: WS reconnected
+
+[1A[2K  [T-29] Step 5: Checking for TG badge after reload...
+
+[1A[2K  [T-29] Badge after reload: "TG"
+
+[1A[2K  [T-29] PASS: TG badge persists after hard reload
+
+[1A[2K  [srv] [ws] client disconnected: 196e35a9-0598-4172-98db-00102a3ffb15 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:07:06.078Z] SIGTERM received — server exiting (pid=3053690)
+[2026-04-08T20:07:06.078Z] Server process exiting with code 0 (pid=3053690)
+
+[1A[2K
+
+[1A[2K[2/4] [chromium] › tests/adversarial/T-30-tmux-pid-unchanged.test.js:155:3 › T-30 — Tmux refresh does not kill process inside pane › Tmux PID inside pane is unchanged after session refresh
+[1A[2K[chromium] › tests/adversarial/T-30-tmux-pid-unchanged.test.js:155:3 › T-30 — Tmux refresh does not kill process inside pane › Tmux PID inside pane is unchanged after session refresh
+
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K
+  [T-30] tmpDir: /tmp/qa-T30-ogC3y7
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3127
+
+[1A[2K  [T-30] Server ready on port 3127
+
+[1A[2K
+  [T-30] Step 1: Creating tmux bash session...
+
+[1A[2K  [srv] [ws] client connected: e4d66a4c-4057-4788-8565-118343990ed6
+
+[1A[2K  [T-30] Session created: 6bade30d-d7a2-46a5-a062-29d7d2b7ef14
+
+[1A[2K  [T-30] Expected tmux name: cm-6bade30d
+
+[1A[2K  [T-30] Session running
+
+[1A[2K
+
+[1A[2K  [T-30] Confirmed tmux session "cm-6bade30d" exists
+
+[1A[2K  [T-30] Step 3: Getting PID before refresh...
+
+[1A[2K
+
+[1A[2K  [T-30] PID before refresh: 3054280
+
+[1A[2K  [T-30] Step 4: Sending session:refresh...
+
+[1A[2K  [T-30] session:subscribed received (PTY re-attached)
+
+[1A[2K  [T-30] session:refreshed received
+
+[1A[2K  [T-30] Step 5: Verifying tmux session still alive...
+
+[1A[2K
+
+[1A[2K  [T-30] Confirmed tmux session "cm-6bade30d" still alive after refresh
+
+[1A[2K  [T-30] Step 6: Getting PID after refresh...
+
+[1A[2K
+
+[1A[2K  [T-30] PID after refresh: 3054280
+
+[1A[2K  [T-30] Comparing PIDs: before=3054280, after=3054280
+
+[1A[2K  [T-30] PASS: PID unchanged — process inside tmux was not killed by refresh
+
+[1A[2K  [srv] [ws] client disconnected: e4d66a4c-4057-4788-8565-118343990ed6 (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client connected: 039a620d-6e84-4687-9c3e-4bed014760ca
+
+[1A[2K  [T-30] Browser confirms session still running after refresh
+
+[1A[2K  [srv] [ws] client disconnected: 039a620d-6e84-4687-9c3e-4bed014760ca (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:07:13.659Z] SIGTERM received — server exiting (pid=3054228)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:07:13.660Z] Server process exiting with code 0 (pid=3054228)
+
+[1A[2K
+
+[1A[2K[3/4] [chromium] › tests/adversarial/T-31-settings-cancel.test.js:103:3 › T-31 — Settings Cancel discards changes › Settings Cancel does not save changes
+[1A[2K[chromium] › tests/adversarial/T-31-settings-cancel.test.js:103:3 › T-31 — Settings Cancel discards changes › Settings Cancel does not save changes
+
+
+[1A[2K
+
+[1A[2K
+  [T-31] tmpDir: /tmp/qa-T31-VwDXE7
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3128
+
+[1A[2K  [T-31] Server ready on port 3128
+
+[1A[2K
+  [T-31] Step 1: Navigate to app...
+
+[1A[2K  [srv] [ws] client connected: 32ced822-0d0c-49f1-9318-71ef121d39ea
+
+[1A[2K  [T-31] App loaded, WS connected
+
+[1A[2K  [T-31] Step 2: Opening Settings modal...
+
+[1A[2K  [T-31] Settings modal opened
+
+[1A[2K  [T-31] Step 3: Reading initial model value...
+
+[1A[2K  [T-31] Initial Default Model: "sonnet"
+
+[1A[2K  [T-31] Model before change: "sonnet"
+
+[1A[2K  [T-31] Step 4: Changing model from "sonnet" to "opus"...
+
+[1A[2K  [T-31] Model after change (before cancel): "opus"
+
+[1A[2K  [T-31] Step 5: Clicking Cancel...
+
+[1A[2K  [T-31] Modal closed
+
+[1A[2K  [T-31] Step 6: Verifying no PUT to /api/settings (found 0)...
+
+[1A[2K  [T-31] Confirmed: no PUT to /api/settings was made
+
+[1A[2K  [T-31] Step 7: Reopening Settings modal...
+
+[1A[2K  [T-31] Model after reopen: "sonnet"
+
+[1A[2K  [T-31] Step 8: Asserting model = "sonnet" (not "opus")...
+
+[1A[2K  [T-31] PASS: Settings Cancel correctly discards changes
+
+[1A[2K  [srv] [ws] client disconnected: 32ced822-0d0c-49f1-9318-71ef121d39ea (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:07:20.191Z] SIGTERM received — server exiting (pid=3055182)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:07:20.192Z] Server process exiting with code 0 (pid=3055182)
+
+[1A[2K
+
+[1A[2K[4/4] [chromium] › tests/adversarial/T-32-empty-state.test.js:103:3 › T-32 — Session list empty state message › Empty project shows correct empty state message
+[1A[2K[chromium] › tests/adversarial/T-32-empty-state.test.js:103:3 › T-32 — Session list empty state message › Empty project shows correct empty state message
+
+
+[1A[2K
+
+[1A[2K
+  [T-32] tmpDir: /tmp/qa-T32-2ibaum
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3129
+
+[1A[2K  [T-32] Server ready on port 3129
+
+[1A[2K
+  [T-32] Step 1: Navigate to app...
+
+[1A[2K  [srv] [ws] client connected: 396a347a-14ee-467d-ace8-f8daf28ef3ad
+
+[1A[2K  [T-32] WS connected
+
+[1A[2K  [T-32] Step 2: Waiting for project in sidebar...
+
+[1A[2K  [T-32] Found project in sidebar: "T32-Project"
+
+[1A[2K  [T-32] Step 3: Clicking project...
+
+[1A[2K  [T-32] Sessions area visible
+
+[1A[2K  [T-32] Step 4: Checking for empty state message...
+
+[1A[2K  [T-32] Empty state text: "No sessions — start one with the button above"
+
+[1A[2K  [T-32] Empty state text matches expected
+
+[1A[2K  [T-32] Step 5: Checking for absence of errors and spinners...
+
+[1A[2K  [T-32] No error elements or spinners found
+
+[1A[2K  [T-32] Step 6: Checking for "New Claude Session" button...
+
+[1A[2K  [T-32] "New Claude Session" button found
+
+[1A[2K  [T-32] Area title: "Sessions — T32-Project"
+
+[1A[2K  [T-32] PASS: Empty state renders correctly with expected message
+
+[1A[2K  [srv] [ws] client disconnected: 396a347a-14ee-467d-ace8-f8daf28ef3ad (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:07:25.338Z] SIGTERM received — server exiting (pid=3056105)
+[2026-04-08T20:07:25.339Z] Server process exiting with code 0 (pid=3056105)
+
+[1A[2K
+
+[1A[2K  4 passed (28.6s)

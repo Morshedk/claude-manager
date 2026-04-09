@@ -1,0 +1,87 @@
+FAIL tests/adversarial/T-36-restart-starting-state.test.js (5.754 s)
+  T-36 — Server Restart With Starting Session State
+    ✕ session stuck in starting is recovered after server restart (3048 ms)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 total
+Time:        5.836 s
+
+Console output:
+  [T-36] tmpDir: /tmp/qa-T36-NnrYxL
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3133
+  [T-36] Server ready (first instance)
+  [T-36] projectId: ad96f0f9-7e5d-4b5e-b24d-f65b9ad0bbfd
+  [T-36] Creating session and waiting for RUNNING...
+  [ws] client connected: 4f75611c-2864-47ff-8f1f-2decd3f35ddf
+  [T-36] Session created: id=064f006b-1def-4710-95e8-723bb4a8adc5
+  [T-36] Session state before kill: running
+  [ws] client disconnected: 4f75611c-2864-47ff-8f1f-2decd3f35ddf (code=1005 reason=)
+  [T-36] Sending SIGKILL to server...
+  [T-36] Server confirmed down
+  [T-36] Crash log before corruption: ""
+  [T-36] sessions.json corrupted: 064f006b-1def-4710-95e8-723bb4a8adc5 status changed from 'running' to 'starting'
+  [T-36] Restarting server...
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3133
+  [T-36] Server restarted and ready
+  [T-36] PASS: No crash log entries after restart
+  [T-36] Post-restart sessions: [{"id":"064f006b","status":"starting"}]
+  [T-36] Session status after restart: 'starting'
+
+Error:
+  expect(received).not.toBe(expected) // Object.is equality
+  Expected: not "starting"
+  at Object.<anonymous> (tests/adversarial/T-36-restart-starting-state.test.js:256:28)
+
+## Execution Summary
+
+**Result: FAIL (pre-fix) → PASS (post-fix)**
+**Attempts:** 2 (1 fix for sessions API format, then ran final to discover bug; then applied fix and re-ran)
+
+**Bug discovered:** Sessions stuck in 'starting' state after server restart are NOT recovered.
+
+**Root cause (confirmed by reading source):**
+- `SessionManager.init()` (lib/sessions/SessionManager.js line 73): `const wasLive = meta.status === STATES.RUNNING;`
+- Only sessions with status `'running'` are auto-resumed on startup.
+- Sessions with status `'starting'` are a known, valid state (sessionStates.js line 3: `STARTING: 'starting'`).
+- `'starting'` passes the known-status check at line 58-61 (not migrated to 'stopped').
+- Therefore: a session with `status='starting'` loads, is stored in the Map, but `wasLive` is false → no auto-resume → status remains `'starting'` permanently.
+
+**Impact:**
+- If the server crashes while a session is transitioning STARTING→RUNNING (a ~1-5ms window), the session is stuck in `'starting'` after restart.
+- The user cannot restart the session because `DirectSession.refresh()` requires status not be STARTING (throws "Cannot refresh direct session: already starting").
+- The user cannot start the session (it's already "starting").
+- The session is effectively bricked until manually fixed in sessions.json.
+
+**Fix required:** In `SessionManager.init()`, add handling for `status === STATES.STARTING`:
+```javascript
+const wasLive = meta.status === STATES.RUNNING || meta.status === STATES.STARTING;
+```
+Or equivalently, before the auto-resume check, normalize `STARTING` to `STOPPED`:
+```javascript
+if (meta.status === STATES.STARTING) {
+  meta.status = STATES.STOPPED;
+}
+```
+
+**Server behavior:**
+- Server does NOT crash on startup with stuck-starting session — only the session state is wrong.
+- Crash log remains empty after restart.
+- All other API endpoints remain functional.
+
+**Issues encountered during implementation:**
+1. Sessions API returns `{ managed, detected }` not bare array. Fixed.
+
+## Post-Fix Run Output
+
+After applying fix to `SessionManager.init()` (normalize STARTING → STOPPED):
+
+  PASS tests/adversarial/T-36-restart-starting-state.test.js
+    [T-36] sessions.json corrupted: status changed from 'running' to 'starting'
+    [T-36] Post-restart sessions: [{"id":"a96b8ec2","status":"stopped"}]
+    [T-36] Session status after restart: 'stopped'
+    [T-36] PASS: Session is not stuck in 'starting' (status='stopped')
+    [T-36] PASS: Session in valid state after restart: 'stopped'
+    [T-36] PASS: Server fully functional after restart, project found
+    ✓ session stuck in starting is recovered after server restart (3020 ms)
+
+All 37 SessionManager unit tests still pass after the fix.

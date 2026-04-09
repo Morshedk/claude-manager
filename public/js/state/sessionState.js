@@ -4,6 +4,7 @@ import { sessions, connected, clientId, attachedSessionId } from './store.js';
 import {
   loadProjects,
   loadSessions,
+  loadSettings,
   handleSessionCreated,
   handleSessionState,
   handleSessionsList,
@@ -75,6 +76,7 @@ export function initMessageHandlers() {
     if (msg.clientId) clientId.value = msg.clientId;
     loadProjects();
     loadSessions();
+    loadSettings();
   });
 
   // Connection lifecycle

@@ -1,0 +1,90 @@
+
+Running 5 tests using 1 worker
+
+[1A[2K[1/5] [chromium] › tests/adversarial/T-08-bad-project-path.test.js:117:1 › T-08 pre-conditions: clean server state
+[1A[2K[chromium] › tests/adversarial/T-08-bad-project-path.test.js:117:1 › T-08 pre-conditions: clean server state
+
+
+[1A[2K
+
+[1A[2K[T-08] Server ready on port 3105
+
+[1A[2K[2/5] [chromium] › tests/adversarial/T-08-bad-project-path.test.js:135:3 › T-08 iter-1: bad path "/absolutely/nonexistent/path/xyz123" — modal stays open, error shown, no project created
+[1A[2K[chromium] › tests/adversarial/T-08-bad-project-path.test.js:135:3 › T-08 iter-1: bad path "/absolutely/nonexistent/path/xyz123" — modal stays open, error shown, no project created
+[T-08 iter-1] Sidebar visible
+
+[1A[2K[T-08 iter-1] Modal opened
+
+[1A[2K[T-08 iter-1] Form filled: name="Bad Path Project", path="/absolutely/nonexistent/path/xyz123"
+
+[1A[2K[T-08 iter-1] Clicked "Create Project"
+
+[1A[2K[T-08 iter-1] API project count: 0
+
+[1A[2K[T-08 iter-1] Modal still open: true
+
+[1A[2K[T-08 iter-1] Error toast text: null
+
+[1A[2K[T-08 iter-1] Sidebar items: 0
+
+[1A[2K[T-08 iter-1] Form still has: name="Bad Path Project", path="/absolutely/nonexistent/path/xyz123"
+
+[1A[2K[T-08 iter-1] Console errors: [error] Failed to load resource: the server responded with a status of 400 (Bad Request), [error] [actions] createProject failed: Error: Path does not exist: /absolutely/nonexistent/path/xyz123
+    at createProject (http://localhost:3105/js/state/actions.js:167:22)
+    at async handleCreate (http://localhost:3105/js/components/NewProjectModal.js:37:7)
+
+[1A[2K[3/5] [chromium] › tests/adversarial/T-08-bad-project-path.test.js:135:3 › T-08 iter-2: bad path "/this/does/not/exist/either" — modal stays open, error shown, no project created
+[1A[2K[chromium] › tests/adversarial/T-08-bad-project-path.test.js:135:3 › T-08 iter-2: bad path "/this/does/not/exist/either" — modal stays open, error shown, no project created
+[T-08 iter-2] Sidebar visible
+
+[1A[2K[T-08 iter-2] Modal opened
+
+[1A[2K[T-08 iter-2] Form filled: name="Bad Path Project", path="/this/does/not/exist/either"
+
+[1A[2K[T-08 iter-2] Clicked "Create Project"
+
+[1A[2K[T-08 iter-2] API project count: 0
+
+[1A[2K[T-08 iter-2] Modal still open: true
+
+[1A[2K[T-08 iter-2] Error toast text: null
+
+[1A[2K[T-08 iter-2] Sidebar items: 0
+
+[1A[2K[T-08 iter-2] Form still has: name="Bad Path Project", path="/this/does/not/exist/either"
+
+[1A[2K[T-08 iter-2] Console errors: [error] Failed to load resource: the server responded with a status of 400 (Bad Request), [error] [actions] createProject failed: Error: Path does not exist: /this/does/not/exist/either
+    at createProject (http://localhost:3105/js/state/actions.js:167:22)
+    at async handleCreate (http://localhost:3105/js/components/NewProjectModal.js:37:7)
+
+[1A[2K[4/5] [chromium] › tests/adversarial/T-08-bad-project-path.test.js:135:3 › T-08 iter-3: bad path "/nonexistent" — modal stays open, error shown, no project created
+[1A[2K[chromium] › tests/adversarial/T-08-bad-project-path.test.js:135:3 › T-08 iter-3: bad path "/nonexistent" — modal stays open, error shown, no project created
+[T-08 iter-3] Sidebar visible
+
+[1A[2K[T-08 iter-3] Modal opened
+
+[1A[2K[T-08 iter-3] Form filled: name="Bad Path Project", path="/nonexistent"
+
+[1A[2K[T-08 iter-3] Clicked "Create Project"
+
+[1A[2K[T-08 iter-3] API project count: 0
+
+[1A[2K[T-08 iter-3] Modal still open: true
+
+[1A[2K[T-08 iter-3] Error toast text: null
+
+[1A[2K[T-08 iter-3] Sidebar items: 0
+
+[1A[2K[T-08 iter-3] Form still has: name="Bad Path Project", path="/nonexistent"
+
+[1A[2K[T-08 iter-3] Console errors: [error] Failed to load resource: the server responded with a status of 400 (Bad Request), [error] [actions] createProject failed: Error: Path does not exist: /nonexistent
+    at createProject (http://localhost:3105/js/state/actions.js:167:22)
+    at async handleCreate (http://localhost:3105/js/components/NewProjectModal.js:37:7)
+
+[1A[2K[5/5] [chromium] › tests/adversarial/T-08-bad-project-path.test.js:268:1 › T-08 final: no projects created after all bad-path attempts
+[1A[2K[chromium] › tests/adversarial/T-08-bad-project-path.test.js:268:1 › T-08 final: no projects created after all bad-path attempts
+[T-08 final] Total projects on server: 0
+
+[1A[2K
+
+[1A[2K  5 passed (20.1s)

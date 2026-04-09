@@ -1,0 +1,108 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-17-server-restart-recovery.test.js:206:3 › T-17 — Server Restart: Direct Session Stopped, Tmux Session Running › direct session is stopped; tmux session is running after SIGKILL + restart
+[1A[2K[chromium] › tests/adversarial/T-17-server-restart-recovery.test.js:206:3 › T-17 — Server Restart: Direct Session Stopped, Tmux Session Running › direct session is stopped; tmux session is running after SIGKILL + restart
+
+
+[1A[2K
+
+[1A[2K
+  [T-17] dataDir: /tmp/qa-T17-ir4633
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3114
+
+[1A[2K  [T-17] Server started (first boot)
+
+[1A[2K
+  [T-17] Step 1: Creating direct session via WS...
+
+[1A[2K  [srv] [ws] client connected: 1ea74e24-1416-494a-8d9d-f63a317a112b
+
+[1A[2K  [T-17] Direct session created: ea8f0615-1b9d-4379-a1ce-101e3acf9fca (claudeSessionId: 02aff066-9eeb-415c-bee5-94af4085ab71)
+
+[1A[2K  [T-17] Waiting for direct session to stop...
+
+[1A[2K  [T-17] Direct session status: stopped
+
+[1A[2K
+  [T-17] Step 2: Creating tmux session via WS...
+
+[1A[2K  [T-17] Tmux session created: 153792cc-26b8-49a2-a557-98dbfe16e8ef (claudeSessionId: 9ccb3e8c-9f8b-43ae-a6d9-ad5606e4ae12)
+
+[1A[2K  [T-17] Waiting for tmux session to reach running...
+
+[1A[2K  [T-17] Tmux session status: running
+
+[1A[2K
+  [T-17] Step 3: Verifying sessions.json...
+
+[1A[2K  [T-17] sessions.json before kill: [{"id":"ea8f0615","status":"stopped","mode":"direct"},{"id":"153792cc","status":"running","mode":"tmux"}]
+
+[1A[2K
+  [T-17] Step 4: Sending SIGKILL to server...
+
+[1A[2K  [T-17] Server PID 2948084 killed.
+
+[1A[2K
+
+[1A[2K  [T-17] ✓ Tmux session "cm-153792cc" survived SIGKILL
+
+[1A[2K
+  [T-17] Step 5: Restarting server with same DATA_DIR...
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3114
+
+[1A[2K  [T-17] Server restarted (second boot)
+
+[1A[2K
+  [T-17] Step 6: API checks post-restart...
+
+[1A[2K  [T-17] Direct session post-restart: {"status":"stopped","claudeSessionId":"02aff066"}
+
+[1A[2K  [T-17] Tmux session post-restart: {"status":"running","claudeSessionId":"9ccb3e8c"}
+
+[1A[2K  [T-17] Direct session final status after restart: stopped
+
+[1A[2K
+  [T-17] Step 7: Browser verification...
+
+[1A[2K  [srv] [ws] client connected: f50d651b-5bae-485b-be70-da6d4f9bb4cd
+
+[1A[2K  [T-17] Checking direct session card...
+
+[1A[2K  [T-17] Direct session badge: "⏹ stopped"
+
+[1A[2K  [T-17] Checking tmux session card...
+
+[1A[2K  [T-17] Tmux session badge: "▶ running"
+
+[1A[2K
+  [T-17] Step 8: Refreshing direct session...
+
+[1A[2K  [T-17] Clicked Refresh on direct session
+
+[1A[2K  [T-17] Direct session after refresh: {"id":"ea8f0615","status":"stopped"}
+
+[1A[2K
+  [T-17] ✓ All checks passed!
+
+[1A[2K    - Direct session (ea8f0615...): NOT running after SIGKILL ✓
+
+[1A[2K    - Tmux session (153792cc...): running after SIGKILL ✓
+
+[1A[2K    - Direct claudeSessionId intact: 02aff066... ✓
+
+[1A[2K    - Tmux claudeSessionId intact: 9ccb3e8c... ✓
+
+[1A[2K    - sessions.json flushed before SIGKILL ✓
+
+[1A[2K    - Refresh re-uses same session id ✓
+
+[1A[2K  [srv] [ws] client disconnected: f50d651b-5bae-485b-be70-da6d4f9bb4cd (code=1001 reason=)
+
+[1A[2K
+
+[1A[2K  [T-17] Cleanup complete
+
+[1A[2K  1 passed (17.9s)

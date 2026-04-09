@@ -617,3 +617,67 @@ a { color: var(--accent); text-decoration: none; }
 }
 .empty-icon { font-size: 40px; }
 .empty-sub { font-size: 12px; color: var(--text-muted); max-width: 260px; }
+
+/* ===== SPLIT VIEW LAYOUT ===== */
+/* When in split mode, clip the workspace to the left of the split boundary */
+body.session-split #workspace {
+  margin-right: calc(100% - var(--split-pos, 50%));
+}
+
+/* Split boundary resize handle — fixed, spans full height below topbar */
+.split-resize-handle {
+  position: fixed;
+  left: var(--split-pos, 50%);
+  top: var(--topbar-h);
+  bottom: 0;
+  width: 7px;
+  margin-left: -3px;
+  z-index: 105;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.15s;
+}
+.split-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 40px;
+  background: var(--accent-dim);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.split-resize-handle:hover::after,
+.split-resize-handle.dragging::after { opacity: 1; }
+.split-resize-handle.dragging { background: var(--accent-bg); }
+
+/* ===== GLOBAL SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-active); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ===== TERMINAL SCROLLBAR (minimalist, visible on hover) ===== */
+.xterm-viewport {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s;
+}
+.xterm:hover .xterm-viewport {
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.xterm-viewport::-webkit-scrollbar { width: 4px; }
+.xterm-viewport::-webkit-scrollbar-track { background: transparent; }
+.xterm-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.0);
+  border-radius: 2px;
+}
+.xterm-viewport:hover::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+}
+.xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.3);
+}

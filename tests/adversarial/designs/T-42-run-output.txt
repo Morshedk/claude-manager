@@ -1,0 +1,34 @@
+Running 3 tests using 1 worker
+
+[1/3] T-42.01 — Initial badges: Project A = 3 running, Project B = idle
+  [T-42] tmpDir: /tmp/qa-T42-tbhjAc
+  [T-42] Server started on port 3139
+  [T-42] Created session 1: 0e728635
+  [T-42] Created session 2: 62f6370b
+  [T-42] Created session 3: 2942a6ba
+  [T-42] 3 sessions created in Project Alpha
+  [T-42.01] Alpha: "3 sessions running", Beta: "idle"
+  [T-42.01] PASS: Project Alpha shows: "3 sessions running"
+  [T-42.01] PASS: Project Beta shows: "idle"
+
+[2/3] T-42.02 — Stop one session in Project A; badges update correctly
+  [T-42.02] Stopping session: 0e728635
+  [T-42.02] Session stopped — waiting for badge update...
+  [T-42.02] Alpha: "2 sessions running", Beta: "idle"
+  [T-42.02] PASS: Project Alpha decremented to: "2 sessions running"
+  [T-42.02] PASS: Project Beta unchanged: "idle"
+
+[3/3] T-42.03 — Project B badge never shows non-zero count
+  [T-42.03] PASS: Project Beta has 0 sessions in server state
+  [T-42.03] PASS: No server crashes
+
+  3 passed (7.0s)
+
+Notes:
+- First attempt: passed immediately with no fixes needed.
+- T-42.01: Alpha badge on first poll showed "3 sessions running" — sessions had already
+  reached RUNNING by the time the browser loaded. No polling needed.
+- T-42.02: After sending session:stop and receiving sessions:list confirmation, Alpha
+  immediately showed "2 sessions running" on first poll (300ms). Beta remained "idle".
+- T-42.03: API-level confirmation: 0 sessions exist for Project Beta.
+- No cross-project contamination detected. The per-projectId filter in ProjectSidebar.js works correctly.

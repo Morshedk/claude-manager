@@ -1,0 +1,108 @@
+=== PRE-FIX RUN ===
+
+=== T-1: handleSubscribed sends resize after refresh ===
+Phase: PRE-FIX
+Result: FAIL
+Attempts: 3 (1 infrastructure fix for WS interceptor approach, 2 for terminal-render wait selector)
+Duration: ~20s
+Key observations:
+  - WS log captured 1 message: session:refresh
+  - 0 session:resize messages sent after Refresh click
+  - handleSubscribed only calls xterm.reset(), no fitAddon.fit() or SESSION_RESIZE
+  - ResizeObserver does NOT fire on xterm.reset() (container div dimensions unchanged)
+  - Assertion failed: session:resize count 0, expected >= 1
+
+=== T-2: Smoke — terminal shows content and accepts input after refresh ===
+Phase: PRE-FIX
+Result: PASS (expected — smoke test, does not stress dimension mismatch)
+Attempts: 1 (infrastructure fix for xterm-rows text content not available in GPU render mode)
+Duration: ~13s
+Key observations:
+  - Session still running after refresh
+  - WS echo command returned REFRESH_TEST_OK
+  - Core session lifecycle works even without Fix C when dimensions happen to be correct
+
+=== T-3: Dimension mismatch after refresh ===
+Phase: PRE-FIX
+Result: FAIL
+Attempts: 2 (1 for xterm-screen wait timeout fix)
+Duration: ~30s
+Key observations:
+  - Initial PTY dims: rows=46, cols=74 (from 1200x800 viewport)
+  - Dropped all session:resize messages while viewport shrunk to 800x500
+    (server _cols/_rows remain 74x46, xterm viewport is smaller)
+  - 0 session:resize messages sent after Refresh
+  - Post-refresh stty size: still rows=46, cols=74 (server used stale stored dimensions)
+  - A1 assertion failed: session:resize count 0, expected >= 1
+
+=== T-5: No resize sent — rigorous timing assertion ===
+Phase: PRE-FIX
+Result: FAIL
+Attempts: 2 (1 for xterm-screen wait fix)
+Duration: ~20s
+Key observations:
+  - WS log after spy install: [session:refresh]
+  - 0 session:resize messages found after session:refresh
+  - Confirms: ResizeObserver does NOT fire during/after xterm.reset()
+  - Fix C is not present: handleSubscribed sends no resize
+  - A1 assertion failed: session:resize after session:refresh = 0, expected >= 1
+
+=== POST-FIX RUN ===
+
+Fix applied: public/js/components/TerminalPane.js — handleSubscribed now calls
+  requestAnimationFrame(() => {
+    try { fitAddon.fit(); } catch {}
+    const dims = fitAddon.proposeDimensions();
+    if (dims) {
+      send({ type: CLIENT.SESSION_RESIZE, id: sessionId, cols: dims.cols, rows: dims.rows });
+    }
+  });
+after xterm.reset(). Mirrors the existing connection:open reconnect handler logic.
+
+=== T-1: handleSubscribed sends resize after refresh ===
+Phase: POST-FIX
+Result: PASS
+Attempts: 1
+Duration: ~11s
+Key observations:
+  - WS log: [session:refresh, session:resize]
+  - 1 session:resize message captured: cols=74, rows=46
+  - rAF in handleSubscribed fired fitAddon.fit() + sent SESSION_RESIZE
+  - A1 PASS: session:resize count = 1
+  - A2 PASS: cols=74 > 0, rows=46 > 0
+
+=== T-2: Smoke — terminal shows content and accepts input after refresh ===
+Phase: POST-FIX
+Result: PASS
+Attempts: 1
+Duration: ~13s
+Key observations:
+  - Session still running after refresh
+  - WS echo command returned REFRESH_TEST_OK
+  - Core user experience unaffected
+
+=== T-3: Dimension mismatch after refresh ===
+Phase: POST-FIX
+Result: PASS
+Attempts: 1
+Duration: ~22s
+Key observations:
+  - Initial PTY dims: rows=46, cols=74 (1200x800 viewport)
+  - Resize-drop mode blocked resize messages during viewport shrink to 800x500
+  - After Refresh: 1 session:resize sent — cols=49, rows=26 (matching 800x500 viewport)
+  - Post-refresh stty size: rows=26, cols=49 (SMALLER than initial, matching current viewport)
+  - A1 PASS: session:resize count = 1
+  - A2 PASS: post-refresh cols 49 < initial cols 74 (dimension mismatch resolved)
+
+=== T-5: No resize sent — rigorous timing assertion ===
+Phase: POST-FIX
+Result: PASS
+Attempts: 1
+Duration: ~12s
+Key observations:
+  - WS log sequence: [session:refresh, session:resize]
+  - session:resize found at index 1 (after session:refresh at index 0)
+  - Resize message: cols=55, rows=33 (900x600 viewport dimensions)
+  - A1 PASS: 1 resize after refresh
+  - A2 PASS: cols=55 > 0, rows=33 > 0
+  - A3 PASS: session id matches

@@ -1,0 +1,99 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-21-low-credit-mode.test.js:103:3 › T-21 — Low Credit Mode uses lcModel command in New Session modal › command field pre-fills with Haiku command and warning badge is visible
+[1A[2K[chromium] › tests/adversarial/T-21-low-credit-mode.test.js:103:3 › T-21 — Low Credit Mode uses lcModel command in New Session modal › command field pre-fills with Haiku command and warning badge is visible
+
+
+[1A[2K
+
+[1A[2K
+  [T-21] tmpDir: /tmp/qa-T21-NZMS48
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3118
+
+[1A[2K  [T-21] Server ready on port 3118
+
+[1A[2K  [T-21] Created project id=004b17cb-81bd-4a02-a97f-311c0aad836b
+
+[1A[2K  [srv] [ws] client connected: d5f34478-9000-4973-8105-21385aa7a509
+
+[1A[2K  [T-21] Navigated to http://127.0.0.1:3118
+
+[1A[2K  [T-21] Selected project T21-TestProject
+
+[1A[2K  [T-21] Clicked Settings button
+
+[1A[2K  [T-21] Settings modal opened
+
+[1A[2K  [T-21] Enable LC toggle status: found
+
+[1A[2K  [T-21] LC Mode currently enabled: false
+
+[1A[2K  [T-21] Clicked "Enable Low Credit Mode" toggle
+
+[1A[2K  [T-21] LC Model set to haiku: set
+
+[1A[2K  [T-21] Activate Now currently on: false
+
+[1A[2K  [T-21] Clicked "Activate Now" toggle
+
+[1A[2K  [T-21] Settings command preview: "claude --model claude-haiku-4-5-20251001"
+
+[1A[2K  [T-21] Clicked "Save Settings"
+
+[1A[2K  [T-21] Settings modal closed (save succeeded)
+
+[1A[2K  [T-21] Saved settings lowCredit: {"enabled":true,"active":true,"defaultModel":"haiku","extendedThinking":false,"defaultFlags":""}
+
+[1A[2K  [T-21] Clicked "New Claude Session" button
+
+[1A[2K  [T-21] New Session modal opened
+
+[1A[2K  [T-21] Command field value: "claude --model claude-haiku-4-5-20251001"
+
+[1A[2K  [T-21] A1 — Command contains haiku model: true
+
+[1A[2K  [T-21] A1 — Expected: "claude --model claude-haiku-4-5-20251001"
+
+[1A[2K  [T-21] A1 — Actual:   "claude --model claude-haiku-4-5-20251001"
+
+[1A[2K  [T-21] A2 — Badge info: {"found":true,"visible":true,"color":"rgb(232, 160, 32)","inlineColor":"var(--warning)","displayNone":false,"opacity":"1","text":"LOW CREDIT MODE ACTIVE"}
+
+[1A[2K  [T-21] A2 — Badge visible: true
+
+[1A[2K  [T-21] A3 — Badge color: "rgb(232, 160, 32)" inline: "var(--warning)"
+
+[1A[2K  [T-21] A3 — Badge has warning/orange color: true
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-21] ASSERTION SUMMARY
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  A1 — Command field has Haiku model: PASS
+
+[1A[2K       Command: "claude --model claude-haiku-4-5-20251001"
+
+[1A[2K  A2 — "LOW CREDIT MODE ACTIVE" badge visible: PASS
+
+[1A[2K       Badge found=true visible=true displayNone=false
+
+[1A[2K  A3 — Badge has warning/orange color: PASS
+
+[1A[2K       Color: "rgb(232, 160, 32)" inline: "var(--warning)"
+
+[1A[2K
+  [T-21] RESULT: PASS
+
+[1A[2K  [srv] [ws] client disconnected: d5f34478-9000-4973-8105-21385aa7a509 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:52:40.552Z] SIGTERM received — server exiting (pid=2957806)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:52:40.553Z] Server process exiting with code 0 (pid=2957806)
+
+[1A[2K
+
+[1A[2K  1 passed (10.7s)

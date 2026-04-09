@@ -1,0 +1,112 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-47-session-cards-layout.test.js:177:3 › T-47 — 10+ Session Cards Layout › T-47 — 10 session cards render without layout break
+[1A[2K[chromium] › tests/adversarial/T-47-session-cards-layout.test.js:177:3 › T-47 — 10+ Session Cards Layout › T-47 — 10 session cards render without layout break
+
+
+[1A[2K
+
+[1A[2K
+  [T-47] dataDir: /tmp/t47-c4COYu
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3144
+
+[1A[2K  [T-47] Server ready on port 3144
+
+[1A[2K  [T-47] Creating 10 sessions via WS...
+
+[1A[2K  [T-47] WS connected for session creation
+
+[1A[2K  [T-47] Server init received, clientId=e9de13cf-526e-4156-9042-f01251ac062b
+
+[1A[2K  [srv] [ws] client connected: e9de13cf-526e-4156-9042-f01251ac062b
+
+[1A[2K  [T-47] Session created: session-01 (1/10)
+
+[1A[2K  [T-47] Session created: session-02 (2/10)
+
+[1A[2K  [T-47] Session created: session-03 (3/10)
+
+[1A[2K  [T-47] Session created: session-04 (4/10)
+
+[1A[2K  [T-47] Session created: session-05 (5/10)
+
+[1A[2K  [T-47] Session created: session-06 (6/10)
+
+[1A[2K  [T-47] Session created: session-07 (7/10)
+
+[1A[2K  [T-47] Session created: session-08 (8/10)
+
+[1A[2K  [T-47] Session created: session-09 (9/10)
+
+[1A[2K  [T-47] Session created: session-10 (10/10)
+
+[1A[2K  [srv] [ws] client disconnected: e9de13cf-526e-4156-9042-f01251ac062b (code=1005 reason=)
+
+[1A[2K  [T-47] API confirms 10 sessions
+
+[1A[2K  [srv] [ws] client connected: 63280b20-7ef3-4897-882f-17bcdc2225cb
+
+[1A[2K
+  [T-47] App loaded, connected
+
+[1A[2K  [T-47] Project selected
+
+[1A[2K  [T-47] Card count in DOM: 10
+
+[1A[2K  [T-47] Card metrics (10 cards):
+
+[1A[2K    [0] "session-01" height=75 width=329 top=103 overflowsRight=false
+
+[1A[2K    [1] "session-02" height=75 width=329 top=103 overflowsRight=false
+
+[1A[2K    [2] "session-03" height=75 width=329 top=103 overflowsRight=false
+
+[1A[2K    [3] "session-04" height=75 width=329 top=190 overflowsRight=false
+
+[1A[2K    [4] "session-05" height=75 width=329 top=190 overflowsRight=false
+
+[1A[2K    [5] "session-06" height=75 width=329 top=190 overflowsRight=false
+
+[1A[2K    [6] "session-07" height=75 width=329 top=277 overflowsRight=false
+
+[1A[2K    [7] "session-08" height=75 width=329 top=277 overflowsRight=false
+
+[1A[2K    [8] "session-09" height=75 width=329 top=277 overflowsRight=false
+
+[1A[2K    [9] "session-10" height=75 width=329 top=364 overflowsRight=false
+
+[1A[2K  [T-47] PASS: All cards have height > 0, no horizontal overflow
+
+[1A[2K  [T-47] List scroll info: {"scrollHeight":360,"clientHeight":360,"overflowY":"visible","scrollable":false}
+
+[1A[2K  [T-47] List is not scrollable — verifying all cards are within viewport
+
+[1A[2K  [T-47] Last card after scroll: {"name":"session-10","height":75,"inViewport":true,"btnWidth":49.375,"btnHeight":23}
+
+[1A[2K  [T-47] PASS: Last card visible after scroll, button accessible
+
+[1A[2K  [T-47] First card button: {"width":49.375,"height":23,"text":"Open"}
+
+[1A[2K  [T-47] Crash log: clean
+
+[1A[2K
+  [T-47] ALL CHECKS PASSED
+
+[1A[2K  10 cards rendered, all with height>0, no overflow, last card accessible
+
+[1A[2K  [srv] [ws] client disconnected: 63280b20-7ef3-4897-882f-17bcdc2225cb (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:03:52.606Z] SIGTERM received — server exiting (pid=3031680)
+[2026-04-08T20:03:52.607Z] Server process exiting with code 0 (pid=3031680)
+
+[1A[2K
+  [T-47] CRASH LOG:
+[2026-04-08T20:03:52.606Z] SIGTERM received — server exiting (pid=3031680)
+[2026-04-08T20:03:52.607Z] Server process exiting with code 0 (pid=3031680)
+
+
+[1A[2K
+
+[1A[2K  1 passed (9.1s)

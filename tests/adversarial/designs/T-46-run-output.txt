@@ -1,0 +1,119 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-46-ws-reconnect-session.test.js:139:3 › T-46 — WS Reconnect Restores Terminal Subscription › T-46 — WS drop: auto-reconnect, re-subscribe, live output (2 rounds)
+[1A[2K[chromium] › tests/adversarial/T-46-ws-reconnect-session.test.js:139:3 › T-46 — WS Reconnect Restores Terminal Subscription › T-46 — WS drop: auto-reconnect, re-subscribe, live output (2 rounds)
+
+
+[1A[2K
+
+[1A[2K
+  [T-46] dataDir: /tmp/t46-SEcI5P
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3143
+
+[1A[2K  [T-46] Server ready on port 3143
+
+[1A[2K  [srv] [ws] client connected: 5ab5b833-b12e-4014-8763-0fe87f2f9e04
+
+[1A[2K  [browser] [ws] connected
+
+[1A[2K
+  [T-46] App loaded, connected
+
+[1A[2K  [T-46] Project selected
+
+[1A[2K  [T-46] Session creation clicked
+
+[1A[2K  [T-46] Session card shows running
+
+[1A[2K  [T-46] sessionId=31db7d3d-b979-463c-b1ae-fbc3d36e48df pid=3028459
+
+[1A[2K  [browser] [T46-INTERCEPT] session:subscribe count=1 id=31db7d3d-b979-463c-b1ae-fbc3d36e48df
+
+[1A[2K  [T-46] Terminal overlay open
+
+[1A[2K  [T-46] Baseline subscribe count: 1
+
+[1A[2K  [T-46] Baseline marker T46_BASELINE confirmed
+
+[1A[2K
+  [T-46] === ROUND 1: Force WS close ===
+
+[1A[2K  [T-46] Close result: closed_from_state_1
+
+[1A[2K  [srv] [ws] client disconnected: 5ab5b833-b12e-4014-8763-0fe87f2f9e04 (code=1005 reason=)
+
+[1A[2K  [browser] [ws] disconnected — reconnecting in 3000 ms
+
+[1A[2K  [T-46] ROUND 1: Disconnect detected in 24ms
+
+[1A[2K  [srv] [ws] client connected: 864cca3e-9a00-411e-a6f4-4830f9b94809
+
+[1A[2K  [browser] [ws] connected
+
+[1A[2K  [browser] [T46-INTERCEPT] session:subscribe count=2 id=31db7d3d-b979-463c-b1ae-fbc3d36e48df
+
+[1A[2K  [T-46] ROUND 1: Reconnected in 3471ms
+
+[1A[2K  [T-46] ROUND 1 subscribe count: 2 (baseline=1)
+
+[1A[2K  [T-46] ROUND 1 last subscribe ID: 31db7d3d-b979-463c-b1ae-fbc3d36e48df
+
+[1A[2K  [T-46] ROUND 1: Terminal has 54951 chars
+
+[1A[2K  [T-46] ROUND 1: Live marker T46_R1_1775678606957 appeared
+
+[1A[2K  [T-46] ROUND 1: "T46_DUPCHK1_1775678607088" appears 2x (expect <=3)
+
+[1A[2K  [T-46] ROUND 1 COMPLETE
+
+[1A[2K
+  [T-46] === ROUND 2: Second WS drop ===
+
+[1A[2K  [srv] [ws] client disconnected: 864cca3e-9a00-411e-a6f4-4830f9b94809 (code=1005 reason=)
+
+[1A[2K  [browser] [ws] disconnected — reconnecting in 3000 ms
+
+[1A[2K  [T-46] ROUND 2: Disconnected in 20ms
+
+[1A[2K  [srv] [ws] client connected: 274ac6f4-ef39-49ce-b5d3-f839420e90a7
+
+[1A[2K  [browser] [ws] connected
+
+[1A[2K  [browser] [T46-INTERCEPT] session:subscribe count=3 id=31db7d3d-b979-463c-b1ae-fbc3d36e48df
+
+[1A[2K  [T-46] ROUND 2: Reconnected in 3530ms
+
+[1A[2K  [T-46] ROUND 2 subscribe count: 3 (was 2)
+
+[1A[2K  [T-46] ROUND 2: Live marker T46_R2_1775678612651 appeared
+
+[1A[2K  [T-46] ROUND 2 COMPLETE
+
+[1A[2K  [T-46] Crash log: clean
+
+[1A[2K
+  [T-46] ALL CHECKS PASSED
+
+[1A[2K  Round 1 reconnect: 3471ms, subscribes: 2
+
+[1A[2K  Round 2 reconnect: 3530ms, subscribes: 3
+
+[1A[2K  Total subscribes: 3 (baseline=1)
+
+[1A[2K  [srv] [ws] client disconnected: 274ac6f4-ef39-49ce-b5d3-f839420e90a7 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:03:33.530Z] SIGTERM received — server exiting (pid=3028191)
+
+[1A[2K  [srv:ERR] [2026-04-08T20:03:33.531Z] Server process exiting with code 0 (pid=3028191)
+
+[1A[2K
+  [T-46] CRASH LOG:
+[2026-04-08T20:03:33.530Z] SIGTERM received — server exiting (pid=3028191)
+[2026-04-08T20:03:33.531Z] Server process exiting with code 0 (pid=3028191)
+
+
+[1A[2K
+
+[1A[2K  1 passed (18.7s)

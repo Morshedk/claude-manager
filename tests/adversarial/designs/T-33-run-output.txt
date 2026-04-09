@@ -1,0 +1,37 @@
+Running 1 test using 1 worker
+
+[chromium] › tests/adversarial/T-33-todo-empty-title.test.js:158:3 › T-33 — TODO Empty Title Blocked › empty title is blocked client-side and server-side
+
+  [T-33] tmpDir: /tmp/qa-T33-68iUdK
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3130
+  [T-33] projectId: 9a970277-8eb1-4dee-9fdc-144680389b2e
+  [T-33] Harness written: /home/claude-runner/apps/claude-web-app-v2/public/test-harness-T33.html
+  [T-33] TodoPanel mounted successfully
+  [T-33] Testing API-level rejection of empty title...
+  [T-33] API rejected empty title with 400: {"error":"Title is required"}
+  [T-33] Add form opened
+  [T-33] Title input confirmed empty
+  [T-33] PASS: Add form still visible after empty submit (not dismissed)
+  [T-33] PASS: No todo items created (count=0)
+  [T-33] PASS: No POST to /api/todos/ was intercepted from browser
+  [T-33] PASS: Form closed after valid submit
+  [T-33] PASS: 1 todo item created (count=1)
+  [T-33] PASS: Todo item has correct title: "Test task from T-33"
+  [T-33] PASS: POST was intercepted for valid title (positive path confirmed)
+
+  1 passed (6.2s)
+
+## Execution Summary
+
+**Result:** PASS
+**Attempts:** 1 (first run succeeded after fixing initial issues during development)
+**Issues encountered:**
+- Initial playwright testMatch config excluded T-33 — added to testMatch in playwright.config.js.
+- Test harness HTML serves the Preact component via importmap from esm.sh.
+
+**Key observations:**
+1. API-level: POST with empty title returns 400 `{"error":"Title is required"}` — server guard confirmed working.
+2. Client-side: After clicking "Add" with empty title, `.todo-add-form` remains visible (form not dismissed).
+3. Network interception: 0 POSTs captured when title is empty.
+4. Positive path: Valid title triggers 1 POST, form closes, 1 `.todo-item` appears with correct text.
+5. The `addTodo()` guard in TodoPanel.js line 77-78 (`if (!title) return`) is non-vacuous: the positive path proves the submit path is functional.

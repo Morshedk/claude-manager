@@ -1,0 +1,51 @@
+PASS tests/adversarial/T-35-concurrent-sessions.test.js (12.522 s)
+  T-35 — Concurrent Session Creates
+    ✓ 5 concurrent creates produce 5 unique running sessions (10118 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Time:        12.577 s
+
+Console output:
+  [T-35] tmpDir: /tmp/qa-T35-fiVkAL
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3132
+  [T-35] projectId: 5774eb3a-ee16-462c-a251-405fb3e92ab6
+  [T-35] Opening 5 WebSocket connections...
+  [ws] client connected: a7f4d33f, ff672637, 0ae9cdbc, c11be1c0, 72b25c8f
+  [T-35] 5 WS connections open
+  [T-35] clientIds: a7f4d33f-8b77-4d13-ae3c-54f6ec333c95, ff672637-a418-4b9e-bfec-6872f94cb6c5, 0ae9cdbc-fd03-4574-9615-5a9b34f480b7, c11be1c0-023d-4c26-a9f5-9164a806a90a, 72b25c8f-5b39-4ca4-aba8-9fc298aa443a
+  [T-35] Sending 5 simultaneous session:create messages...
+  [T-35] All 5 creates sent in parallel (1ms)
+  [T-35] Received 5 session:created responses
+  [T-35] Session IDs: b55fdba0, 3a68cfd1, 5ef1738b, bec25abc, 5a433b39
+  [T-35] PASS: All 5 session IDs are unique
+  [T-35] Session names: sess-0, sess-1, sess-2, sess-3, sess-4
+  [T-35] Waiting 10s for sessions to settle...
+  [T-35] Total sessions from API: 5
+  [T-35] Our project's sessions: 5
+  [T-35] Session states: sess-0:running, sess-1:running, sess-2:running, sess-3:running, sess-4:running
+  [T-35] PASS: Exactly 5 sessions for project
+  [T-35] PASS: All 5 session IDs unique in API response
+  [T-35] PASS: No sessions stuck in 'starting' or 'created'
+  [T-35] PASS: All sessions in terminal state (running/stopped/error)
+  [T-35] PASS: All session:created IDs confirmed in API response
+  [T-35] PASS: No crash log entries
+
+## Execution Summary
+
+**Result:** PASS
+**Attempts:** 3 (2 fix iterations before final pass)
+
+**Issues encountered and fixed:**
+1. WS URL: Used `/ws` path instead of bare `ws://127.0.0.1:PORT`. Fixed to `ws://127.0.0.1:${PORT}`.
+2. Init message type: Used `m.type === 'connected'` but server sends `m.type === 'init'`. Fixed predicate.
+3. Message buffer: The `init` message is sent immediately on connection, before `waitForMsg` listener is registered. Added a `_msgBuffer` to capture messages before listeners are attached. `waitForMsg` drains the buffer first.
+4. Sessions API: GET /api/sessions returns `{ managed: [...], detected: [...] }`, not a bare array. Fixed to use `sessionsData.managed`.
+
+**Key findings:**
+- 5 distinct clientIds confirmed — server assigns unique ID per WS connection.
+- 5 sends take 1ms (effectively simultaneous).
+- 5 unique session IDs returned immediately.
+- After 10s: all 5 sessions are in 'running' state (bash keeps session alive).
+- No cross-bleed: unique IDs, unique names, no shared state.
+- Server stable: no crash log entries.

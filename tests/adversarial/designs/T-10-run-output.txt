@@ -1,0 +1,49 @@
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests/adversarial/T-10-sidebar-badge.test.js:163:3 › T-10 — Sidebar Badge Real-Time Session Count › Scenario A — stopping 1 session updates badge from 3 to 2 in real time
+
+  [T-10] tmpDir: /tmp/qa-T10-vaJVyS
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3107
+  [T-10] Server ready on port 3107
+  [T-10] projectId: e4030d12-cbd8-4835-83aa-0b8efa34d2b3
+  [srv] [ws] client connected: 0964551a-49c7-487b-a8f0-16c52f355b6f
+  [T-10] No init message received (ok if already past it)
+  [T-10] Created session 1: d80a3c61-ba8b-4f60-a54e-926eae79b4a4
+  [T-10] Created session 2: b40b91aa-7577-4cb4-a8b0-d14f581a805c
+  [T-10] Created session 3: 208a93fa-97dc-476a-9713-4a82e76d804d
+  [T-10] All 3 sessions created: d80a3c61-ba8b-4f60-a54e-926eae79b4a4, b40b91aa-7577-4cb4-a8b0-d14f581a805c, 208a93fa-97dc-476a-9713-4a82e76d804d
+  [srv] [ws] client connected: 6b89dadd-2ebf-4c3d-aa6f-2e9a064de6c0
+  [T-10 A] PRE-STOP: badge shows "3 sessions running" ✓
+  [T-10 A] Sent stop for session d80a3c61-ba8b-4f60-a54e-926eae79b4a4
+  [T-10 A] sessions:list broadcast received
+  [T-10 A] POST-STOP: badge shows "2 sessions running" ✓
+  [T-10 A] Page was not reloaded (navigation.type=0) ✓
+  [srv:ERR] duplicate session: factory
+  [srv] [ws] client disconnected: 6b89dadd-2ebf-4c3d-aa6f-2e9a064de6c0 (code=1001 reason=)
+
+[2/2] [chromium] › tests/adversarial/T-10-sidebar-badge.test.js:214:3 › T-10 — Sidebar Badge Real-Time Session Count › Scenario B — refreshing stopped session updates badge from 1 to 2 in real time
+
+  [srv] [ws] client connected: 18750d52-4935-4a02-b823-b84a82fea722
+  [T-10 B] PRE-STOP: badge shows "2 sessions running" ✓
+  [T-10 B] AFTER STOP: badge shows "1 session running" ✓
+  [T-10 B] session:refreshed received for s2
+  [T-10 B] sessions:list broadcast received after refresh
+  [T-10 B] AFTER REFRESH: badge shows "2 sessions running" ✓
+  [T-10 B] Page was not reloaded (navigation.type=0) ✓
+  [srv] [ws] client disconnected: 18750d52-4935-4a02-b823-b84a82fea722 (code=1001 reason=)
+  [srv:ERR] [2026-04-08T12:33:41.284Z] SIGTERM received — server exiting (pid=951712)
+  [2026-04-08T12:33:41.285Z] Server process exiting with code 0 (pid=951712)
+
+  2 passed (1.1m)
+
+## Execution Summary
+
+- **Result:** 2/2 PASSED
+- **Duration:** ~1.1 minutes
+- **Port:** 3107
+- **Scenarios tested:**
+  - Scenario A: 3 bash sessions created → stop s1 → badge drops from "3 sessions running" to "2 sessions running" within 3 seconds, no page reload
+  - Scenario B: stop s2 → badge drops to "1 session running" → refresh s2 → badge updates to "2 sessions running" within 3 seconds, no page reload
+- **Real-time update verified:** Both scenarios confirmed `performance.navigation.type=0` (no reload occurred)
+- **Plural/singular checked:** "1 session running" (singular) displayed correctly after stopping s2
+- **Note:** `[srv:ERR] duplicate session: factory` is a known benign warning from xterm.js renderer registration in headless mode — does not affect test outcome

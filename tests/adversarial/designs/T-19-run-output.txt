@@ -1,0 +1,134 @@
+
+Running 2 tests using 1 worker
+
+[1A[2K[1/2] [chromium] › tests/adversarial/T-19-lastline-updates.test.js:185:3 › T-19 — Session card lastLine updates while overlay is open › lastLine on session card updates within 3s while overlay is open, no ANSI codes
+[1A[2K[chromium] › tests/adversarial/T-19-lastline-updates.test.js:185:3 › T-19 — Session card lastLine updates while overlay is open › lastLine on session card updates within 3s while overlay is open, no ANSI codes
+
+
+[1A[2K
+
+[1A[2K
+  [T-19] tmpDir: /tmp/qa-T19-Nh2jI8
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3116
+
+[1A[2K  [T-19] server ready
+
+[1A[2K  [T-19] project created: ff5236f1-b468-4c46-a3ba-09371d8b01d6
+
+[1A[2K  [srv] [ws] client connected: 1d8a5077-4e31-4e15-ac90-50cf9c5e73bb
+
+[1A[2K  [T-19] session created: fa775414-c87b-4abc-9b03-b84b3b8ff954
+
+[1A[2K  [srv] [ws] client connected: 163494bf-fafb-41bc-9ffd-02381deebbee
+
+[1A[2K  [T-19] project selected in sidebar
+
+[1A[2K  [T-19] overlay opened
+
+[1A[2K  [T-19] overlay style: position: fixed; left: 50%; right: 0px; top: var(--topbar-h); bottom: 0px; background: var(--bg-base); display: flex; flex-direction: column; z-index: 100; border-left: 1px solid var(--border);
+
+[1A[2K  [T-19] split view active: true
+
+[1A[2K  [T-19] session card visible in split mode: true
+
+[1A[2K  [T-19] initial lastLine: "(not present)"
+
+[1A[2K  [T-19] session.meta.lastLine from API: "undefined"
+
+[1A[2K  [T-19] session.meta fields: id, projectId, projectName, name, command, cwd, mode, claudeSessionId, tmuxName, telegramEnabled, createdAt, status, pid, startedAt
+
+[1A[2K  [T-19] sending echo with marker: T19_MARKER_1775677877195
+
+[1A[2K  [T-19] .session-lastline elements in DOM: 0
+
+[1A[2K  [T-19] FAIL: session.meta.lastLine from API after echo: "undefined"
+
+[1A[2K
+  [T-19] FINDING: lastLine feature is NOT implemented.
+
+[1A[2K  The server never computes lastLine from PTY output.
+
+[1A[2K  session.meta.lastLine is never set in DirectSession.js or SessionManager.js.
+
+[1A[2K  sessions:list broadcast always has lastLine: undefined.
+
+[1A[2K  [srv] [ws] client disconnected: 163494bf-fafb-41bc-9ffd-02381deebbee (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: 1d8a5077-4e31-4e15-ac90-50cf9c5e73bb (code=1005 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:51:21.881Z] SIGTERM received — server exiting (pid=2947433)
+[2026-04-08T19:51:21.882Z] Server process exiting with code 0 (pid=2947433)
+
+[1A[2K
+
+[1A[2K  1) [chromium] › tests/adversarial/T-19-lastline-updates.test.js:185:3 › T-19 — Session card lastLine updates while overlay is open › lastLine on session card updates within 3s while overlay is open, no ANSI codes 
+
+    Error: Expected .session-lastline to appear within 3s of echo output
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: > [32m0[39m
+    Received:   [31m0[39m
+
+      282 |       console.log('  sessions:list broadcast always has lastLine: undefined.');
+      283 |
+    > 284 |       expect(lastLineCount, 'Expected .session-lastline to appear within 3s of echo output').toBeGreaterThan(0);
+          |                                                                                              ^
+      285 |       return; // Won't reach here due to expect failure
+      286 |     }
+      287 |
+        at /home/claude-runner/apps/claude-web-app-v2/tests/adversarial/T-19-lastline-updates.test.js:284:94
+
+    Error Context: test-results/adversarial-T-19-lastline--d596d-erlay-is-open-no-ANSI-codes-chromium/error-context.md
+
+    Error Context: test-results/adversarial-T-19-lastline--d596d-erlay-is-open-no-ANSI-codes-chromium/error-context.md
+
+
+[1A[2K[2/2] [chromium] › tests/adversarial/T-19-lastline-updates.test.js:366:3 › T-19 — Session card lastLine updates while overlay is open › API confirms session.meta.lastLine field presence and content
+[1A[2K[chromium] › tests/adversarial/T-19-lastline-updates.test.js:366:3 › T-19 — Session card lastLine updates while overlay is open › API confirms session.meta.lastLine field presence and content
+
+
+[1A[2K
+
+[1A[2K
+  [T-19] tmpDir: /tmp/qa-T19-t41uLg
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3116
+
+[1A[2K  [T-19] server ready
+
+[1A[2K  [T-19] project created: 049cd97a-ff51-48fc-bbae-a3f8d3f34f77
+
+[1A[2K  [srv] [ws] client connected: db05166f-db4d-40be-9cc4-58ff4471dd58
+
+[1A[2K  [T-19] session created: d630e168-a49e-4c01-bde2-1a82e61332cd
+
+[1A[2K
+  [T-19 diag] Full session.meta keys: id, projectId, projectName, name, command, cwd, mode, claudeSessionId, tmuxName, telegramEnabled, createdAt, status, pid, startedAt
+
+[1A[2K  [T-19 diag] session.lastLine = undefined
+
+[1A[2K  [T-19 diag] After echo - session.lastLine = undefined
+
+[1A[2K  [T-19 diag] lastLine is populated in API: false
+
+[1A[2K
+  [T-19 diag] CONFIRMED: lastLine is NOT computed server-side.
+
+[1A[2K  Root cause: No code in DirectSession.js, SessionManager.js, or
+
+[1A[2K  sessionHandlers.js computes lastLine from PTY output.
+
+[1A[2K  The sessions:list broadcast always omits lastLine.
+
+[1A[2K  [srv] [ws] client disconnected: db05166f-db4d-40be-9cc4-58ff4471dd58 (code=1005 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:51:32.291Z] SIGTERM received — server exiting (pid=2948742)
+[2026-04-08T19:51:32.292Z] Server process exiting with code 0 (pid=2948742)
+
+[1A[2K
+
+[1A[2K  1 failed
+    [chromium] › tests/adversarial/T-19-lastline-updates.test.js:185:3 › T-19 — Session card lastLine updates while overlay is open › lastLine on session card updates within 3s while overlay is open, no ANSI codes 
+  1 passed (25.0s)

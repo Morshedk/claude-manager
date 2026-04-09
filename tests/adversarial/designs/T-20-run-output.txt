@@ -1,0 +1,43 @@
+
+Running 1 test using 1 worker
+
+
+  [T-20] tmpDir: /tmp/qa-T20-uCVonW
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3117
+  [T-20] Server ready on port 3117
+  [srv] [ws] client connected: ace841d2-a526-491f-822c-99adc9af6f3f
+  [T-20] Created session: 5abf5579-43c8-4f05-8c2a-a7a439d6eb52
+  [T-20] Session running
+  [T-20] Session ready — markers will be written after browser subscribes
+
+  [T-20] Navigating both tabs
+  [srv] [ws] client connected: 0f59da07-a046-4382-9bba-4a6105f2370b
+  [srv] [ws] client connected: 73883eea-7b7b-44f9-bfb6-4f5305d2c116
+  [T-20] Tab1: overlay opened
+  [T-20] Tab2: overlay opened
+  [T-20] Both tabs have overlay open
+  [T-20] PRE_REFRESH_MARKER written (after subscribe)
+  [T-20] Tab1: "T20_PRE_REFRESH_MARKER" FOUND ✓
+  [T-20] Tab2: "T20_PRE_REFRESH_MARKER" FOUND ✓
+  [T-20] T20_OLD_PTY_SENTINEL written to old PTY
+  [T-20] Tab1 clicking Refresh
+  [T-20] Refresh clicked at +22ms
+  [T-20] Waiting for Tab2 xterm.reset (PRE_REFRESH_MARKER to disappear)
+  [T-20] Tab2: PRE_REFRESH_MARKER disappeared (xterm.reset fired) ✓ (+160ms)
+  [T-20] Tab2: T20_OLD_PTY_SENTINEL absent (no cross-PTY bleed) ✓
+  [T-20] Waiting for Tab2 session badge to show running
+  [T-20] Tab2: session badge shows "running" ✓ (+213ms)
+  [T-20] T20_POST_REFRESH_MARKER written to new PTY
+  [T-20] Tab2: T20_POST_REFRESH_MARKER received ✓ (+256ms)
+  [T-20] Tab1: T20_POST_REFRESH_MARKER received ✓
+  [T-20] Tab2: No cross-PTY bleed after new output ✓
+  [T-20] API: session state="running" ✓
+
+  [T-20] ✅ ALL ASSERTIONS PASSED
+  [srv] [ws] client disconnected: 73883eea-7b7b-44f9-bfb6-4f5305d2c116 (code=1001 reason=)
+  [srv] [ws] client disconnected: 0f59da07-a046-4382-9bba-4a6105f2370b (code=1001 reason=)
+  [srv:ERR] [2026-04-08T20:02:11.588Z] SIGTERM received — server exiting (pid=3020309)
+[2026-04-08T20:02:11.589Z] Server process exiting with code 0 (pid=3020309)
+  ✓  1 [chromium] › tests/adversarial/T-20-two-tabs-refresh.test.js:165:3 › T-20 — Two Tabs, One Refresh › T-20 — two tabs: Tab 1 refresh, Tab 2 auto-reconnects (10.3s)
+
+  1 passed (14.4s)

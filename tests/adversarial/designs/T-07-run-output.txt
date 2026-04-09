@@ -1,0 +1,228 @@
+
+Running 3 tests using 1 worker
+
+[1A[2K[1/3] [chromium] › tests/adversarial/T-07-invalid-command-error.test.js:434:3 › T-07 — Invalid Command Error Badge › T-07 Run 1: invalid command shows error badge within 10s
+[1A[2K[chromium] › tests/adversarial/T-07-invalid-command-error.test.js:434:3 › T-07 — Invalid Command Error Badge › T-07 Run 1: invalid command shows error badge within 10s
+
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K
+  [T-07] tmpDir: /tmp/qa-T07-sjrPW7
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3104
+
+[1A[2K  [T-07] Server ready on port 3104
+
+[1A[2K  [T-07] Test project ID: ff01e4b0-c36d-41ad-bdea-6d242283a8bb
+
+[1A[2K
+  [T-07] === Run 1 ===
+
+[1A[2K  [T-07] Creating session "T07-invalid-cmd-1" with invalid command...
+
+[1A[2K  [srv] [ws] client connected: 2b99db52-6d07-4e5f-ad6a-85735cfb8137
+
+[1A[2K  [T-07]   state change: undefined → starting
+
+[1A[2K  [T-07]   state change: undefined → running
+
+[1A[2K  [T-07]   state change: undefined → error
+
+[1A[2K  [T-07]   state change: undefined → starting
+
+[1A[2K  [T-07]   state change: undefined → running
+
+[1A[2K  [T-07] Session created: 7dd6e24d-a7f2-42b9-8d47-52de7c06ba4f
+
+[1A[2K  [T-07] Initial state: error
+
+[1A[2K  [T-07]   state change: undefined → error
+
+[1A[2K  [srv] [ws] client connected: 46797da2-8674-48e3-b5fa-b9b41133212f
+
+[1A[2K  [T-07] Page body length: 2836
+
+[1A[2K  [T-07] Clicked project "T07-TestProject"
+
+[1A[2K  [T-07] Waiting 5978ms more to reach 10s mark...
+
+[1A[2K  [T-07] Screenshot saved: after-10s-run1
+
+[1A[2K  [T-07] Checking badge state...
+
+[1A[2K  [T-07] All session badges: [{"name":"T07-invalid-cmd-1","badgeText":"⚠ error"}]
+
+[1A[2K  [T-07] Our session badge: "⚠ error"
+
+[1A[2K  [T-07] ✓ Badge confirmed "error" via waitForFunction
+
+[1A[2K  [T-07] WS state history: ["starting","running","error","starting","running","error"]
+
+[1A[2K  [T-07] Final state from WS: error
+
+[1A[2K  [T-07] Screenshot: terminal overlay for run 1
+
+[1A[2K  [T-07] Terminal content rows: 0
+
+[1A[2K  [srv] [ws] client disconnected: 46797da2-8674-48e3-b5fa-b9b41133212f (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: 7ce7822e-2e73-43c5-b296-650e272522d0
+[ws] client disconnected: 2b99db52-6d07-4e5f-ad6a-85735cfb8137 (code=1005 reason=)
+
+[1A[2K
+  [T-07] === Run 1 Results ===
+
+[1A[2K  Badge text: "⚠ error"
+
+[1A[2K  Badge shows error: true
+
+[1A[2K  Badge is starting: false
+
+[1A[2K  Final WS state: error
+
+[1A[2K  Console errors: 0
+
+[1A[2K  Page errors: 0
+
+[1A[2K  [srv] [ws] client disconnected: 7ce7822e-2e73-43c5-b296-650e272522d0 (code=1005 reason=)
+
+[1A[2K[2/3] [chromium] › tests/adversarial/T-07-invalid-command-error.test.js:465:3 › T-07 — Invalid Command Error Badge › T-07 Run 2: repeat — invalid command shows error badge (not transient)
+[1A[2K[chromium] › tests/adversarial/T-07-invalid-command-error.test.js:465:3 › T-07 — Invalid Command Error Badge › T-07 Run 2: repeat — invalid command shows error badge (not transient)
+
+  [T-07] === Run 2 ===
+
+[1A[2K  [T-07] Creating session "T07-invalid-cmd-2" with invalid command...
+
+[1A[2K  [srv] [ws] client connected: 9cddf950-6afa-4053-bd4a-d58243ee9748
+
+[1A[2K  [T-07]   state change: undefined → starting
+
+[1A[2K  [T-07]   state change: undefined → running
+
+[1A[2K  [T-07] Session created: 1b3d9ffc-6109-4340-bee9-a9ddce015541
+
+[1A[2K  [T-07] Initial state: running
+
+[1A[2K  [T-07]   state change: undefined → error
+
+[1A[2K  [srv] [ws] client connected: 8609eb6c-e48b-4b45-8b64-46b09a95be2a
+
+[1A[2K  [T-07] Page body length: 2836
+
+[1A[2K  [T-07] Clicked project "T07-TestProject"
+
+[1A[2K  [T-07] Waiting 5938ms more to reach 10s mark...
+
+[1A[2K  [T-07] Screenshot saved: after-10s-run2
+
+[1A[2K  [T-07] Checking badge state...
+
+[1A[2K  [T-07] All session badges: [{"name":"T07-invalid-cmd-2","badgeText":"⚠ error"}]
+
+[1A[2K  [T-07] Our session badge: "⚠ error"
+
+[1A[2K  [T-07] ✓ Badge confirmed "error" via waitForFunction
+
+[1A[2K  [T-07] WS state history: ["starting","running","error"]
+
+[1A[2K  [T-07] Final state from WS: error
+
+[1A[2K  [T-07] Screenshot: terminal overlay for run 2
+
+[1A[2K  [T-07] Terminal content rows: 0
+
+[1A[2K  [srv] [ws] client disconnected: 8609eb6c-e48b-4b45-8b64-46b09a95be2a (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: 9cddf950-6afa-4053-bd4a-d58243ee9748 (code=1005 reason=)
+[ws] client connected: 7de8b757-a727-4120-9bd8-0f87e5104e64
+
+[1A[2K
+  [T-07] === Run 2 Results ===
+
+[1A[2K  Badge text: "⚠ error"
+
+[1A[2K  Badge shows error: true
+
+[1A[2K  Badge is starting: false
+
+[1A[2K  Final WS state: error
+
+[1A[2K  [srv] [ws] client disconnected: 7de8b757-a727-4120-9bd8-0f87e5104e64 (code=1005 reason=)
+
+[1A[2K[3/3] [chromium] › tests/adversarial/T-07-invalid-command-error.test.js:492:3 › T-07 — Invalid Command Error Badge › T-07 Run 3: third repetition — consistent error badge behavior
+[1A[2K[chromium] › tests/adversarial/T-07-invalid-command-error.test.js:492:3 › T-07 — Invalid Command Error Badge › T-07 Run 3: third repetition — consistent error badge behavior
+
+  [T-07] === Run 3 ===
+
+[1A[2K  [T-07] Creating session "T07-invalid-cmd-3" with invalid command...
+
+[1A[2K  [srv] [ws] client connected: 9f4cc6ae-0ce9-471f-86d2-43e9d54a4429
+
+[1A[2K  [T-07]   state change: undefined → starting
+
+[1A[2K  [T-07]   state change: undefined → running
+
+[1A[2K  [T-07]   state change: undefined → error
+
+[1A[2K  [T-07]   state change: undefined → starting
+
+[1A[2K  [T-07]   state change: undefined → running
+
+[1A[2K  [T-07] Session created: 3447b77f-e534-4fe5-b7fc-b6016cb23742
+
+[1A[2K  [T-07] Initial state: error
+
+[1A[2K  [T-07]   state change: undefined → error
+
+[1A[2K  [srv] [ws] client connected: 19c720a8-5a51-4c2b-96c3-977e01f4b105
+
+[1A[2K  [T-07] Page body length: 2836
+
+[1A[2K  [T-07] Clicked project "T07-TestProject"
+
+[1A[2K  [T-07] Waiting 6799ms more to reach 10s mark...
+
+[1A[2K  [T-07] Screenshot saved: after-10s-run3
+
+[1A[2K  [T-07] Checking badge state...
+
+[1A[2K  [T-07] All session badges: [{"name":"T07-invalid-cmd-3","badgeText":"⚠ error"}]
+
+[1A[2K  [T-07] Our session badge: "⚠ error"
+
+[1A[2K  [T-07] ✓ Badge confirmed "error" via waitForFunction
+
+[1A[2K  [T-07] WS state history: ["starting","running","error","starting","running","error"]
+
+[1A[2K  [T-07] Final state from WS: error
+
+[1A[2K  [T-07] Screenshot: terminal overlay for run 3
+
+[1A[2K  [T-07] Terminal content rows: 0
+
+[1A[2K  [srv] [ws] client disconnected: 19c720a8-5a51-4c2b-96c3-977e01f4b105 (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: 9f4cc6ae-0ce9-471f-86d2-43e9d54a4429 (code=1005 reason=)
+[ws] client connected: 7da2f273-ab80-4756-a33a-a039c2181dfc
+
+[1A[2K
+  [T-07] === Run 3 Results ===
+
+[1A[2K  Badge text: "⚠ error"
+
+[1A[2K  Badge shows error: true
+
+[1A[2K  Badge is starting: false
+
+[1A[2K  Final WS state: error
+
+[1A[2K  [srv] [ws] client disconnected: 7da2f273-ab80-4756-a33a-a039c2181dfc (code=1005 reason=)
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  3 passed (46.6s)

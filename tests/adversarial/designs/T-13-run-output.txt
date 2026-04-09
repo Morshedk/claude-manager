@@ -1,0 +1,113 @@
+
+Running 4 tests using 1 worker
+
+[1A[2K[1/4] [chromium] › tests/adversarial/T-13-project-name-validation.test.js:119:3 › T-13 — New Project Empty Name Validation › Scenario A — empty name with valid path shows toast and keeps modal open (3 iterations)
+[1A[2K[chromium] › tests/adversarial/T-13-project-name-validation.test.js:119:3 › T-13 — New Project Empty Name Validation › Scenario A — empty name with valid path shows toast and keeps modal open (3 iterations)
+
+
+[1A[2K
+
+[1A[2K
+  [T-13] tmpDir: /tmp/qa-T13-POkuwJ
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3110
+
+[1A[2K  [T-13] Server ready on port 3110
+
+[1A[2K  [srv] [ws] client connected: 2c7d0f11-a35f-4cbd-95ed-52338baf52c1
+
+[1A[2K
+  [T-13][A] Iteration 1/3
+
+[1A[2K  [T-13][A] Iteration 1: Toast appeared ✓
+
+[1A[2K  [T-13][A] Iteration 1: Modal still open ✓
+
+[1A[2K  [T-13][A] Iteration 1: No API call ✓
+
+[1A[2K  [T-13][A] Iteration 1: No project on server ✓
+
+[1A[2K
+  [T-13][A] Iteration 2/3
+
+[1A[2K  [T-13][A] Iteration 2: Toast appeared ✓
+
+[1A[2K  [T-13][A] Iteration 2: Modal still open ✓
+
+[1A[2K  [T-13][A] Iteration 2: No API call ✓
+
+[1A[2K  [T-13][A] Iteration 2: No project on server ✓
+
+[1A[2K
+  [T-13][A] Iteration 3/3
+
+[1A[2K  [T-13][A] Iteration 3: Toast appeared ✓
+
+[1A[2K  [T-13][A] Iteration 3: Modal still open ✓
+
+[1A[2K  [T-13][A] Iteration 3: No API call ✓
+
+[1A[2K  [T-13][A] Iteration 3: No project on server ✓
+
+[1A[2K
+  [T-13][A] ALL 3 ITERATIONS PASSED
+
+[1A[2K  [srv] [ws] client disconnected: 2c7d0f11-a35f-4cbd-95ed-52338baf52c1 (code=1001 reason=)
+
+[1A[2K[2/4] [chromium] › tests/adversarial/T-13-project-name-validation.test.js:190:3 › T-13 — New Project Empty Name Validation › Scenario B — valid name with empty path shows "path required" toast (2 iterations)
+[1A[2K[chromium] › tests/adversarial/T-13-project-name-validation.test.js:190:3 › T-13 — New Project Empty Name Validation › Scenario B — valid name with empty path shows "path required" toast (2 iterations)
+  [srv] [ws] client connected: 6995a6f5-ed56-452f-8642-afba66e1cdab
+
+[1A[2K
+  [T-13][B] Iteration 1/2
+
+[1A[2K  [T-13][B] Iteration 1: "path required" toast appeared ✓
+
+[1A[2K  [T-13][B] Iteration 1: Modal still open ✓
+
+[1A[2K  [T-13][B] Iteration 1: No API call ✓
+
+[1A[2K  [T-13][B] Iteration 1: No project on server ✓
+
+[1A[2K
+  [T-13][B] Iteration 2/2
+
+[1A[2K  [T-13][B] Iteration 2: "path required" toast appeared ✓
+
+[1A[2K  [T-13][B] Iteration 2: Modal still open ✓
+
+[1A[2K  [T-13][B] Iteration 2: No API call ✓
+
+[1A[2K  [T-13][B] Iteration 2: No project on server ✓
+
+[1A[2K
+  [T-13][B] BOTH ITERATIONS PASSED
+
+[1A[2K  [srv] [ws] client disconnected: 6995a6f5-ed56-452f-8642-afba66e1cdab (code=1001 reason=)
+
+[1A[2K[3/4] [chromium] › tests/adversarial/T-13-project-name-validation.test.js:249:3 › T-13 — New Project Empty Name Validation › Scenario C — both fields empty shows name-required toast first
+[1A[2K[chromium] › tests/adversarial/T-13-project-name-validation.test.js:249:3 › T-13 — New Project Empty Name Validation › Scenario C — both fields empty shows name-required toast first
+  [srv] [ws] client connected: a88a0137-7d9c-40b2-a7fb-e3015bc2046e
+
+[1A[2K  [T-13][C] Both-empty: "name required" shown first ✓
+
+[1A[2K  [T-13][C] PASSED
+
+[1A[2K  [srv] [ws] client disconnected: a88a0137-7d9c-40b2-a7fb-e3015bc2046e (code=1001 reason=)
+
+[1A[2K[4/4] [chromium] › tests/adversarial/T-13-project-name-validation.test.js:294:3 › T-13 — New Project Empty Name Validation › Scenario D — whitespace-only name treated as empty (trim test)
+[1A[2K[chromium] › tests/adversarial/T-13-project-name-validation.test.js:294:3 › T-13 — New Project Empty Name Validation › Scenario D — whitespace-only name treated as empty (trim test)
+  [srv] [ws] client connected: 40057b34-222e-4307-8460-df9c666b3008
+
+[1A[2K  [T-13][D] Whitespace name: "name required" toast ✓
+
+[1A[2K  [T-13][D] PASSED
+
+[1A[2K  [srv] [ws] client disconnected: 40057b34-222e-4307-8460-df9c666b3008 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-08T19:50:31.389Z] SIGTERM received — server exiting (pid=2940198)
+[2026-04-08T19:50:31.390Z] Server process exiting with code 0 (pid=2940198)
+
+[1A[2K
+
+[1A[2K  4 passed (21.8s)

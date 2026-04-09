@@ -166,6 +166,31 @@ Each lifecycle test goes through three agents:
 **Test files:** `tests/adversarial/T-XX-*.test.js`  
 **Run outputs:** `tests/adversarial/designs/T-XX-run-output.txt`
 
+### Where to read agent reasoning
+
+The most human-readable output is in `tests/adversarial/designs/`:
+- `T-XX-design.md` — Designer's reasoning: what the test should cover, false-PASS risks, exact steps
+- `T-XX-validation.md` — Validator's verdict: genuine/vacuous/inconclusive, gaps found
+- `T-XX-run-output.txt` — Executor's test run: actual pass/fail output
+
+Raw agent conversation logs (all tool calls + responses as JSON) are in the task output files but are not intended for human reading. The design and validation docs are the primary artifacts.
+
+### The standout finding from T-01/T-02/T-03
+
+**The Opus validator catching the T-03 vacuous pass was the most valuable thing the pipeline did.** The Sonnet executor saw `scrollMax=0` after refresh and reported PASS. The validator recognised that `scrollMax` was already `0` before the refresh — the test proved nothing. Root cause: content was produced before browser subscribed, so `session:subscribed` → `xterm.reset()` wiped it. Fix: subscribe first, produce content second.
+
+This pattern — a test that passes for the wrong reason — is exactly what adversarial validation catches that regular testing misses. Frame it as: **Executor tries to pass. Validator tries to find why the pass is fake.**
+
+### Pipeline learnings (2026-04-08)
+
+1. **Designer finds bugs before code is written.** T-01's designer read `NewSessionModal.js` and `SessionManager.create()` and predicted "this will fail — no dedup." The test confirmed it 5/5.
+
+2. **Vacuous assertions are the hardest false-PASSes to catch.** A check that passes because the precondition was never established looks identical to a genuine pass in test output. Only reading the test logs carefully reveals it.
+
+3. **`session:subscribed` fires on initial subscribe, not just refresh.** Any time a client subscribes to a session it gets `session:subscribed` → `xterm.reset()`. Tests producing content before the browser connects will have it wiped. Always: subscribe → wait for xterm to settle → produce content.
+
+4. **Dedup must be belt-and-suspenders.** Client-side `disabled` guard prevents double-clicks; server-side 2-second dedup window prevents any client from creating duplicates via rapid WS messages. Both layers are needed because the server is accessible independently of the UI.
+
 ---
 
 ## Lifecycle Tests: 50 Ranked Tests
@@ -251,6 +276,90 @@ The designer found:
 3. **WS code=1005 after refresh:** The mainSub WS closes after `session:refresh`. This is expected — the test explicitly calls `mainSub.close()` and re-subscribes. In the real browser UI, the WS stays open and receives `session:subscribed` to trigger xterm.reset().
 
 4. **Session cwd uses project.path not session:create cwd param:** `SessionManager._createDirect` sets `cwd: project.path` regardless of any `cwd` field sent in the `session:create` WS message.
+
+---
+
+---
+
+## Full Adversarial Pipeline Run — T-01 through T-50
+
+**Date:** 2026-04-08  
+**Outcome:** All 50 lifecycle tests completed. 47 PASS, 2 FAIL (T-19 lastLine not implemented, T-48 Escape handler missing — T-48 fixed during journaling), 1 CONDITIONAL PASS (T-41 upload interrupt).
+
+### Production Bugs Found and Fixed
+
+| Test | Bug | File Fixed |
+|------|-----|-----------|
+| T-01 | Double-click creates duplicate sessions — no client guard, no server dedup | `NewSessionModal.js`, `sessionHandlers.js` |
+| T-08 | Project path not validated on server — any string accepted | `lib/projects/ProjectStore.js` |
+| T-08 | HTTP 400 from createProject silently swallowed client-side | `public/js/state/actions.js` |
+| T-09 | `loadSettings()` never called on INIT — settings always reset to `{}` on reload | `public/js/state/sessionState.js` |
+| T-21 | Settings GET/PUT routes called async methods without `await` — returned bare Promises | `lib/api/routes.js` |
+| T-36 | `SessionManager.init()` didn't normalize STARTING→STOPPED — sessions stuck permanently after restart | `lib/sessions/SessionManager.js` |
+| T-39 | `SessionStore.load()` silently swallowed JSON parse errors — operators blind to corruption | `lib/sessions/SessionStore.js` |
+| T-48 | `SettingsModal` had no Escape key handler — xterm received `\x1b` through the modal | `public/js/components/SettingsModal.js` |
+
+### Open Product Gaps (not bugs, but missing features)
+
+1. **T-19**: `lastLine` data pipeline not implemented. `SessionCard.js` renders `.session-lastline` if truthy, but no server code ever sets `meta.lastLine` from PTY output. `sessions:list` always broadcasts `lastLine: undefined`.
+2. **T-11**: Terminal overlay doesn't auto-open after session creation (Story 3 spec requires it). User must click the session card.
+3. **T-24/T-44**: `WatchdogPanel.js` exists and works but is not mounted anywhere in `App.js`. No UI path to reach it.
+4. **T-33/T-34**: `TodoPanel.js` exists and works but is not mounted anywhere in `App.js`. No UI path to reach it.
+5. **T-38**: 50-char project names overflow sidebar containers — no `text-overflow: ellipsis` applied.
+6. **T-29**: `telegramEnabled` survives browser reload (server-side memory) but server-restart disk persistence not tested.
+
+### Key WS Protocol Corrections (for future test agents)
+
+These caught every test agent that assumed defaults:
+
+- **WS URL**: bare `ws://host:port` — NOT `ws://host:port/ws`
+- **Init message type**: `'init'` — NOT `'connected'` or `'server:init'`
+- **Init fires before listener attaches**: buffer the WS messages or use a Promise before connecting
+- **Session state field**: `session.status` — NOT `session.state`
+- **`session:state` message field**: `id` — NOT `sessionId`
+- **`session:stop` message field**: `id` — NOT `sessionId`
+- **Button label**: "New Claude Session" — NOT "New Session"
+- **`createSession()` does NOT auto-open overlay**: user must click the session card
+- **Don't send `cols/rows` in verification `session:subscribe`**: server resizes PTY to those values, overriding viewport-driven resize
+- **`sessions:list` response**: `{ managed, detected }` — NOT a bare array
+- **Creating WS closes** before `session:state: running` broadcasts — use REST polling for state verification
+
+### Key Architectural Findings
+
+**`_ptyGen` is the concurrent refresh guard, not STARTING state:**  
+When two refreshes fire concurrently, both succeed — the second fires after the first has already completed `STARTING→RUNNING`. The `_ptyGen` counter kills the first-refresh PTY when the second refresh spawns, ensuring exactly 1 PTY exists. The STARTING state guard exists for the single-threaded case (UI-driven) but is unreachable via concurrent WS.
+
+**`addViewer()` is called after `start()` in `_createDirect`:**  
+First PTY output bytes are lost to the creating WS. Only output from auto-resume or subsequent runs reaches the creator. For test reliability, subscribe a separate WS immediately after `session:created`.
+
+**`_buildClaudeCommand()` strips non-whitelisted CLI flags:**  
+`bash -c "echo text; exit 1"` becomes just `bash`. Tests needing custom exit behavior must use a shell script file, not inline `-c` strings.
+
+**Auto-resume triggers on subscribe (not just on user-initiated refresh):**  
+`SessionManager.subscribe()` auto-resumes stopped direct sessions when any client subscribes. This means opening the overlay for a stopped session restarts it — the Delete button becomes unavailable. Use WS-level `session:delete` when overlay is open.
+
+**After server-side Refresh, old WS buffer has stale "bypass":**  
+Calling `waitForTuiReady` on the pre-refresh WS subscriber returns immediately (stale cached data). After Refresh, close and `subscribeAndCollect` fresh. The JOURNAL entry for Bug 2 ("wait for bypass in buffer") applies only to the initial startup, not post-Refresh.
+
+**`$$` in `execSync` expands to the ephemeral sh PID:**  
+Use `tmux display-message -p '#{pane_pid}'` to get the PID inside a tmux pane.
+
+**`Ctrl+V` doesn't trigger xterm's paste handler in headless Chrome:**  
+Use `ClipboardEvent` dispatch on `.xterm-helper-textarea` for paste simulation in automated tests.
+
+**`session:subscribed` fires on ALL subscribes, not just refresh:**  
+Any time a client subscribes to a session it gets `session:subscribed` → `xterm.reset()`. Produce test content AFTER browser subscribes — not before. (This was Bug 3 from the F lifecycle, now confirmed across multiple tests.)
+
+### T-43 Haiku Endurance — PASS (1.9 minutes)
+
+All 20 ACKs arrived in correct order:
+- ACK_1 at +8.9s (TUI ready wait essential)
+- Refresh at +40.5s → ACK_8 at +44.0s (--resume confirmed working)
+- Hard reload at +66.6s → ACK_13 at +72.6s (browser reconnect, re-attach working)
+- Overlay close/reopen → ACK_17 at +91.8s
+- ACK_20 at +106.1s → Stop + Delete at +109.1s (clean teardown)
+
+All 3 interruption types (refresh, reload, overlay-close) preserved conversation continuity.
 
 ---
 

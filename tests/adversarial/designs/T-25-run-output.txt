@@ -1,0 +1,49 @@
+
+Running 2 tests using 1 worker
+
+
+  [T-25] tmpDir: /tmp/qa-T25-NrRVkQ
+  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3122
+  [T-25] Server ready on port 3122
+  [srv] [ws] client connected: 4bf278d0-f95a-488a-b16e-e0a16cd9b82a
+  [T-25] Created session: 41df97d5-47f2-4e4c-9130-ffff7f03aa75
+  [T-25] Session running
+
+  [T-25A] Payload: 5000 chars, ends with "_END_MARKER_5000"
+  [srv] [ws] client connected: 55dc1d6c-1872-4208-96aa-6e4686f6686a
+  [T-25A] Sending 5000 chars + \r...
+  [T-25A] Elapsed: 101ms, output chars: 5011, marker found: true
+  [T-25A] END_MARKER_5000 found in PTY output within 101ms ✓
+  [T-25A] No WS disconnection ✓
+  [T-25A] Completed in 101ms (< 5000ms) ✓
+  [T-25A] Received 5011 chars of output ✓
+  ✓  1 [chromium] › tests/adversarial/T-25-paste-large-input.test.js:176:3 › T-25 — Paste Large Input › T-25A — WS level: 5000 char session:input reaches PTY within 5s (634ms)
+  [srv] [ws] client disconnected: 55dc1d6c-1872-4208-96aa-6e4686f6686a (code=1005 reason=)
+
+  [T-25B] Navigate and open session overlay
+  [srv] [ws] client connected: f638dfa8-0e85-49a3-8a5e-f0102e7f47fa
+  [T-25B] Overlay opened
+  [T-25B] Setting up clipboard paste (5000 chars)
+  [T-25B] Paste + Enter sent in 17ms
+  [T-25B] Ctrl+V approach did not work, trying ClipboardEvent dispatch
+  [T-25B] ClipboardEvent dispatched: true
+  [T-25B] Paste marker found in terminal: true
+  [T-25B] Testing full 5000-char response via WS while browser watching
+  [srv] [ws] client connected: 952af7af-a254-44a7-b888-d16d44c6224f
+  [T-25B] Sent 5000 chars via WS while browser watching
+  [T-25B] Full 5000-char WS write confirmed while browser watching ✓
+  [T-25B] Browser terminal shows END_MARKER_5000: true
+  [T-25B] Checking UI responsiveness after large paste
+  [srv] [ws] client disconnected: 952af7af-a254-44a7-b888-d16d44c6224f (code=1005 reason=)
+  [T-25B] UI responsive ✓
+  [T-25B] No critical console errors ✓
+
+  [T-25B] ✅ ALL CORE ASSERTIONS PASSED
+  [T-25B] Browser paste UI marker found: true
+  [T-25B] Browser terminal rendered END_MARKER_5000: true
+  [srv] [ws] client disconnected: f638dfa8-0e85-49a3-8a5e-f0102e7f47fa (code=1001 reason=)
+  [srv:ERR] [2026-04-08T20:08:17.561Z] SIGTERM received — server exiting (pid=3060519)
+  [srv:ERR] [2026-04-08T20:08:17.562Z] Server process exiting with code 0 (pid=3060519)
+  ✓  2 [chromium] › tests/adversarial/T-25-paste-large-input.test.js:246:3 › T-25 — Paste Large Input › T-25B — browser UI: paste 5000 chars via clipboard, UI stays responsive (11.3s)
+
+  2 passed (18.0s)

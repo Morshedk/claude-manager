@@ -1,0 +1,108 @@
+# Black Box Terminal — Test Run Output
+# Date: 2026-04-09
+# All 7 tests: PASS
+# Total duration: 58.2s
+# Runner: Playwright 1.59.1, Node 20.20.1, headless Chromium
+
+=== T-1: Terminal renders visible content after session attach ===
+Result: PASS
+Attempts: 1
+Duration: ~8s
+Key observations:
+  - xterm-screen dimensions: 618x690px (non-zero, fix confirmed working)
+  - WebGL canvas element: 300x150 (GPU texture atlas — expected in WebGL mode)
+  - RENDER_CHECK_T1 sentinel found in terminal DOM within 8s
+  - xterm-rows DOM has non-whitespace content
+Fix applied: None (test implementation was complete and correct on first run)
+
+=== T-2: fit() produces non-zero dimensions after mount ===
+Result: PASS (after 1 infrastructure fix)
+Attempts: 2
+Duration: ~8s
+Key observations:
+  - firstFit captured: containerWidth=639px, containerHeight=704px (layout resolved before fit!)
+  - proposedCols=79, proposedRows=46 (valid grid dimensions, not 0x0)
+  - Settled: screenWidth=618px, screenHeight=690px, rowCount=46
+  - double-rAF deferral confirmed: container had full dimensions when fit() executed
+Fix applied (attempt 2): Changed estimatedCols calculation — xterm-char-measure-element
+  getBoundingClientRect().width returns the element's full width (250px), not per-char width,
+  in headless WebGL mode because element is positioned at left:-9999em. Fixed by using
+  xterm-rows child count for rows and firstFit.proposedCols for cols instead.
+
+=== T-3: Terminal survives split/full toggle without going black ===
+Result: PASS (after 1 infrastructure fix)
+Attempts: 2
+Duration: ~12s
+Key observations:
+  - Default view is split mode (button shows "Full" → toggle to full → shows "Split" → toggle back)
+  - Split→Full: screen width changed 618px → 1260px (full viewport minus sidebar)
+  - Full→Split: screen width changed 1260px → 618px (split side panel width)
+  - SPLIT_TEST_123 sentinel visible in BOTH modes after toggle — no content loss
+  - Terminal dimensions correct in both modes — no black box
+Fix applied (attempt 2): Detect initial split state dynamically. The default is split mode
+  (splitView.value defaults to true from localStorage), so the button initially shows "Full"
+  not "Split". Fixed by reading the button text before clicking, then toggling to its opposite.
+
+=== T-4: Terminal renders in headless/no-WebGL environment ===
+Result: PASS
+Attempts: 1
+Duration: ~10s
+Key observations:
+  - Launched with --disable-gpu flag (forces WebGL unavailable)
+  - xterm-screen dimensions: 618x690px (same as GPU mode — Canvas/DOM fallback works)
+  - NOGPU_TEST sentinel appeared in terminal
+  - No critical (non-WebGL) console errors
+  - WebGL context loss handler (Fix B) triggered graceful fallback to Canvas renderer
+Fix applied: None (test and implementation were already correct)
+
+=== T-5: Terminal content visible on page refresh (reconnect scenario) ===
+Result: PASS
+Attempts: 1
+Duration: ~18s
+Key observations:
+  - Before refresh: REFRESH_MARKER_789 written to terminal
+  - After page.reload() + re-opening overlay: xterm-screen still 618x690px
+  - xterm-rows count after refresh: 46 (full grid rendered, not 0)
+  - Terminal renders correctly on re-attach — fit() deferred again for the new mount
+Fix applied: None (test was complete and correct)
+
+=== T-6: PTY subscribe dimensions match rendered canvas ===
+Result: PASS (after 1 infrastructure fix)
+Attempts: 2
+Duration: ~8s
+Key observations:
+  - Captured session:subscribe message: cols=79, rows=46
+  - NOT the hardcoded fallback 120x30 (which would mean fit() computed against 0x0 container)
+  - Derived cell width: screenWidth(618) / cols(79) = 7.8px — plausible for 13px monospace font
+  - Screen row count: 46 (matches subscribe rows exactly)
+  - Key finding: fix correctly passes real dimensions to PTY instead of 120x30 fallback
+Fix applied (attempt 2): Changed rendered cols estimation. xterm-char-measure-element width
+  is unreliable in WebGL headless mode (returns 250px, not ~8px per char). Fixed by:
+  1. Using xterm-rows child count for row count (reliable)
+  2. Deriving cell plausibility from screenWidth/cols (≥6px threshold — 120x30 fallback on
+     618px screen gives 5.15px/char, valid fit gives 7.8px/char)
+  3. Checking rows match: |subscribe.rows - rendered.rowCount| ≤ 2
+
+=== T-7: Rapid session switching does not produce black box (rAF-after-dispose race) ===
+Result: PASS (after 2 infrastructure fixes)
+Attempts: 3
+Duration: ~10s
+Key observations:
+  - Two sessions created, session A opened, detached via ✕ button, session B clicked immediately
+  - Session B canvas: 618x690px (non-zero, rendered correctly despite the dispose race)
+  - SESSION_B_OK sentinel appeared in session B terminal
+  - No critical console errors from disposed session A's rAF callbacks (try/catch works)
+  - The 50ms wait between overlay close and session B click was enough to trigger the race window
+Fix applied (attempt 2): Detected that the default UI is split mode. Used #btn-detach to close
+  overlay before clicking session B card.
+Fix applied (attempt 3): Infrastructure bug — creating session A and B via separate WS
+  connections caused a server-side race: when wsA auto-subscribed to session A and then closed,
+  the subscription cleanup interfered with wsB's init message delivery. Fixed by creating BOTH
+  sessions on a single WS connection (wsSetup), eliminating the cross-connection race. This
+  is a test infrastructure fix only — the rapid-switch race under test is a BROWSER-side concern.
+
+# Summary
+All 7 tests pass. The double-rAF fix in TerminalPane.js is confirmed working:
+- T-2 proves fit() executes AFTER the container has resolved layout (containerWidth=639px ≠ 0)
+- T-6 proves the PTY is told real dimensions (cols=79, not fallback 120) from the start
+- T-1,3,4,5,7 prove the terminal renders visible content in all tested scenarios

@@ -82,8 +82,8 @@ wss.on('connection', (ws) => {
     router.route(clientId, message, clientRegistry);
   });
 
-  ws.on('close', () => {
-    console.log(`[ws] client disconnected: ${clientId}`);
+  ws.on('close', (code, reason) => {
+    console.log(`[ws] client disconnected: ${clientId} (code=${code} reason=${reason||'none'})`);
     // Clean up viewers on disconnect (both terminal and session subscriptions)
     const client = clientRegistry.get(clientId);
     if (client) {

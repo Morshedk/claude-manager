@@ -1,0 +1,166 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-27-resize-pty.test.js:170:3 › T-27 — Browser Resize While Terminal Is Open › T-27 — PTY dimensions update when browser viewport is resized
+[1A[2K[chromium] › tests/adversarial/T-27-resize-pty.test.js:170:3 › T-27 — Browser Resize While Terminal Is Open › T-27 — PTY dimensions update when browser viewport is resized
+
+
+[1A[2K
+
+[1A[2K
+  [T-27] tmpDir: /tmp/qa-T27-xramrM
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3124
+
+[1A[2K  [T-27] Server ready on port 3124
+
+[1A[2K
+  [T-27.1] Creating bash session via WS...
+
+[1A[2K  [srv] [ws] client connected: 771fb1c8-4d3f-4704-97e4-3ab85cd59d28
+
+[1A[2K  [T-27.1] Session created: b6f0d4c2-afd4-41a2-bd10-f788bba010b8
+
+[1A[2K  [T-27.1] Session is running
+
+[1A[2K  [srv] [ws] client disconnected: 771fb1c8-4d3f-4704-97e4-3ab85cd59d28 (code=1005 reason=)
+
+[1A[2K
+  [T-27.2] Launching browser at 1280×800...
+
+[1A[2K  [srv] [ws] client connected: f7bf8460-ec09-49ef-ba95-02b16a98857b
+
+[1A[2K  [browser:err] [ws] handler error: ReferenceError: loadSettings is not defined
+    at http://127.0.0.1:3124/js/state/sessionState.js:78:5
+    at dispatch (http://127.0.0.1:3124/js/ws/connection.js:18:13)
+    at WebSocket.<anonymous> (http://127.0.0.1:3124/js/ws/connection.js:50:5)
+
+[1A[2K  [T-27.2] Browser loaded and app connected
+
+[1A[2K
+  [T-27.3] Injecting WebSocket resize spy...
+
+[1A[2K
+  [T-27.4] Selecting project and opening session terminal...
+
+[1A[2K  [T-27.4] Session card visible
+
+[1A[2K  [T-27.4] Session overlay opened
+
+[1A[2K
+  [T-27.5] Capturing initial terminal dimensions...
+
+[1A[2K  [T-27.5] Initial container clientWidth: 1280px
+
+[1A[2K  [srv] [ws] client connected: bc433495-f444-457e-8b3b-921ff0be7c45
+
+[1A[2K  [T-27.5] Initial PTY cols from tput: 120
+
+[1A[2K  [T-27.5] Raw tput output (sanitized): ner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T27-xramrM/project$ echo "COLS=$(tput cols)"··p/qa-T27-xramrM/project·claude-runner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T27-xramrM/project$ 
+
+[1A[2K  [srv] [ws] client disconnected: bc433495-f444-457e-8b3b-921ff0be7c45 (code=1005 reason=)
+
+[1A[2K  [T-27.5] Screenshot saved: T-27-initial.png
+
+[1A[2K
+  [T-27.6] Resizing viewport from 1280×800 to 800×600...
+
+[1A[2K  [T-27.6] Viewport resize called at 1775678171140
+
+[1A[2K
+  [T-27.7] Reading captured resize messages...
+
+[1A[2K  [T-27.7] Total session:resize messages captured: 1
+
+[1A[2K  [T-27.7] All outgoing WS types: session:resize
+
+[1A[2K  [T-27.7] Resize messages: [{"type":"session:resize","id":"b6f0d4c2-afd4-41a2-bd10-f788bba010b8","cols":100,"rows":33,"_ts":1775678171169}]
+
+[1A[2K  [T-27.7] Resize messages after viewport change: 1
+
+[1A[2K
+  [T-27.8] Checking container dimensions after resize...
+
+[1A[2K  [T-27.8] New container clientWidth: 800px
+
+[1A[2K
+  [T-27.9] Checking for horizontal scrollbar...
+
+[1A[2K  [T-27.9] xterm-viewport: scrollWidth=800, clientWidth=800, hasHScroll=false
+
+[1A[2K
+  [T-27.10] Verifying PTY cols with tput after resize...
+
+[1A[2K  [srv] [ws] client connected: c27cb14f-6a51-4fc7-98fd-0831d638b685
+
+[1A[2K  [T-27.10] New PTY cols from tput: 100
+
+[1A[2K  [T-27.10] Raw tput2 output (sanitized): echo "COLS=$(tput cols)"··p/qa-T27-xramrM/project·claude-runner@ubuntu-s-1vcpu-2gb-70gb-intel-nyc3-01:/tmp/qa-T27-xramrM/project$ 
+
+[1A[2K  [srv] [ws] client disconnected: c27cb14f-6a51-4fc7-98fd-0831d638b685 (code=1005 reason=)
+
+[1A[2K
+  [T-27.11] Checking session cols via REST API...
+
+[1A[2K  [T-27.11] API session cols: undefined
+
+[1A[2K  [T-27.11] Full session data: {"id":"b6f0d4c2-afd4-41a2-bd10-f788bba010b8","projectId":"proj-t27","projectName":"T27-ResizeProject","name":"t27-resize","command":"bash","cwd":"/tmp/qa-T27-xramrM/project","mode":"direct","claudeSessionId":"28cc0182-bd7c-4e78-93d3-4eac8e9c9e25","tmuxName":null,"telegramEnabled":false,"createdAt":"2026-04-08T19:56:02.701Z","status":"running","pid":2981845,"startedAt":"2026-04-08T19:56:02.716Z"}
+
+[1A[2K  [T-27.11] Screenshot saved: T-27-after-resize.png
+
+[1A[2K
+  ════ ASSERTIONS ════
+
+[1A[2K  [A1] Container width: 1280px → 800px
+
+[1A[2K  [A1] PASS
+
+[1A[2K  [A2] session:resize messages sent after resize: 1
+
+[1A[2K  [A2] PASS
+
+[1A[2K  [A3] Resize message cols: 100 (initial PTY cols: 120)
+
+[1A[2K  [A3] PASS
+
+[1A[2K  [A4] tput cols after resize: 100
+
+[1A[2K  [A4a] PASS — tput cols decreased (120 → 100)
+
+[1A[2K  [A4b] tput cols delta from resize msg: 0 (tput=100, msg=100)
+
+[1A[2K  [A4b] PASS
+
+[1A[2K  [A5] Horizontal scrollbar check: hasHScroll=false
+
+[1A[2K  [A5] PASS
+
+[1A[2K
+  ✓ T-27 ALL ASSERTIONS PASSED
+
+[1A[2K
+  ══ T-27 RESULT SUMMARY ══
+
+[1A[2K  Initial PTY cols: 120
+
+[1A[2K  session:resize msgs after viewport change: 1
+
+[1A[2K  Resize msg cols: 100
+
+[1A[2K  tput cols after resize: 100
+
+[1A[2K  Container width: 1280px → 800px
+
+[1A[2K  Horizontal scrollbar: false
+
+[1A[2K  [srv] [ws] client connected: 4e7b2c7b-58d4-46a4-b88e-556b37bc74a5
+
+[1A[2K  [srv] [ws] client disconnected: 4e7b2c7b-58d4-46a4-b88e-556b37bc74a5 (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client disconnected: f7bf8460-ec09-49ef-ba95-02b16a98857b (code=1001 reason=)
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  1 passed (26.0s)

@@ -73,15 +73,21 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     xterm.open(container);
 
     let gpuRenderer = false;
-    try { xterm.loadAddon(new WebglAddon.WebglAddon()); gpuRenderer = true; } catch {}
+    try {
+      const webglAddon = new WebglAddon.WebglAddon();
+      webglAddon.onContextLoss(() => {
+        webglAddon.dispose();
+        try { xterm.loadAddon(new CanvasAddon.CanvasAddon()); } catch {}
+      });
+      xterm.loadAddon(webglAddon);
+      gpuRenderer = true;
+    } catch {}
     if (!gpuRenderer) {
       try { xterm.loadAddon(new CanvasAddon.CanvasAddon()); } catch {}
     }
 
     try { xterm.loadAddon(new WebLinksAddon.WebLinksAddon()); } catch {}
 
-    fitAddon.fit();
-    xterm.focus();
     xtermRef.current = { xterm, fitAddon };
 
     // ── 4. Scroll control — auto-scroll only when user is at bottom ───────────
@@ -130,6 +136,16 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     const handleSubscribed = (msg) => {
       if (msg.id !== sessionId) return;
       xterm.reset();
+      // Re-fit terminal and sync dimensions with PTY after refresh/reconnect.
+      // Without this, the PTY may be at stale dimensions after restart.
+      // Mirrors the logic in the connection:open reconnect handler.
+      requestAnimationFrame(() => {
+        try { fitAddon.fit(); } catch {}
+        const dims = fitAddon.proposeDimensions();
+        if (dims) {
+          send({ type: CLIENT.SESSION_RESIZE, id: sessionId, cols: dims.cols, rows: dims.rows });
+        }
+      });
     };
 
     // session:output → live PTY stream
@@ -142,11 +158,20 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     on(SERVER.SESSION_OUTPUT, handleOutput);
 
     // ── 7. Subscribe — server sends session:subscribed, then live output ──────
-    // Use actual fitted dimensions so PTY starts at the right width, not hardcoded defaults
-    const initDims = fitAddon.proposeDimensions();
-    send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId,
-      cols: initDims?.cols || cols,
-      rows: initDims?.rows || rows,
+    // Defer fit() until after browser layout pass resolves flex container dimensions.
+    // useEffect fires after DOM commit but before paint; rAF defers to after paint.
+    // Double-rAF ensures the layout pass has completed even in edge cases.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try { fitAddon.fit(); } catch {}
+        xterm.focus();
+        // Use actual fitted dimensions so PTY starts at the right width, not hardcoded defaults
+        const initDims = fitAddon.proposeDimensions();
+        send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId,
+          cols: initDims?.cols || cols,
+          rows: initDims?.rows || rows,
+        });
+      });
     });
 
     // ── 7b. Re-subscribe on WS reconnect ────────────────────────────────────

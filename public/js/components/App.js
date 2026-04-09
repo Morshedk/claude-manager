@@ -1,4 +1,5 @@
 import { html } from 'htm/preact';
+import { useEffect } from 'preact/hooks';
 import { TopBar } from './TopBar.js';
 import { ProjectSidebar } from './ProjectSidebar.js';
 import { ProjectDetail } from './ProjectDetail.js';
@@ -7,7 +8,8 @@ import { NewSessionModal } from './NewSessionModal.js';
 import { NewProjectModal } from './NewProjectModal.js';
 import { EditProjectModal } from './EditProjectModal.js';
 import { SettingsModal } from './SettingsModal.js';
-import { attachedSessionId, newSessionModalOpen, settingsModalOpen, newProjectModalOpen, editProjectModalOpen, toasts } from '../state/store.js';
+import { initResize } from '../utils/dom.js';
+import { attachedSessionId, newSessionModalOpen, settingsModalOpen, newProjectModalOpen, editProjectModalOpen, toasts, splitView, splitPosition } from '../state/store.js';
 
 /**
  * ToastContainer — inline small component for toast notifications.
@@ -53,6 +55,25 @@ function ToastContainer() {
  * Plus session overlay and toasts.
  */
 export function App() {
+  // Apply --split-pos CSS variable from stored signal value on mount and when it changes
+  useEffect(() => {
+    document.documentElement.style.setProperty('--split-pos', splitPosition.value + '%');
+  }, [splitPosition.value]);
+
+  // Apply/remove session-split body class based on split view + session state
+  useEffect(() => {
+    const inSplit = splitView.value && !!attachedSessionId.value;
+    document.body.classList.toggle('session-split', inSplit);
+  }, [splitView.value, attachedSessionId.value]);
+
+  // Wire sidebar resize handle (always in DOM at mount)
+  useEffect(() => {
+    const sidebarHandle = document.getElementById('sidebar-resize');
+    const sidebar = document.getElementById('project-sidebar');
+    if (!sidebarHandle || !sidebar) return;
+    return initResize(sidebarHandle, 'h', sidebar, { min: 140, max: 500 });
+  }, []);
+
   return html`
     <div id="app-shell" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
       <${TopBar} />

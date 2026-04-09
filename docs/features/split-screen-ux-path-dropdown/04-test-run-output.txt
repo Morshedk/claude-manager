@@ -1,0 +1,119 @@
+=== Test Run Output: Split Screen UX + Path Dropdown Feature Tests ===
+Date: 2026-04-09
+Executor: TEST EXECUTOR agent
+App: /home/claude-runner/apps/claude-web-app-v2
+Playwright: 1.59.1
+
+=== T-1: Path dropdown shows existing project paths ===
+Result: PASS
+Attempts: 3
+Duration: 5.4s
+Key observations:
+  - Project paths must exist on disk (server validates); used tmpDir/services/alpha and tmpDir/services/beta
+  - datalist options: [alpha_path, beta_path, parent_path] — 3 options, all correct
+  - #project-paths-datalist populated with both project paths and shared parent directory
+  - Options remain in datalist after typing a path prefix
+  - Initial attempt used /home/dev/services/alpha (non-existent path) → server returned 400 error
+  - Second attempt: datalist was empty because projects weren't yet loaded via WS when modal opened
+Fix applied:
+  - Used real paths under tmpDir (server validates path exists on disk)
+  - Added waitForFunction to wait for sidebar to show project names (confirming WS init received)
+  - Stored dynamic paths in process.env for assertion comparison
+
+=== T-2: New session opens in split view by default ===
+Result: PASS
+Attempts: 2
+Duration: 9.3s
+Key observations:
+  - After clearing localStorage and creating a session, overlay.left = 640px (exactly 50% of 1280px viewport)
+  - body.session-split class present
+  - #workspace margin-right = 640px (50% of viewport)
+  - splitView defaults to true (readSplitView returns true when no localStorage entry)
+  - Session overlay auto-opens after session creation (no card click needed)
+Fix applied:
+  - Project path /tmp/test-split must exist on disk; created it with fs.mkdirSync inside tmpDir
+  - Added null check on testProjectId with descriptive error
+
+=== T-3: Split position drag and persist across reload ===
+Result: PASS
+Attempts: 2
+Duration: 12.4s
+Key observations:
+  - Dragged handle from x=640.5 to x=384 (30% of 1280px viewport)
+  - --split-pos CSS variable: "30%"
+  - localStorage splitPosition: 30 (matches --split-pos)
+  - Overlay left: 384px (exactly 30% of viewport)
+  - workspace margin-right: 896px (exactly 70% of viewport = 100% - 30%)
+  - After reload: --split-pos still "30%", overlay.left still 384px
+  - Drag handler clamps 30% correctly (within 20-85% range)
+Fix applied:
+  - Sessions cannot be created via REST API — must use WebSocket session:create message
+  - Created createSessionViaWS() helper using Node.js 'ws' package
+  - waitForFunction() used instead of waitForSelector text= for project name matching
+
+=== T-4: Terminal scrollbar appears on hover ===
+Result: PASS
+Attempts: 1
+Duration: 9.6s
+Key observations:
+  - .xterm-viewport computed scrollbar-width: "thin" — correct
+  - CSS rule for .xterm-viewport scrollbar found in stylesheets (styles.css)
+  - .xterm:hover .xterm-viewport rule found with scrollbar-color rgba(255,255,255,0.15) transparent
+  - Also present: .xterm-viewport::-webkit-scrollbar rules for Chromium
+  - scrollbar-width still "thin" after hover event
+Fix applied: None — test passed on first attempt.
+
+=== T-5: Sidebar and sessions area resize handles functional ===
+Result: FAIL
+Attempts: 1
+Duration: ~8s
+Key observations:
+  - #sidebar-resize found, cursor: col-resize ✓
+  - Sidebar drag right 80px → width increased 228→308 (delta=80) — PASS
+  - #resize-sessions found in DOM ✓
+  - Sessions area drag down 60px → height unchanged 169→169 (delta=0) — FAIL
+
+Root cause identified:
+  In App.js, the useEffect that wires up resize handles runs once with [] deps at initial mount.
+  At mount time, no project is selected, so ProjectDetail renders the empty state —
+  #resize-sessions and #sessions-area do NOT exist in the DOM yet.
+  getElementById returns null for both, so cleanupSessions = null and no listener is attached.
+  When the user selects a project, ProjectDetail renders #resize-sessions and #sessions-area,
+  but the useEffect has already run and will not re-run ([] deps = runs once only).
+
+  The sidebar handle DOES work because #sidebar-resize and #project-sidebar are always in
+  the DOM (they are in the App root, not inside conditional ProjectDetail).
+
+  This is a real implementation gap: the sessions area vertical resize handle is never wired up.
+
+Fix applied: None — assertion not watered down. This is a real bug in the implementation.
+
+=== T-6: Adversarial — splitPosition localStorage poisoned with out-of-range value ===
+Result: PASS
+Attempts: 1
+Duration: 15.6s
+Key observations:
+  - Poisoned value 5% IS applied on load — no clamping on read (confirming review finding)
+  - overlay.left = 64px (5% of 1280px viewport) at initial load
+  - readSplitPosition() in store.js returns 5 without clamping (just parseFloat)
+  - After drag to 50%: overlay.left = 640px, localStorage = 50 (self-corrected by drag clamp 20-85%)
+  - After reload: overlay.left still 640px (50%), corrected value persisted
+  - Drag handler clamps: Math.min(85, Math.max(20, pct)) — works correctly
+Fix applied: None — test passed on first attempt.
+
+=== Summary ===
+Total: 6 tests
+PASS:  5 (T-1, T-2, T-3, T-4, T-6)
+FAIL:  1 (T-5 — sessions area resize handle not wired up due to useEffect([]) timing issue)
+
+Infrastructure fixes applied across runs:
+1. Server validates project paths exist on disk — must create real directories
+2. Sessions created via WebSocket (session:create), not REST API
+3. waitForFunction() preferred over waitForSelector for text matching after WS init
+4. Added null checks on project/session IDs with descriptive errors
+
+Real bugs found:
+- T-5: #resize-sessions vertical drag handle is not functional. App.js useEffect([]) fires
+  before any project is selected, so getElementById('resize-sessions') returns null.
+  Fix: Add selectedProjectId.value to the useEffect deps array, or wire up the sessions
+  handle inside ProjectDetail.js using a local useEffect.

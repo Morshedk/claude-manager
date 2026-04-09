@@ -1,0 +1,37 @@
+Running 4 tests using 1 worker
+
+[1/4] T-41.01 — Upload interrupted by page reload; server survives
+  [T-41] tmpDir: /tmp/qa-T41-34Nvin
+  [T-41] Server started on port 3138
+  [T-41] Session created: b01fa4e3-23f2-413c-9334-e84ef209b0d1
+  [T-41.01] Starting large upload in browser...
+  [T-41.01] Reloading browser 526ms after upload started...
+  [T-41.01] First reload complete
+  [T-41.01] Second reload complete
+  [T-41.01] Sessions after reload: [{"id":"b01fa4e3","status":"running"}]
+  [T-41.01] PASS: Session b01fa4e3 still present
+  [T-41.01] App body text length: 207 chars
+
+[2/4] T-41.02 — Fresh upload succeeds after interrupted upload
+  [T-41.02] Testing fresh upload after interrupted upload...
+  [T-41.02] PASS: Fresh upload returned path: /tmp/claude-uploads/img-1775678398916.png
+  [T-41.02] PASS: Uploaded file exists at /tmp/claude-uploads/img-1775678398916.png
+
+[3/4] T-41.03 — Three rapid uploads all succeed (no handle leak)
+  [T-41.03] Testing 3 rapid uploads...
+  [T-41.03] PASS: All 3 rapid uploads returned 200
+
+[4/4] T-41.04 — Session record survives upload interruption
+  [T-41.04] Verifying session record integrity...
+  [T-41.04] PASS: Session b01fa4e3 has status: running, projectId intact
+
+  4 passed (10.5s)
+
+Notes:
+- T-41.01: The upload started at t=0, page.reload() fired at t=526ms (well after the 5MB fetch started).
+  The reload aborted the in-flight request. Server survived with no crash.
+- Session record remained intact and in "running" state throughout.
+- Crash log was absent (no crashes).
+- App body text was 207 chars after reload (minimal but non-empty — JS bundle hydrating).
+- All 3 follow-up upload tests confirmed endpoint works after the interruption.
+- Fix attempt 1 needed: /api/sessions returns {managed, detected} not array.

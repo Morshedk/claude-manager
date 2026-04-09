@@ -1,6 +1,6 @@
 import { html } from 'htm/preact';
 import { useState, useEffect } from 'preact/hooks';
-import { newProjectModalOpen } from '../state/store.js';
+import { newProjectModalOpen, projects } from '../state/store.js';
 import { closeNewProjectModal, createProject, showToast } from '../state/actions.js';
 
 /**
@@ -51,6 +51,14 @@ export function NewProjectModal() {
 
   if (!newProjectModalOpen.value) return null;
 
+  // Build datalist options: unique project paths + unique parent directories
+  const allPaths = projects.value.map(p => p.path);
+  const parentDirs = allPaths.map(p => {
+    const idx = p.lastIndexOf('/');
+    return idx > 0 ? p.slice(0, idx) : p;
+  });
+  const uniqueSuggestions = [...new Set([...allPaths, ...parentDirs])];
+
   return html`
     <div
       class="dialog-overlay"
@@ -99,11 +107,15 @@ export function NewProjectModal() {
             <input
               class="form-input"
               id="new-project-path"
+              list="project-paths-datalist"
               value=${path}
               onInput=${e => setPath(e.target.value)}
               placeholder="e.g. /home/user/my-app"
               style="width:100%;padding:8px 10px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:13px;font-family:var(--font-mono);box-sizing:border-box;"
             />
+            <datalist id="project-paths-datalist">
+              ${uniqueSuggestions.map(p => html`<option value=${p} />`)}
+            </datalist>
             <div class="form-help" style="font-size:11px;color:var(--text-muted);margin-top:3px;">Absolute path to the project directory on disk.</div>
           </div>
 

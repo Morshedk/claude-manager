@@ -1,0 +1,216 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-04-stop-kills-process.test.js:225:3 › T-04 — Stop Button Actually Kills the Process › T-04 — Stop button kills process: 3 iterations (UI + WS + UI)
+[1A[2K[chromium] › tests/adversarial/T-04-stop-kills-process.test.js:225:3 › T-04 — Stop Button Actually Kills the Process › T-04 — Stop button kills process: 3 iterations (UI + WS + UI)
+
+
+[1A[2K
+
+[1A[2K
+  [T-04] tmpDir: /tmp/qa-T04-H41pcU
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3101
+
+[1A[2K  [T-04] Server ready on port 3101
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-04] Iteration 1 (Path A - UI stop)
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  [srv] [ws] client connected: 73e14f2c-889a-47ac-b916-366bad7af27a
+
+[1A[2K  [T-04] No init message received (may be OK)
+
+[1A[2K  [T-04] Session created: c02b18bc-d22c-4a1b-85ae-20a3f714e9f0
+
+[1A[2K  [T-04] Session is running
+
+[1A[2K  [T-04] PTY PID: 2938095
+
+[1A[2K
+  [T-04.1a] Baseline kill-0 check: PID 2938095
+
+[1A[2K  [T-04.1a] PASS — Process 2938095 is alive (baseline confirmed)
+
+[1A[2K
+  [T-04.1b] Path A: Stopping via UI browser...
+
+[1A[2K  [srv] [ws] client connected: be7d7630-9195-4f44-a349-af98bae669e2
+
+[1A[2K  [T-04.1b] Browser loaded and connected
+
+[1A[2K  [T-04.1b] Project selected
+
+[1A[2K  [T-04.1b] Session card visible
+
+[1A[2K  [T-04.1b] Session overlay opened
+
+[1A[2K  [T-04.1b] Stop button visible
+
+[1A[2K  [T-04.1b] Stop button clicked
+
+[1A[2K
+  [T-04.1c] Verifying UI badge...
+
+[1A[2K  [T-04.1c] PASS — UI badge shows "stopped"
+
+[1A[2K  [T-04.1c] PASS — Stop button is gone
+
+[1A[2K  [srv] [ws] client disconnected: be7d7630-9195-4f44-a349-af98bae669e2 (code=1001 reason=)
+
+[1A[2K
+  [T-04.1d] REST API check...
+
+[1A[2K  [T-04.1d] Session still in API list ✓
+
+[1A[2K  [T-04.1d] PASS — API status="stopped"
+
+[1A[2K
+  [T-04.1e] OS-level kill-0 check: PID 2938095...
+
+[1A[2K  [T-04.1e] PASS — process.kill(2938095, 0) → ESRCH (process is dead)
+
+[1A[2K  [T-04.1f] PASS — server process still alive
+
+[1A[2K
+  [T-04.1] Cleanup: deleting session c02b18bc-d22c-4a1b-85ae-20a3f714e9f0...
+
+[1A[2K  [srv] [ws] client disconnected: 73e14f2c-889a-47ac-b916-366bad7af27a (code=1005 reason=)
+
+[1A[2K
+  [T-04] Iteration 1 (Path A - UI stop) → ALL CHECKS PASSED
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-04] Iteration 2 (Path B - WS stop)
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  [srv] [ws] client connected: 7557aa5a-e9cd-4f00-8eef-a930d3923188
+
+[1A[2K  [T-04] No init message received (may be OK)
+
+[1A[2K  [T-04] Session created: 9e9d81ad-72eb-4c54-98ea-186810e66e3a
+
+[1A[2K  [T-04] Session is running
+
+[1A[2K  [T-04] PTY PID: 2940221
+
+[1A[2K
+  [T-04.2a] Baseline kill-0 check: PID 2940221
+
+[1A[2K  [T-04.2a] PASS — Process 2940221 is alive (baseline confirmed)
+
+[1A[2K
+  [T-04.2b] Path B: Stopping via WS session:stop...
+
+[1A[2K  [T-04.2b] session:stop sent
+
+[1A[2K
+  [T-04.2d] REST API check...
+
+[1A[2K  [T-04.2d] Session still in API list ✓
+
+[1A[2K  [T-04.2d] PASS — API status="stopped"
+
+[1A[2K
+  [T-04.2e] OS-level kill-0 check: PID 2940221...
+
+[1A[2K  [T-04.2e] PASS — process.kill(2940221, 0) → ESRCH (process is dead)
+
+[1A[2K  [T-04.2f] PASS — server process still alive
+
+[1A[2K
+  [T-04.2] Cleanup: deleting session 9e9d81ad-72eb-4c54-98ea-186810e66e3a...
+
+[1A[2K  [srv] [ws] client disconnected: 7557aa5a-e9cd-4f00-8eef-a930d3923188 (code=1005 reason=)
+
+[1A[2K
+  [T-04] Iteration 2 (Path B - WS stop) → ALL CHECKS PASSED
+
+[1A[2K
+  ════════════════════════════════════
+
+[1A[2K  [T-04] Iteration 3 (Path A - UI stop)
+
+[1A[2K  ════════════════════════════════════
+
+[1A[2K  [srv] [ws] client connected: 0e49c232-7fd2-44a4-be83-cec2a9ac7f80
+
+[1A[2K  [T-04] No init message received (may be OK)
+
+[1A[2K  [T-04] Session created: db3738ab-040e-480c-8b09-09256631386b
+
+[1A[2K  [T-04] Session is running
+
+[1A[2K  [T-04] PTY PID: 2942755
+
+[1A[2K
+  [T-04.3a] Baseline kill-0 check: PID 2942755
+
+[1A[2K  [T-04.3a] PASS — Process 2942755 is alive (baseline confirmed)
+
+[1A[2K
+  [T-04.3b] Path A: Stopping via UI browser...
+
+[1A[2K  [srv] [ws] client connected: 5998dcc4-69c8-4046-aa8e-e03a482e5afe
+
+[1A[2K  [T-04.3b] Browser loaded and connected
+
+[1A[2K  [T-04.3b] Project selected
+
+[1A[2K  [T-04.3b] Session card visible
+
+[1A[2K  [T-04.3b] Session overlay opened
+
+[1A[2K  [T-04.3b] Stop button visible
+
+[1A[2K  [T-04.3b] Stop button clicked
+
+[1A[2K
+  [T-04.3c] Verifying UI badge...
+
+[1A[2K  [T-04.3c] PASS — UI badge shows "stopped"
+
+[1A[2K  [T-04.3c] PASS — Stop button is gone
+
+[1A[2K  [srv] [ws] client disconnected: 5998dcc4-69c8-4046-aa8e-e03a482e5afe (code=1001 reason=)
+
+[1A[2K
+  [T-04.3d] REST API check...
+
+[1A[2K  [T-04.3d] Session still in API list ✓
+
+[1A[2K  [T-04.3d] PASS — API status="stopped"
+
+[1A[2K
+  [T-04.3e] OS-level kill-0 check: PID 2942755...
+
+[1A[2K  [T-04.3e] PASS — process.kill(2942755, 0) → ESRCH (process is dead)
+
+[1A[2K  [T-04.3f] PASS — server process still alive
+
+[1A[2K
+  [T-04.3] Cleanup: deleting session db3738ab-040e-480c-8b09-09256631386b...
+
+[1A[2K  [srv] [ws] client disconnected: 0e49c232-7fd2-44a4-be83-cec2a9ac7f80 (code=1005 reason=)
+
+[1A[2K
+  [T-04] Iteration 3 (Path A - UI stop) → ALL CHECKS PASSED
+
+[1A[2K
+  [T-04] Checking crash log...
+
+[1A[2K
+  ✓ T-04 ALL ITERATIONS PASSED — Stop button kills process at OS level
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  1 passed (59.0s)

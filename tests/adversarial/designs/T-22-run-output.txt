@@ -1,0 +1,118 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/adversarial/T-22-delete-with-overlay.test.js:157:3 › T-22 — Delete session while overlay is open › T-22 — Delete session while overlay is open — overlay closes gracefully
+[1A[2K[chromium] › tests/adversarial/T-22-delete-with-overlay.test.js:157:3 › T-22 — Delete session while overlay is open › T-22 — Delete session while overlay is open — overlay closes gracefully
+
+
+[1A[2K
+
+[1A[2K
+  [T-22] tmpDir: /tmp/qa-T22-r4TaqF
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3119
+
+[1A[2K  [T-22] Server ready on port 3119
+
+[1A[2K  [T-22] Project created: 0af23ced-ba4a-4852-8cd5-2da040304a1c
+
+[1A[2K
+  [T-22.01] Creating bash session via WS...
+
+[1A[2K  [srv] [ws] client connected: 328c86ae-acfb-4f73-b2fb-facad99d4b56
+
+[1A[2K  [T-22] No init message (may be OK)
+
+[1A[2K  [T-22.01] PASS — session created: 3a3a8800-0861-4159-889d-25c9bc4eb4f1
+
+[1A[2K
+  [T-22.02] Waiting for session to be running...
+
+[1A[2K  [T-22.02] PASS — session is running
+
+[1A[2K
+  [T-22.02b] Stopping session (Delete button requires stopped state)...
+
+[1A[2K  [T-22.02b] PASS — session is stopped
+
+[1A[2K
+  [T-22.03] Opening browser...
+
+[1A[2K  [srv] [ws] client disconnected: 328c86ae-acfb-4f73-b2fb-facad99d4b56 (code=1005 reason=)
+
+[1A[2K  [srv] [ws] client connected: 0e7afbac-3a7c-4c19-988a-b2a29ed3215d
+
+[1A[2K  [T-22.03] PASS — browser loaded
+
+[1A[2K
+  [T-22.04] Selecting project to see session card...
+
+[1A[2K  [T-22.04] Clicked project "T22-Project"
+
+[1A[2K  [T-22.04] PASS — session card "T22-bash" visible
+
+[1A[2K
+  [T-22.05] Opening session overlay...
+
+[1A[2K  [T-22.05] Clicked "Open" button
+
+[1A[2K  [T-22.05] PASS — overlay appeared
+
+[1A[2K
+  [T-22.06] Enabling split view...
+
+[1A[2K  [T-22.06] Clicked "Split" button
+
+[1A[2K  [T-22.06] Screenshot saved (split view state)
+
+[1A[2K
+  [T-22.07] Verifying overlay is present before delete...
+
+[1A[2K  [T-22.07] Overlay present before delete: true
+
+[1A[2K  [T-22.07] PASS — overlay is open
+
+[1A[2K
+  [T-22.08] Sending session:delete via WS while overlay is open...
+
+[1A[2K  [srv] [ws] client connected: 5ffedfa7-a9a1-4dee-94f4-ea4b9b38c92d
+
+[1A[2K  [T-22.08] session:delete sent
+
+[1A[2K
+  [T-22.09] Waiting for overlay to disappear...
+
+[1A[2K  [srv] [ws] client disconnected: 5ffedfa7-a9a1-4dee-94f4-ea4b9b38c92d (code=1005 reason=)
+
+[1A[2K  [T-22.09] PASS — overlay disappeared after session delete
+
+[1A[2K
+  [T-22.10] Waiting for session card to be removed...
+
+[1A[2K  [T-22.10] PASS — session card removed from list
+
+[1A[2K
+  [T-22.11] Checking for console errors...
+
+[1A[2K  [T-22.11] PASS — no critical console errors
+
+[1A[2K
+  [T-22.12] Checking for repeated session:subscribe after delete...
+
+[1A[2K  [T-22.12] PASS — no repeated subscribe messages after delete
+
+[1A[2K
+  [T-22.13] Final overlay DOM check...
+
+[1A[2K  [T-22.13] PASS — overlay fully gone from DOM
+
+[1A[2K
+  [T-22] ALL CHECKS PASSED
+
+[1A[2K  [srv] [ws] client disconnected: 0e7afbac-3a7c-4c19-988a-b2a29ed3215d (code=1001 reason=)
+
+[1A[2K
+
+[1A[2K
+
+[1A[2K  1 passed (21.5s)

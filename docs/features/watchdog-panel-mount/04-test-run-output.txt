@@ -1,0 +1,112 @@
+
+Running 6 tests using 1 worker
+
+[1A[2K[1/6] [chromium] › tests/adversarial/feat-watchdog-panel-500.test.js:71:3 › feat-watchdog-panel-500 — Panel handles /api/watchdog/logs 500 gracefully › Panel renders gracefully when /api/watchdog/logs returns 500
+[1A[2K[chromium] › tests/adversarial/feat-watchdog-panel-500.test.js:71:3 › feat-watchdog-panel-500 — Panel handles /api/watchdog/logs 500 gracefully › Panel renders gracefully when /api/watchdog/logs returns 500
+
+
+[1A[2K
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3213
+
+[1A[2K  [srv] [ws] client connected: fcec176c-8d47-47e8-81f5-578517b26e33
+
+[1A[2K  [srv] [ws] client disconnected: fcec176c-8d47-47e8-81f5-578517b26e33 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-09T00:15:00.825Z] SIGTERM received — server exiting (pid=105221)
+[2026-04-09T00:15:00.825Z] Server process exiting with code 0 (pid=105221)
+
+[1A[2K
+
+[1A[2K[2/6] [chromium] › tests/adversarial/feat-watchdog-panel-badge.test.js:89:3 › feat-watchdog-panel-badge — Badge reflects watchdog enabled/disabled setting › Sub-test A: badge shows Disabled when watchdog.enabled = false
+[1A[2K[chromium] › tests/adversarial/feat-watchdog-panel-badge.test.js:89:3 › feat-watchdog-panel-badge — Badge reflects watchdog enabled/disabled setting › Sub-test A: badge shows Disabled when watchdog.enabled = false
+
+
+[1A[2K
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3211
+
+[1A[2K  [srv] [ws] client connected: db6e2666-879a-4256-a90b-d642e47fd267
+
+[1A[2K  [srv] [ws] client disconnected: db6e2666-879a-4256-a90b-d642e47fd267 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-09T00:15:09.936Z] SIGTERM received — server exiting (pid=106584)
+[2026-04-09T00:15:09.937Z] Server process exiting with code 0 (pid=106584)
+
+[1A[2K
+
+[1A[2K[3/6] [chromium] › tests/adversarial/feat-watchdog-panel-badge.test.js:125:3 › feat-watchdog-panel-badge — Badge reflects watchdog enabled/disabled setting › Sub-test B: badge shows Enabled when watchdog.enabled = true
+[1A[2K[chromium] › tests/adversarial/feat-watchdog-panel-badge.test.js:125:3 › feat-watchdog-panel-badge — Badge reflects watchdog enabled/disabled setting › Sub-test B: badge shows Enabled when watchdog.enabled = true
+
+
+[1A[2K
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3211
+
+[1A[2K  [srv] [ws] client connected: 5ab428c9-4477-466e-8196-f6ba0c4a7a88
+
+[1A[2K  [srv] [ws] client disconnected: 5ab428c9-4477-466e-8196-f6ba0c4a7a88 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-09T00:15:17.361Z] SIGTERM received — server exiting (pid=107576)
+
+[1A[2K  [srv:ERR] [2026-04-09T00:15:17.362Z] Server process exiting with code 0 (pid=107576)
+
+[1A[2K
+
+[1A[2K[4/6] [chromium] › tests/adversarial/feat-watchdog-panel-default-tab.test.js:71:3 › feat-watchdog-panel-default-tab — Default tab is Sessions, switching works correctly › Sessions is default tab; switching to Watchdog hides session list and button; switching back restores them
+[1A[2K[chromium] › tests/adversarial/feat-watchdog-panel-default-tab.test.js:71:3 › feat-watchdog-panel-default-tab — Default tab is Sessions, switching works correctly › Sessions is default tab; switching to Watchdog hides session list and button; switching back restores them
+
+
+[1A[2K
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3214
+
+[1A[2K  [srv] [ws] client connected: b530aa9b-2748-45c9-ba5f-5be6ce8fa1ab
+
+[1A[2K  [srv] [ws] client disconnected: b530aa9b-2748-45c9-ba5f-5be6ce8fa1ab (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-09T00:15:35.770Z] SIGTERM received — server exiting (pid=108352)
+[2026-04-09T00:15:35.771Z] Server process exiting with code 0 (pid=108352)
+
+[1A[2K
+
+[1A[2K[5/6] [chromium] › tests/adversarial/feat-watchdog-panel-reach.test.js:74:3 › feat-watchdog-panel-reach — WatchdogPanel reachable via UI click › WatchdogPanel is reachable via Watchdog tab click with no console errors
+[1A[2K[chromium] › tests/adversarial/feat-watchdog-panel-reach.test.js:74:3 › feat-watchdog-panel-reach — WatchdogPanel reachable via UI click › WatchdogPanel is reachable via Watchdog tab click with no console errors
+
+
+[1A[2K
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3210
+
+[1A[2K  [srv] [ws] client connected: 9a32af47-2c42-4605-a1d3-c99c879c97b3
+
+[1A[2K  [srv] [ws] client disconnected: 9a32af47-2c42-4605-a1d3-c99c879c97b3 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-09T00:15:45.604Z] SIGTERM received — server exiting (pid=109998)
+[2026-04-09T00:15:45.604Z] Server process exiting with code 0 (pid=109998)
+
+[1A[2K
+
+[1A[2K[6/6] [chromium] › tests/adversarial/feat-watchdog-panel-reload.test.js:70:3 › feat-watchdog-panel-reload — Panel survives browser reload › WatchdogPanel still reachable after page reload
+[1A[2K[chromium] › tests/adversarial/feat-watchdog-panel-reload.test.js:70:3 › feat-watchdog-panel-reload — Panel survives browser reload › WatchdogPanel still reachable after page reload
+
+
+[1A[2K
+
+[1A[2K  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3212
+
+[1A[2K  [srv] [ws] client connected: 0926b8e5-be6b-4e21-b8e3-7605ec1efa81
+
+[1A[2K  [srv] [ws] client disconnected: 0926b8e5-be6b-4e21-b8e3-7605ec1efa81 (code=1001 reason=)
+
+[1A[2K  [srv] [ws] client connected: fa07450e-19f0-486e-bc40-cdd5f2786232
+
+[1A[2K  [srv] [ws] client disconnected: fa07450e-19f0-486e-bc40-cdd5f2786232 (code=1001 reason=)
+
+[1A[2K  [srv:ERR] [2026-04-09T00:15:58.623Z] SIGTERM received — server exiting (pid=111137)
+
+[1A[2K  [srv:ERR] [2026-04-09T00:15:58.623Z] Server process exiting with code 0 (pid=111137)
+
+[1A[2K
+
+[1A[2K  6 passed (1.2m)

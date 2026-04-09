@@ -53,8 +53,27 @@ export const todos = signal({});
 /** Whether the project sidebar is visible */
 export const sidebarVisible = signal(true);
 
-/** Whether the session overlay is in split-view mode */
-export const splitView = signal(false);
+/** Whether the session overlay is in split-view mode (default: true; persisted in localStorage) */
+function readSplitView() {
+  try {
+    const v = localStorage.getItem('splitView');
+    return v === null || v === 'true';
+  } catch { return true; }
+}
+export const splitView = signal(readSplitView());
+
+/** Split position as a percentage (0-100) for the split boundary (default: 50) */
+function readSplitPosition() {
+  try {
+    const v = localStorage.getItem('splitPosition');
+    if (v !== null) {
+      const n = parseFloat(v);
+      if (!isNaN(n)) return n;
+    }
+  } catch {}
+  return 50;
+}
+export const splitPosition = signal(readSplitPosition());
 
 /** Whether the new session modal is open */
 export const newSessionModalOpen = signal(false);

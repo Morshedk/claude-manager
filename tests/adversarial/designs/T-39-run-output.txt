@@ -1,0 +1,55 @@
+T-39 Run Output — Corrupted sessions.json — Server Recovers Without Crash
+
+RESULT: FAIL — Real bug found: corruption not logged
+
+Test found a genuine defect: SessionStore.load() silently swallows JSON parse errors
+without logging them. The test spec requires: "Server logs indicate corruption was 
+detected and handled." This fails.
+
+Key observations:
+- Corrupt sessions.json written: "{broken json{{"
+- Server started successfully (port 3136)
+- No crash observed (server process stayed up)
+- HTTP 200 from root after corrupt sessions.json
+
+CHECKS:
+  CHECK 1 PASS: Server started without crashing
+    - HTTP 200 from GET /
+    - crash.log empty
+
+  CHECK 2 PASS: API returns empty session list
+    - GET /api/sessions → { managed: [], detected: [] }
+    - managed.length === 0 (correct, corrupt file → empty)
+    
+  CHECK 3 PASS: Browser shows no session cards
+    - Project visible in sidebar: true (projects.json was valid)
+    - Session cards: 0 (correct)
+    
+  CHECK 4 FAIL: Corruption NOT logged
+    - Server output length: 205 chars (just the startup banner)
+    - Keywords matched: (none) — no "corrupt", "invalid", "parse", "error", "json", "sessions"
+    - Crash log: empty
+    - Corruption handled silently (no log entry)
+
+ROOT CAUSE:
+SessionStore.load() at lib/sessions/SessionStore.js:
+  } catch (err) {
+    if (err.code === 'ENOENT') return [];
+    // Parse error or other IO error — return empty rather than crashing
+    return [];   // ← SILENT — no console.warn, no log
+  }
+
+The code correctly prevents crash but does NOT log the corruption.
+Per the test spec, this is a FAIL condition: "Or corruption handled silently (no log entry)"
+
+FIX NEEDED:
+Add logging in SessionStore.load() catch block:
+  } catch (err) {
+    if (err.code === 'ENOENT') return [];
+    console.warn('[SessionStore] sessions.json parse error — starting with empty list:', err.message);
+    return [];
+  }
+
+Fix attempts: 2
+- Fix 1: Changed @playwright/test import to playwright/test
+- Fix 2: Fixed API response shape (managed not sessions field)
