@@ -124,7 +124,9 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
       inputDisposable = xterm.onData((data) => {
         // Filter DA/DA2 responses that xterm auto-generates when replaying scrollback.
         // Forwarding these causes literal '?1;2c' to appear as text in bash/Claude.
-        if (/^\x1b\[[\?]?\d+[;\d]*[cn]$/.test(data)) return;
+        if (/^\x1b\[[\?>\d][;\d]*[cn]$/.test(data)) return;   // DA / DA2
+        if (/^\x1b\]\d+;[^\x07\x1b]*(\x07|\x1b\\)$/.test(data)) return;  // OSC
+        if (/^\x1b\[<[\d;]+[Mm]$/.test(data)) return;           // mouse events
         send({ type: CLIENT.SESSION_INPUT, id: sessionId, data });
       });
     }
