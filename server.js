@@ -31,7 +31,7 @@ const todos = new TodoManager(projects, sessions, { dataDir: DATA_DIR });
 const watchdog = new WatchdogManager({ clientRegistry, sessionManager: sessions, detector, settingsStore: settings, todoManager: todos, dataDir: DATA_DIR });
 
 // ── Initialize WS handlers ────────────────────────────────────────────────────
-const sessionHandlers = new SessionHandlers(sessions, clientRegistry);
+const sessionHandlers = new SessionHandlers(sessions, clientRegistry, { watchdogManager: watchdog, settingsStore: settings });
 const terminalHandlers = makeTerminalHandlers(terminals, clientRegistry);
 const systemHandlers = makeSystemHandlers({ settingsStore: settings, registry: clientRegistry });
 

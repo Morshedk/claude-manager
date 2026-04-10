@@ -90,6 +90,12 @@ export const editProjectModalOpen = signal(false);
 /** The project object being edited (set when editProjectModalOpen opens) */
 export const editProjectTarget = signal(null);
 
+/** Whether the edit session modal is open */
+export const editSessionModalOpen = signal(false);
+
+/** The session object being edited (set when editSessionModalOpen opens) */
+export const editSessionTarget = signal(null);
+
 /** Whether the file browser panel is visible */
 export const fileBrowserOpen = signal(false);
 

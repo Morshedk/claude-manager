@@ -257,7 +257,7 @@ a { color: var(--accent); text-decoration: none; }
 #project-sessions-list {
   padding: 12px 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
 }
 
@@ -269,24 +269,27 @@ a { color: var(--accent); text-decoration: none; }
   font-family: var(--font-mono);
 }
 
-/* ===== SESSION CARDS ===== */
+/* ===== SESSION CARDS (portrait window layout) ===== */
 .session-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   transition: border-color 0.15s;
   cursor: pointer;
+  min-width: 300px;
 }
 .session-card:hover { border-color: var(--border-light); }
 
-.session-card-header {
+/* Title bar: session name + card summary */
+.session-card-titlebar {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 28px;
   flex-wrap: wrap;
 }
 
@@ -300,17 +303,70 @@ a { color: var(--accent); text-decoration: none; }
   text-decoration-color: transparent;
   text-underline-offset: 2px;
   transition: text-decoration-color 0.15s, color 0.15s;
-  max-width: 200px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .session-card-name:hover {
   text-decoration-color: var(--accent);
   color: var(--text-bright);
 }
-
 .session-card-name-link { cursor: pointer; }
+
+.session-card-summary {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Tag row: badges */
+.session-card-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: 22px;
+}
+
+/* Terminal preview pane */
+.session-card-preview {
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  height: 160px;
+  overflow-x: auto;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  white-space: pre;
+  word-break: normal;
+  flex-shrink: 0;
+}
+
+.session-card-preview-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 9px;
+  font-family: var(--font-mono);
+}
+
+/* Action bar */
+.session-card-actionbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+}
 
 .session-card-meta {
   font-family: var(--font-mono);
@@ -319,8 +375,32 @@ a { color: var(--accent); text-decoration: none; }
   margin-left: auto;
 }
 
-.session-card-actions { display: flex; gap: 6px; margin-left: auto; }
+/* Wrench icon button */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-icon:hover {
+  border-color: var(--border-light);
+  color: var(--text-secondary);
+}
 
+/* Legacy: keep .session-card-actions for any code that still references it */
+.session-card-actions { display: flex; gap: 6px; }
+
+/* Legacy: keep .session-lastline for any code that still references it */
 .session-lastline {
   font-family: var(--font-mono);
   font-size: 10.5px;

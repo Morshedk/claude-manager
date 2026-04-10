@@ -7,9 +7,10 @@ import { SessionOverlay } from './SessionOverlay.js';
 import { NewSessionModal } from './NewSessionModal.js';
 import { NewProjectModal } from './NewProjectModal.js';
 import { EditProjectModal } from './EditProjectModal.js';
+import { EditSessionModal } from './EditSessionModal.js';
 import { SettingsModal } from './SettingsModal.js';
 import { initResize } from '../utils/dom.js';
-import { attachedSessionId, newSessionModalOpen, settingsModalOpen, newProjectModalOpen, editProjectModalOpen, toasts, splitView, splitPosition } from '../state/store.js';
+import { attachedSessionId, newSessionModalOpen, settingsModalOpen, newProjectModalOpen, editProjectModalOpen, editSessionModalOpen, toasts, splitView, splitPosition } from '../state/store.js';
 
 /**
  * ToastContainer — inline small component for toast notifications.
@@ -86,6 +87,7 @@ export function App() {
       ${newSessionModalOpen.value ? html`<${NewSessionModal} />` : null}
       ${newProjectModalOpen.value ? html`<${NewProjectModal} />` : null}
       ${editProjectModalOpen.value ? html`<${EditProjectModal} />` : null}
+      ${editSessionModalOpen.value ? html`<${EditSessionModal} />` : null}
       ${settingsModalOpen.value ? html`<${SettingsModal} />` : null}
       <${ToastContainer} />
     </div>

@@ -8,6 +8,7 @@ export const CLIENT = {
   SESSION_STOP:        'session:stop',
   SESSION_REFRESH:     'session:refresh',
   SESSION_DELETE:      'session:delete',
+  SESSION_UPDATE:      'session:update',
   TERMINAL_CREATE:     'terminal:create',
   TERMINAL_INPUT:      'terminal:input',
   TERMINAL_RESIZE:     'terminal:resize',
@@ -31,4 +32,5 @@ export const SERVER = {
   WATCHDOG_SUMMARY:  'watchdog:summary',
   WATCHDOG_TICK:     'watchdog:tick',
   SETTINGS_UPDATED:  'settings:updated',
+  SESSION_UPDATED:   'session:updated',
 };

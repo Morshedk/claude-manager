@@ -93,6 +93,7 @@ export function SettingsModal() {
   const wd = s.watchdog || { enabled: true, defaultModel: 'sonnet', extendedThinking: false, defaultFlags: '', intervalMinutes: 5 };
   const lc = s.lowCredit || { enabled: false, active: false, defaultModel: 'haiku', extendedThinking: false, defaultFlags: '' };
   const feat = s.features || { todoRewards: true };
+  const previewLinesDefault = typeof s.previewLines === 'number' ? s.previewLines : 20;
 
   // Local form state
   const [sessModel, setSessModel] = useState(sess.defaultModel || 'sonnet');
@@ -113,6 +114,8 @@ export function SettingsModal() {
   const [lcFlags, setLcFlags] = useState(lc.defaultFlags || '');
 
   const [featRewards, setFeatRewards] = useState(feat.todoRewards !== false);
+
+  const [previewLinesVal, setPreviewLinesVal] = useState(String(previewLinesDefault));
 
   const [saving, setSaving] = useState(false);
 
@@ -152,6 +155,7 @@ export function SettingsModal() {
     setLcThinking(!!lc2.extendedThinking);
     setLcFlags(lc2.defaultFlags || '');
     setFeatRewards(feat2.todoRewards !== false);
+    setPreviewLinesVal(String(typeof s2.previewLines === 'number' ? s2.previewLines : 20));
   }, [settingsModalOpen.value]);
 
   const preview = buildCommandPreview({
@@ -185,6 +189,7 @@ export function SettingsModal() {
       features: {
         todoRewards: featRewards,
       },
+      previewLines: Math.max(5, Math.min(50, parseInt(previewLinesVal, 10) || 20)),
     };
     try {
       const res = await fetch('/api/settings', {
@@ -332,6 +337,17 @@ export function SettingsModal() {
           <div class="settings-section">
             <${SettingsRow} label="TODO Rewards" help="Show fun facts / videos when completing tasks">
               <${Toggle} checked=${featRewards} onChange=${setFeatRewards} />
+            </${SettingsRow}>
+            <${SettingsRow} label="Terminal preview lines" help="Lines shown in session card preview (5–50)">
+              <input
+                type="number"
+                class="form-input"
+                value=${previewLinesVal}
+                onInput=${e => setPreviewLinesVal(e.target.value)}
+                min="5"
+                max="50"
+                style="width:70px;padding:5px 8px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:12px;text-align:center;"
+              />
             </${SettingsRow}>
           </div>
 
