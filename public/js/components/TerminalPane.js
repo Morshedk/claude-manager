@@ -143,6 +143,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
       // Mirrors the logic in the connection:open reconnect handler.
       requestAnimationFrame(() => {
         try { fitAddon.fit(); } catch {}
+        xterm.focus();
         const dims = fitAddon.proposeDimensions();
         if (dims) {
           send({ type: CLIENT.SESSION_RESIZE, id: sessionId, cols: dims.cols, rows: dims.rows });
@@ -156,8 +157,18 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
       if (msg.data) xterm.write(msg.data);
     };
 
+    // session:refreshed → session was restarted; re-focus xterm so user can type
+    // without having to click the terminal (Refresh button retains focus otherwise).
+    const handleRefreshed = (msg) => {
+      if (msg.session && msg.session.id !== sessionId) return;
+      requestAnimationFrame(() => {
+        try { xterm.focus(); } catch {}
+      });
+    };
+
     on(SERVER.SESSION_SUBSCRIBED, handleSubscribed);
     on(SERVER.SESSION_OUTPUT, handleOutput);
+    on('session:refreshed', handleRefreshed);
 
     // ── 7. Subscribe — server sends session:subscribed, then live output ──────
     // Defer fit() until after browser layout pass resolves flex container dimensions.
@@ -206,6 +217,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     return () => {
       off(SERVER.SESSION_SUBSCRIBED, handleSubscribed);
       off(SERVER.SESSION_OUTPUT, handleOutput);
+      off('session:refreshed', handleRefreshed);
       off('connection:open', handleReconnect);
       resizeObserver.disconnect();
       if (scrollDisposable) scrollDisposable.dispose();
