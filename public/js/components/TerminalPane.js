@@ -88,6 +88,11 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
 
     try { xterm.loadAddon(new WebLinksAddon.WebLinksAddon()); } catch {}
 
+    // Call fit() synchronously so the canvas is correctly sized from the first
+    // paint. The container has resolved dimensions at useEffect time (Preact
+    // fires effects after the browser has painted and laid out the DOM).
+    try { fitAddon.fit(); } catch {}
+
     xtermRef.current = { xterm, fitAddon };
 
     // ── 4. Scroll control — auto-scroll only when user is at bottom ───────────
@@ -171,19 +176,17 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     on('session:refreshed', handleRefreshed);
 
     // ── 7. Subscribe — server sends session:subscribed, then live output ──────
-    // Defer fit() until after browser layout pass resolves flex container dimensions.
-    // useEffect fires after DOM commit but before paint; rAF defers to after paint.
-    // Double-rAF ensures the layout pass has completed even in edge cases.
+    // A single rAF lets any pending layout pass complete before subscribing.
+    // fit() was already called synchronously above, so the canvas is correctly
+    // sized from the very first paint (no black-box flash).
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        try { fitAddon.fit(); } catch {}
-        xterm.focus();
-        // Use actual fitted dimensions so PTY starts at the right width, not hardcoded defaults
-        const initDims = fitAddon.proposeDimensions();
-        send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId,
-          cols: initDims?.cols || cols,
-          rows: initDims?.rows || rows,
-        });
+      try { fitAddon.fit(); } catch {}
+      xterm.focus();
+      // Use actual fitted dimensions so PTY starts at the right width, not hardcoded defaults
+      const initDims = fitAddon.proposeDimensions();
+      send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId,
+        cols: initDims?.cols || cols,
+        rows: initDims?.rows || rows,
       });
     });
 
