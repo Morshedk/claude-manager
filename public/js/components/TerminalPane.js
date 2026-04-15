@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { useRef, useEffect } from 'preact/hooks';
+import { useRef, useLayoutEffect } from 'preact/hooks';
 import { on, off, send } from '../ws/connection.js';
 import { SERVER, CLIENT } from '../ws/protocol.js';
 
@@ -22,7 +22,9 @@ const XTERM_THEME = {
  *
  * Key design:
  * - Unicode11 addon loads BEFORE xterm.open() to prevent glyph-width corruption
- * - WebGL → Canvas → DOM renderer fallback (VS Code parity)
+ * - WebGL renderer only (CanvasAddon version is incompatible — loads orphaned canvases)
+ * - useLayoutEffect fires before browser paint: fit() runs synchronously so the
+ *   canvas is correctly sized from the very first frame (no black-box flash)
  * - On session:subscribed -> xterm.reset() clears buffer before live output
  * - On session:output → write live PTY stream
  * - DA/DA2 responses from xterm replaying scrollback are filtered before forwarding
@@ -36,7 +38,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
   const containerRef = useRef(null);
   const xtermRef = useRef(null); // { xterm, fitAddon }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container || !sessionId) return;
 
@@ -68,29 +70,23 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     }
     xterm.loadAddon(fitAddon);
 
-    // ── 3. Open into container, then load GPU renderer ────────────────────────
-    // GPU renderers must load AFTER open()
+    // ── 3. Open into container, then load WebGL renderer ─────────────────────
+    // Note: CanvasAddon is intentionally omitted — the vendored version has an
+    // API mismatch that causes it to throw on load, leaving orphaned 300×150
+    // canvases that are never connected to the renderer and never resized.
     xterm.open(container);
 
-    let gpuRenderer = false;
     try {
       const webglAddon = new WebglAddon.WebglAddon();
-      webglAddon.onContextLoss(() => {
-        webglAddon.dispose();
-        try { xterm.loadAddon(new CanvasAddon.CanvasAddon()); } catch {}
-      });
+      webglAddon.onContextLoss(() => { webglAddon.dispose(); });
       xterm.loadAddon(webglAddon);
-      gpuRenderer = true;
     } catch {}
-    if (!gpuRenderer) {
-      try { xterm.loadAddon(new CanvasAddon.CanvasAddon()); } catch {}
-    }
 
     try { xterm.loadAddon(new WebLinksAddon.WebLinksAddon()); } catch {}
 
-    // Call fit() synchronously so the canvas is correctly sized from the first
-    // paint. The container has resolved dimensions at useEffect time (Preact
-    // fires effects after the browser has painted and laid out the DOM).
+    // Fit synchronously — useLayoutEffect fires before the browser paints, and
+    // the container already has its resolved flex dimensions at this point.
+    // The canvas is correctly sized from the very first frame; no black-box flash.
     try { fitAddon.fit(); } catch {}
 
     xtermRef.current = { xterm, fitAddon };
@@ -175,14 +171,10 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     on(SERVER.SESSION_OUTPUT, handleOutput);
     on('session:refreshed', handleRefreshed);
 
-    // ── 7. Subscribe — server sends session:subscribed, then live output ──────
-    // A single rAF lets any pending layout pass complete before subscribing.
-    // fit() was already called synchronously above, so the canvas is correctly
-    // sized from the very first paint (no black-box flash).
+    // ── 7. Subscribe — rAF defers to after layout so PTY gets fitted dimensions ─
     requestAnimationFrame(() => {
       try { fitAddon.fit(); } catch {}
       xterm.focus();
-      // Use actual fitted dimensions so PTY starts at the right width, not hardcoded defaults
       const initDims = fitAddon.proposeDimensions();
       send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId,
         cols: initDims?.cols || cols,
