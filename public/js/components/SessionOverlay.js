@@ -1,6 +1,7 @@
 import { html } from 'htm/preact';
-import { useRef } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { TerminalPane } from './TerminalPane.js';
+import { SessionLogPane } from './SessionLogPane.js';
 import { attachedSession, splitView, splitPosition } from '../state/store.js';
 import { detachSession, refreshSession, stopSession, showToast } from '../state/actions.js';
 
@@ -18,6 +19,8 @@ export function SessionOverlay() {
   if (!session) return null;
 
   const isSplit = splitView.value;
+  const [showLog, setShowLog] = useState(false);
+  const toggleLog = () => setShowLog(v => !v);
 
   const toggleSplit = () => {
     splitView.value = !splitView.value;
@@ -154,6 +157,14 @@ export function SessionOverlay() {
         <!-- Actions -->
         <div class="overlay-actions" style="display: flex; gap: 4px; flex-shrink: 0;">
           <button
+            onClick=${toggleLog}
+            style=${btnStyle(showLog ? 'var(--bg-raised)' : 'transparent', showLog ? 'var(--accent)' : 'var(--text-secondary)')}
+            title=${showLog ? 'Hide session events' : 'Show session events'}
+          >
+            Events
+          </button>
+
+          <button
             onClick=${toggleSplit}
             style=${btnStyle()}
             title=${isSplit ? 'Expand to full screen' : 'Switch to split view'}
@@ -191,12 +202,19 @@ export function SessionOverlay() {
         </div>
       </header>
 
-      <!-- Terminal body -->
-      <div
-        id="session-overlay-terminal"
-        style="flex: 1; min-height: 0; overflow: hidden; position: relative;"
-      >
-        <${TerminalPane} sessionId=${session.id} />
+      <!-- Terminal body (+ optional events split) -->
+      <div style="flex: 1; min-height: 0; overflow: hidden; display: flex;">
+        <div
+          id="session-overlay-terminal"
+          style=${'flex: 1; min-height: 0; overflow: hidden; position: relative;' + (showLog ? ' max-width: 50%;' : '')}
+        >
+          <${TerminalPane} sessionId=${session.id} />
+        </div>
+        ${showLog ? html`
+          <div style="flex: 1; min-height: 0; min-width: 0;">
+            <${SessionLogPane} sessionId=${session.id} />
+          </div>
+        ` : null}
       </div>
     </div>
   `;
