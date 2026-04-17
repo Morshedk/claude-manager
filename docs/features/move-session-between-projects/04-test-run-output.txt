@@ -1,0 +1,71 @@
+=== T-1: Move session to a different project (Story 1 — correcting misplaced session) ===
+Result: PASS
+Attempts: 1
+Duration: 2s
+Key observations:
+  - session:updated returned projectId=proj-b, projectName="Project Beta", cwd="/tmp/project-b"
+  - sessions:list broadcast reflected the move immediately after session:updated
+  - GET /api/sessions showed the session under proj-b in the managed array
+  - sessions.json on disk had all three fields updated (projectId, projectName, cwd)
+Fix applied: None
+
+=== T-2: Rename session without moving (Story 3) ===
+Result: PASS
+Attempts: 1
+Duration: 2s
+Key observations:
+  - session:update with name="auth refactor" returned name="auth refactor", projectId="proj-a" unchanged
+  - sessions:list broadcast showed updated name
+  - session:update with name="" returned name=null (empty string coerced to null via `updates.name || null`)
+Fix applied: None
+
+=== T-3: Multi-client synchronization (Story 5) ===
+Result: PASS
+Attempts: 1
+Duration: 4s
+Key observations:
+  - Client A received session:updated confirmation with projectId=proj-b
+  - Client B received a sessions:list broadcast with the session under proj-b
+  - Client B received zero session:updated messages — broadcast is correctly limited to requester only
+Fix applied: None
+
+=== T-4: Move to non-existent project (adversarial) ===
+Result: PASS
+Attempts: 1
+Duration: 2s
+Key observations:
+  - session:update with projectId="proj-nonexistent" returned session:error with message "Project not found: proj-nonexistent"
+  - GET /api/sessions confirmed session remained under proj-a with original data (no corruption)
+  - session:update with id="session-nonexistent" returned session:error with message "Session not found: session-nonexistent"
+  - No crash, no silent no-op — proper error response in both cases
+Fix applied: None
+
+=== T-5: Browser UI — Edit button opens modal, move session disappears from list (Story 1) ===
+Result: PASS
+Attempts: 2
+Duration: 14s
+Key observations:
+  - "Open" button was absent from session card (confirmed null querySelector result)
+  - "Edit" button was present and opened the Edit Session modal
+  - Modal heading "Edit Session" appeared correctly
+  - Name input pre-filled with "misplaced-session"
+  - Project dropdown pre-selected to "proj-a" (Project Alpha)
+  - Selecting "proj-b" and clicking Save closed the modal
+  - Toast "Session updated" appeared
+  - Session card disappeared from Project Alpha's session list
+  - Session card appeared under Project Beta
+Fix applied: Chromium executable path corrected from `chrome-linux/chrome` to `chrome-linux64/chrome` on attempt 2. The design specified `chromium-1217/chrome-linux/chrome` but the actual installed path is `chromium-1217/chrome-linux64/chrome`. Also created a custom playwright config (playwright-feat-move-session.config.js) to run this test since the main playwright.config.js uses an explicit testMatch whitelist.
+
+=== T-6: Rapid double-submit and running session move (adversarial) ===
+Result: PASS
+Attempts: 1
+Duration: 5s
+Key observations:
+  - Session was in "running" state at start (direct mode auto-starts)
+  - Both rapid session:update messages succeeded (0 session:error messages)
+  - Received exactly 2 session:updated messages as expected
+  - Received exactly 2 sessions:list broadcasts
+  - Final state: projectId=proj-a, name="moved-back" — last writer wins confirmed
+  - Session status remained "running" throughout — PTY was not interrupted by metadata updates
+  - After both moves, sent session:input and received session:output confirming PTY still alive
+Fix applied: None

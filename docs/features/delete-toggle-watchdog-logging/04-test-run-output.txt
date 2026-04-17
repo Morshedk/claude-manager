@@ -1,0 +1,171 @@
+Test Run Output: Delete Toggle + Session Lifecycle Logging
+Date: 2026-04-15
+Executor: TEST EXECUTOR agent (claude-sonnet-4-6)
+
+Pre-flight fixes applied before tests ran:
+  1. lib/watchdog/WatchdogManager.js: Changed `this.emit('error', err)` → `console.error(...)` in
+     _doLifecycleAppend catch block (G1/G2 from review). EventEmitter.emit('error') with no listener
+     throws synchronously and kills test harnesses. Outer chain catch was insufficient protection.
+  2. lib/ws/handlers/sessionHandlers.js: Added `_inProgressDeletes` Set to dedup concurrent delete
+     handlers. Without this, two rapid session:delete messages both read meta before either's
+     await sessions.delete() completes (T-4 caught this real bug — produced 3 log entries, not 2).
+
+=== T-1: Delete mode toggle gates Delete button rendering and persists across reload ===
+Result: PASS
+Attempts: 1
+Duration: 21s
+Key observations:
+  - Fresh load: 0 Delete buttons (localStorage was null, not '1')
+  - Toggle click: class changes to 'btn btn-sm btn-danger', 2 Delete buttons appear on 2 stopped sessions
+  - localStorage after arming: '1'
+  - After page.reload(): toggle still 'btn-danger', Delete buttons still present (2)
+  - After disarm: Delete buttons gone from DOM (count=0, not CSS-hidden), localStorage='0'
+  - After second reload: toggle 'btn-ghost', buttons absent from DOM
+  - All 12 steps passed with zero watering-down.
+Fix applied: None.
+
+=== T-2: Lifecycle log created with all required fields on session create (telegram ON path) ===
+Result: PASS
+Attempts: 1
+Duration: 1.7s
+Key observations:
+  - session-lifecycle.json created after session:create WS message
+  - Entry shape: all 9 fields present (timestamp, event, sessionId, tmuxName, claudeSessionId,
+    summary, channelId, projectId, projectName)
+  - event='created', summary='lifecycle-test' (name fallback), channelId='tg-chat-test-42'
+  - channelId is a string (no Promise leak), projectId='proj-t2', projectName='T2-Project'
+  - tmuxName=null (direct/bash mode), claudeSessionId present (non-null UUID from bash session init)
+Fix applied: None.
+
+=== T-3: Delete flow produces a 'deleted' entry with meta captured BEFORE delete (Risk 5 / G4) ===
+Result: PASS
+Attempts: 1
+Duration: 2.1s
+Key observations:
+  - Two entries in log: created then deleted for same sessionId
+  - deleted entry.claudeSessionId matches created entry.claudeSessionId (meta captured before delete)
+  - deleted entry.summary='to-delete' (name fallback, non-empty string)
+  - deleted entry.channelId='tg-chat-del-99' (telegram=true path)
+  - Meta captured before Map.delete (correct ordering at sessionHandlers.js lines 283 vs 287)
+Fix applied: None.
+
+=== T-4: Double-delete in rapid succession — idempotent delete + single log entry (AC12, Risk 4) ===
+Result: PASS (after fix)
+Attempts: 2
+Duration: 5.4s (attempt 2)
+Key observations:
+  ATTEMPT 1 FAILED: Log contained 3 entries (1 created + 2 deleted) instead of 2. Real bug found.
+  Root cause: Two concurrent session:delete handlers both executed `this.sessions.get(msg.id)` before
+  either reached `this.sessions.delete(sessionId)` (Map.delete). JavaScript async handlers do NOT
+  serialize on `await` — both handlers started while the other was awaiting sessions.delete(), so
+  both read non-null meta and both wrote a 'deleted' entry to the lifecycle log.
+  The review doc's analysis ("first delete removes meta from Map before log-write begins") was wrong
+  about the timing — Map.delete is inside the async sessions.delete() method, so the second handler
+  can read meta before the first handler's await completes.
+Fix applied:
+  lib/ws/handlers/sessionHandlers.js: Added `_inProgressDeletes = new Set()` to the constructor.
+  In `delete()` handler: check/add session ID to set before awaiting sessions.delete(), skip meta
+  capture if already in set (second handler sees it in set and captures null meta → no log entry).
+  Set entry removed in finally-equivalent position after broadcast.
+  ATTEMPT 2: 2 entries total (1 created + 1 deleted), server alive, no session:error. PASS.
+
+=== T-5: Log-write failure does NOT break the delete (AC10, G2) ===
+Result: PASS
+Attempts: 1
+Duration: 2.5s
+Key observations:
+  - session-lifecycle.json replaced with a directory (EISDIR sabotage)
+  - session:delete sent, sessions:list broadcast confirmed session gone
+  - No session:error sent to client
+  - Server still alive (GET /api/sessions → 200)
+  - G1/G2 fix (emit→console.error) was required — without it, the EISDIR error would trigger
+    this.emit('error', err) which throws synchronously and would kill the process in the test
+    harness (no error listener was attached). With fix applied pre-flight, server survived.
+Fix applied: G1/G2 fix (emit→console.error) applied pre-flight before all tests.
+
+=== T-6: 500-entry cap enforced (Risk 7) ===
+Result: PASS
+Attempts: 1
+Duration: 1.8s
+Key observations:
+  - 520 logSessionLifecycle calls made via direct WatchdogManager import (no server)
+  - Write chain drained via await watchdog._lifecycleWriteChain
+  - Log length exactly 500 (cap enforced)
+  - log[0].sessionId = 'session-21' (events 1-20 evicted)
+  - log[499].sessionId = 'session-520' (last event present)
+  - JSON parses without error (no concurrent-write corruption)
+Fix applied: None.
+
+=== T-7: Armed outline visually distinct + toast confirms delete (AC11, Risk 8) — Story 2 end-to-end ===
+Result: PASS (after assertion fix)
+Attempts: 2
+Duration: 13.4s (attempt 2)
+Key observations:
+  ATTEMPT 1 FAILED: Assertion `toContain('rgba(240,72,72,0.35)')` failed because browser normalizes
+  CSS rgba values to `rgba(240, 72, 72, 0.35)` (with spaces). The feature was working correctly —
+  the inline style had the outline, just with spaces after commas. Infrastructure assertion fixed
+  (not a watered-down assertion — the check now accepts both forms).
+  ATTEMPT 2:
+  - Fresh load: 0 Delete buttons
+  - Armed outline: '#project-sessions-list' has `outline: rgba(240, 72, 72, 0.35) solid 2px` inline
+  - Toggle button has class 'btn-danger' AND inline style `background: var(--danger-bg)`
+  - Delete on 'beta': toast appeared with "Deleted" and "beta" within 1s
+  - Beta card removed from DOM (count=0)
+  - Lifecycle log entry: event='deleted', summary='beta', sessionId matches
+  - No native confirm() dialog fired when clicking Delete on 'alpha'
+  - All Story 2 acceptance criteria verified end-to-end.
+Fix applied: rgba string matching normalized to accept either `rgba(240,72,72,...)` or
+  `rgba(240, 72, 72, ...)` (browser rendering difference, not a feature gap).
+
+=== Summary ===
+Total tests: 7
+Passed: 7
+Failed: 0
+Real bugs found:
+  1. G1/G2: emit('error') in _doLifecycleAppend would crash test harnesses without error listeners.
+     Fixed before tests ran (console.error instead).
+  2. T-4: Double-delete race condition — concurrent handlers both captured meta and wrote duplicate
+     'deleted' log entries. Fixed by adding _inProgressDeletes Set to sessionHandlers.js.
+Infrastructure-only fix (no assertion weakening):
+  - T-7: rgba() space normalization in assertion (browser renders with spaces, assertion lacked spaces).
+
+=== Gap-closure run (validator H1 + H2) ===
+Date: 2026-04-15
+Executor: TEST EXECUTOR agent (claude-sonnet-4-6)
+Tests added: T-8, T-9
+
+=== T-8: cardSummary || name || '' precedence — cardSummary wins (H1) ===
+Result: PASS
+Attempts: 1
+Duration: 0.2s (direct WatchdogManager import, no server)
+Method: Direct import of WatchdogManager; single logSessionLifecycle call with
+  session.cardSummary='my-card-summary' and session.name='my-name'.
+Key observations:
+  - Log entry: summary='my-card-summary' (not 'my-name')
+  - event='created', sessionId='session-t8', channelId=null confirmed
+  - A reversed implementation (name || cardSummary) would produce summary='my-name' and fail.
+  - Closes H1: the primary cardSummary precedence branch is now exercised.
+Fix applied: None.
+
+=== T-9: telegram=false → channelId === null (H2) ===
+Result: PASS
+Attempts: 1
+Duration: 1.9s (real server on port 3369)
+Method: Real server with settings.json containing no telegramChatId; session:create WS message
+  with no telegram field (defaults to false in sessionHandlers). Polls session-lifecycle.json.
+Key observations:
+  - Session created: d5265914-3877-49d4-817d-dd9479322b1c
+  - Log entry: channelId=null (not a string, not a Promise)
+  - summary='no-telegram-session' (name fallback, correct since no cardSummary set)
+  - claudeSessionId non-null (bash session initialised correctly)
+  - Closes H2: Risk 4's two-case requirement now has both telegram=true (T-2) and telegram=false (T-9) asserted.
+Fix applied: None.
+
+=== Updated Summary ===
+Total tests: 9
+Passed: 9
+Failed: 0
+Gaps closed: H1 (cardSummary precedence), H2 (telegram=false → null)
+Remaining open gaps (per 05-validation.md): H3 (Promise-leak guard for telegram=false branch, low severity),
+  H4 (store.remove failure mid-delete, acknowledged limitation), H5 (SessionStore concurrent-write bug,
+  outside feature scope).

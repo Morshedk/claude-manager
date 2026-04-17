@@ -11,6 +11,7 @@ import {
   handleSettingsUpdated,
   handleTodosUpdated,
   showToast,
+  closeEditSessionModal,
 } from './actions.js';
 
 /**
@@ -108,6 +109,13 @@ export function initMessageHandlers() {
   });
   on(SERVER.TERMINAL_ERROR, (msg) => {
     showToast(msg.error || 'Terminal error', 'error');
+  });
+
+  // session:updated — server confirmed metadata update
+  on(SERVER.SESSION_UPDATED, (msg) => {
+    if (msg.session) upsertSession(msg.session);
+    closeEditSessionModal();
+    showToast('Session updated', 'success');
   });
 
   // session:subscribed and session:output are handled per-terminal in TerminalPane

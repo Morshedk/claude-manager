@@ -1,6 +1,8 @@
 import { html } from 'htm/preact';
-import { useState, useEffect } from 'preact/hooks';
-import { showToast } from '../state/actions.js';
+import { useState, useEffect, useRef } from 'preact/hooks';
+import { showToast, openFileSplit } from '../state/actions.js';
+import { attachedSessionId } from '../state/store.js';
+import { FileContentView } from './FileContentView.js';
 import { formatBytes } from '../utils/format.js';
 
 const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico', 'avif']);
@@ -24,8 +26,8 @@ function getFileIcon(name, type) {
 
 /**
  * FileBrowser — two-pane file browser component.
- * Left pane: directory listing with breadcrumb navigation.
- * Right pane: file content viewer (text with line numbers, markdown, image preview).
+ * Left pane: directory listing with breadcrumb navigation + path input.
+ * Right pane: FileContentView (delegated rendering).
  * Props: { projectId, projectPath }
  */
 export function FileBrowser({ projectId, projectPath }) {
@@ -33,10 +35,8 @@ export function FileBrowser({ projectId, projectPath }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeFile, setActiveFile] = useState(null);
-  const [fileContent, setFileContent] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
-  const [fileError, setFileError] = useState(null);
-  const [contentLoading, setContentLoading] = useState(false);
+  const [pathInput, setPathInput] = useState('');
+  const dirAbortRef = useRef(null);
 
   // Load directory on mount and when currentPath changes
   useEffect(() => {
@@ -44,13 +44,16 @@ export function FileBrowser({ projectId, projectPath }) {
   }, [currentPath]);
 
   async function loadDirectory(dirPath) {
+    if (dirAbortRef.current) dirAbortRef.current.abort();
+    const ctrl = new AbortController();
+    dirAbortRef.current = ctrl;
     setLoading(true);
     setActiveFile(null);
-    setFileContent(null);
-    setImageUrl(null);
-    setFileError(null);
     try {
-      const res = await fetch(`/api/fs/ls?path=${encodeURIComponent(dirPath)}&projectPath=${encodeURIComponent(projectPath)}`);
+      const res = await fetch(
+        `/api/fs/ls?path=${encodeURIComponent(dirPath)}&projectPath=${encodeURIComponent(projectPath)}`,
+        { signal: ctrl.signal }
+      );
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: res.statusText }));
         throw new Error(err.error || 'Failed to list directory');
@@ -58,41 +61,66 @@ export function FileBrowser({ projectId, projectPath }) {
       const data = await res.json();
       setEntries(Array.isArray(data) ? data : (data.entries || []));
     } catch (e) {
+      if (e.name === 'AbortError') return;
       setEntries([]);
       showToast('Failed to load directory: ' + e.message, 'error');
     }
     setLoading(false);
   }
 
-  async function loadFile(filePath) {
-    const fileName = filePath.split('/').pop();
-    setActiveFile(filePath);
-    setFileContent(null);
-    setImageUrl(null);
-    setFileError(null);
-    setContentLoading(true);
+  function resolvePath(typed, base) {
+    if (!typed) return null;
+    if (typed.startsWith('/')) return typed;
+    return base.replace(/\/$/, '') + '/' + typed;
+  }
 
-    if (isImageFile(fileName)) {
-      setImageUrl(`/api/fs/image?path=${encodeURIComponent(filePath)}&projectPath=${encodeURIComponent(projectPath)}`);
-      setFileContent('__image__');
-      setContentLoading(false);
+  async function submitPathInput(typed) {
+    const trimmed = typed.trim();
+    if (!trimmed) return;
+    if (trimmed.startsWith('~') || trimmed.startsWith('$')) {
+      showToast('Absolute paths only — ~ and $ variables are not supported', 'error');
+      return;
+    }
+    const fullPath = resolvePath(trimmed, currentPath);
+    if (!fullPath) return;
+
+    // Trailing slash → treat as directory shortcut
+    if (trimmed.endsWith('/')) {
+      setCurrentPath(fullPath.replace(/\/$/, ''));
+      setPathInput('');
       return;
     }
 
     try {
-      const res = await fetch(`/api/fs/read?path=${encodeURIComponent(filePath)}&projectPath=${encodeURIComponent(projectPath)}`);
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: res.statusText }));
-        setFileError(err.error || 'Failed to read file');
-        setContentLoading(false);
-        return;
+      const res = await fetch(
+        `/api/fs/read?path=${encodeURIComponent(fullPath)}&projectPath=${encodeURIComponent(projectPath)}`
+      );
+      if (res.status === 200) {
+        const dirPart = fullPath.split('/').slice(0, -1).join('/');
+        setCurrentPath(dirPart || projectPath);
+        setActiveFile(fullPath);
+        setPathInput('');
+      } else if (res.status === 400) {
+        // Not a file — treat as directory
+        setCurrentPath(fullPath);
+        setPathInput('');
+      } else if (res.status === 403) {
+        showToast('Access denied', 'error');
+      } else if (res.status === 404) {
+        showToast('File not found', 'error');
+      } else if (res.status === 413) {
+        showToast('File too large to display', 'warning');
+      } else if (res.status === 415) {
+        const dirPart = fullPath.split('/').slice(0, -1).join('/');
+        setCurrentPath(dirPart || projectPath);
+        setActiveFile(fullPath);
+        setPathInput('');
+      } else {
+        showToast(`Unexpected response: ${res.status}`, 'error');
       }
-      const text = await res.text();
-      setFileContent(text);
     } catch (e) {
-      setFileError('Failed to load file: ' + e.message);
+      showToast('Network error: ' + e.message, 'error');
     }
-    setContentLoading(false);
   }
 
   // Build breadcrumbs
@@ -116,18 +144,18 @@ export function FileBrowser({ projectId, projectPath }) {
     if (item.type === 'dir') {
       setCurrentPath(fullPath);
     } else {
-      loadFile(fullPath);
+      setActiveFile(fullPath);
     }
   }
 
   const fileName = activeFile ? activeFile.split('/').pop() : '';
-  const fileExt = fileName.split('.').pop().toLowerCase();
+  const sessionAttached = !!attachedSessionId.value;
 
   return html`
     <div class="file-browser" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
 
-      <!-- Breadcrumbs -->
-      <div class="fb-header" style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px;flex-shrink:0;flex-wrap:wrap;">
+      <!-- Header row 1: breadcrumbs -->
+      <div class="fb-header" style="padding:6px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px;flex-shrink:0;flex-wrap:wrap;">
         ${segments.map((seg, i) => html`
           ${i > 0 ? html`<span class="fb-breadcrumb-sep" style="color:var(--text-muted);font-size:12px;">›</span>` : null}
           <span
@@ -136,6 +164,23 @@ export function FileBrowser({ projectId, projectPath }) {
             onClick=${i === segments.length - 1 ? null : () => navigateToBreadcrumb(i)}
           >${seg}</span>
         `)}
+      </div>
+
+      <!-- Header row 2: path input -->
+      <div style="padding:4px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <input
+          class="fb-path-input"
+          type="text"
+          aria-label="File path"
+          placeholder="Type a path and press Enter…"
+          value=${pathInput}
+          onInput=${e => setPathInput(e.target.value)}
+          onKeyDown=${e => {
+            if (e.key === 'Enter') submitPathInput(pathInput);
+            if (e.key === 'Escape') setPathInput('');
+          }}
+          style="width:100%;box-sizing:border-box;font-family:var(--font-mono);font-size:11px;padding:4px 8px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);outline:none;"
+        />
       </div>
 
       <!-- Body: two-pane -->
@@ -171,7 +216,7 @@ export function FileBrowser({ projectId, projectPath }) {
           ${!activeFile
             ? html`<div class="fb-content-empty" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;">Select a file to view its contents</div>`
             : html`
-                <!-- Content header with filename + open-in-new-tab -->
+                <!-- Content header -->
                 <div class="fb-content-header" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;font-size:13px;">
                   <span>${getFileIcon(fileName, 'file')}</span>
                   <span style="flex:1;color:var(--text-bright);font-weight:500;">${fileName}</span>
@@ -179,48 +224,23 @@ export function FileBrowser({ projectId, projectPath }) {
                     class="fb-open-newtab"
                     title="Open in new tab"
                     onClick=${() => {
-                      if (isImageFile(fileName)) {
-                        window.open(`/api/fs/image?path=${encodeURIComponent(activeFile)}&projectPath=${encodeURIComponent(projectPath)}`, '_blank');
-                      } else {
-                        window.open(`/api/fs/read?path=${encodeURIComponent(activeFile)}&projectPath=${encodeURIComponent(projectPath)}`, '_blank');
-                      }
+                      const params = `path=${encodeURIComponent(activeFile)}&projectPath=${encodeURIComponent(projectPath)}`;
+                      window.open(`/viewer.html?${params}`, '_blank');
                     }}
                     style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer;"
-                  >Open ↗</button>
+                  >Open in new tab ↗</button>
+                  <button
+                    class="fb-split-btn"
+                    title=${sessionAttached ? 'Close the session overlay first to use split view' : 'Open in split view'}
+                    disabled=${sessionAttached}
+                    onClick=${() => { if (!sessionAttached) openFileSplit(activeFile, projectPath); }}
+                    style=${`font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:${sessionAttached ? 'var(--text-muted)' : 'var(--text-secondary)'};cursor:${sessionAttached ? 'not-allowed' : 'pointer'};opacity:${sessionAttached ? '0.5' : '1'};`}
+                  >Split</button>
                 </div>
 
-                <!-- Content body -->
+                <!-- Content body delegated to FileContentView -->
                 <div class="fb-content-body" style="flex:1;overflow:auto;min-height:0;">
-                  ${contentLoading
-                    ? html`<div style="padding:12px;color:var(--text-muted);font-size:12px;">Loading…</div>`
-                    : fileError
-                      ? html`<div class="fb-content-error" style="padding:12px;color:var(--danger);font-size:12px;">${fileError}</div>`
-                      : fileContent === '__image__' && imageUrl
-                        ? html`
-                            <div class="fb-image-preview" style="padding:16px;display:flex;justify-content:center;">
-                              <img
-                                src=${imageUrl}
-                                alt=${fileName}
-                                style="max-width:100%;max-height:calc(100vh - 200px);object-fit:contain;border-radius:var(--radius);"
-                                onError=${(e) => { e.target.replaceWith(Object.assign(document.createElement('div'), { className: 'fb-content-error', textContent: 'Failed to load image', style: 'color:var(--danger);padding:12px;font-size:12px;' })); }}
-                              />
-                            </div>
-                          `
-                        : fileContent !== null && fileExt === 'md'
-                          ? html`<div class="fb-markdown" style="padding:16px;max-width:800px;" dangerouslySetInnerHTML=${{ __html: typeof marked !== 'undefined' ? (() => { const d = marked.parse(fileContent); return d; })() : `<pre>${fileContent}</pre>` }} />`
-                          : fileContent !== null
-                            ? html`
-                                <div class="fb-code" style="font-family:var(--font-mono);font-size:12px;line-height:1.5;">
-                                  ${fileContent.split('\n').map((line, i) => html`
-                                    <div key=${i} class="fb-code-line" style="display:flex;">
-                                      <span class="fb-code-linenum" style="min-width:40px;padding:0 8px;color:var(--text-muted);text-align:right;user-select:none;border-right:1px solid var(--border);flex-shrink:0;">${i + 1}</span>
-                                      <span class="fb-code-text" style="padding:0 12px;white-space:pre;color:var(--text-primary);">${line}</span>
-                                    </div>
-                                  `)}
-                                </div>
-                              `
-                            : null
-                  }
+                  <${FileContentView} path=${activeFile} projectPath=${projectPath} />
                 </div>
               `
           }

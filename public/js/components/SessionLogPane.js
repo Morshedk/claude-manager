@@ -1,0 +1,90 @@
+// public/js/components/SessionLogPane.js
+import { html } from 'htm/preact';
+import { useState, useEffect, useRef, useCallback } from 'preact/hooks';
+
+export function SessionLogPane({ sessionId }) {
+  const [lines, setLines] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const containerRef = useRef(null);
+  const bottomRef = useRef(null);
+
+  const isAtBottom = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'instant' });
+  }, []);
+
+  const fetchTail = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/sessionlog/${sessionId}/tail?lines=500`);
+      if (res.status === 404) {
+        setLines([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const newLines = data.lines || [];
+      const wasAtBottom = isAtBottom();
+      setLines(newLines);
+      setError(null);
+      if (wasAtBottom) {
+        requestAnimationFrame(() => scrollToBottom());
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+    setLoading(false);
+  }, [sessionId, isAtBottom, scrollToBottom]);
+
+  useEffect(() => {
+    fetchTail();
+    const interval = setInterval(fetchTail, 3000);
+    return () => clearInterval(interval);
+  }, [fetchTail]);
+
+  // Scroll to bottom after initial load
+  useEffect(() => {
+    if (!loading && lines.length > 0) scrollToBottom();
+  }, [loading]);
+
+  const lineColor = (line) => {
+    if (line.startsWith('===')) return 'var(--warning)';
+    if (line.startsWith('---')) return 'var(--text-muted)';
+    return 'var(--text-secondary)';
+  };
+
+  return html`
+    <div style="display:flex;flex-direction:column;height:100%;background:var(--bg-base);border-left:1px solid var(--border);overflow:hidden;">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:8px;padding:0 12px;height:32px;background:var(--bg-surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+        <span style="font-size:12px;font-weight:600;color:var(--text-bright);">Session Events</span>
+        <div style="flex:1;"></div>
+        ${loading ? html`<span style="font-size:10px;color:var(--text-muted);">Loading…</span>` : null}
+        <a
+          href=${`/api/sessionlog/${sessionId}/full`}
+          download
+          style="font-size:11px;color:var(--text-muted);text-decoration:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:2px 7px;cursor:pointer;"
+        >↓ Download</a>
+      </div>
+
+      <!-- Log body -->
+      <div ref=${containerRef} style="flex:1;min-height:0;overflow-y:auto;padding:8px 12px;font-family:var(--font-mono);font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all;">
+        ${lines.length === 0 && !loading ? html`
+          <span style="color:var(--text-muted);font-style:italic;">No log yet — waiting for session output…</span>
+        ` : null}
+        ${error ? html`<span style="color:var(--danger);">Error: ${error}</span>` : null}
+        ${lines.map((line, i) => html`
+          <div key=${i} style=${'color:' + lineColor(line) + ';'}>${line}</div>
+        `)}
+        <div ref=${bottomRef}></div>
+      </div>
+    </div>
+  `;
+}

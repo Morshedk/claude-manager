@@ -1,0 +1,10 @@
+{
+  "approved": true,
+  "checklist": {
+    "item1": "YES — test uses real Playwright browser navigation (page.click, page.goto) to trigger subscribe/unsubscribe, not WS client bypass",
+    "item2": "YES — assertion reads visible text from '.xterm-rows > div' elements (lines 174-178), which is the rendered xterm terminal the user sees",
+    "item3": "YES — if bug is present, getScrollback() returns '' → no session:output scrollback → xterm.reset() clears terminal → .xterm-rows textContent is empty → assertion fails with 'Terminal blank after switch-back'",
+    "item4": "YES — fixing a different bug (e.g. session state machine) would not make xterm-rows contain SWITCH_BACK_SENTINEL; only fixing scrollback replay would",
+    "item5": "YES — Then clause: 'terminal shows the previous output — the user sees the last lines of content, not a blank screen'. Test assertion: textAfterReturn.includes(SENTINEL) where SENTINEL was previously written to the terminal. Match: yes"
+  }
+}

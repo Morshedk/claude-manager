@@ -5,6 +5,8 @@ import {
   selectedProjectId, settings, todos, toasts,
   newSessionModalOpen, settingsModalOpen, newProjectModalOpen,
   editProjectModalOpen, editProjectTarget,
+  editSessionModalOpen, editSessionTarget,
+  fileSplitTarget, splitView,
 } from './store.js';
 import { upsertSession, removeSession } from './sessionState.js';
 
@@ -153,6 +155,27 @@ export function openEditProjectModal(project) {
 export function closeEditProjectModal() {
   editProjectModalOpen.value = false;
   editProjectTarget.value = null;
+}
+
+export function openFileSplit(path, projectPath) {
+  fileSplitTarget.value = { path, projectPath };
+  splitView.value = true;
+}
+export function closeFileSplit() {
+  fileSplitTarget.value = null;
+}
+
+export function openEditSessionModal(session) {
+  editSessionTarget.value = session;
+  editSessionModalOpen.value = true;
+}
+export function closeEditSessionModal() {
+  editSessionModalOpen.value = false;
+  editSessionTarget.value = null;
+}
+
+export function updateSession(sessionId, updates) {
+  send({ type: CLIENT.SESSION_UPDATE, id: sessionId, ...updates });
 }
 
 /** Create a new project via REST API, refresh the project list, and select it. */

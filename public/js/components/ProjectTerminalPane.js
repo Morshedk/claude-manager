@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { useRef, useEffect } from 'preact/hooks';
+import { useRef, useLayoutEffect } from 'preact/hooks';
 import { on, off, send } from '../ws/connection.js';
 import { SERVER, CLIENT } from '../ws/protocol.js';
 
@@ -34,7 +34,7 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
   const containerRef = useRef(null);
   const xtermRef = useRef(null); // { xterm, fitAddon }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container || !terminalId) return;
 
@@ -66,17 +66,18 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
     }
     xterm.loadAddon(fitAddon);
 
-    // ── 3. Open, then load GPU renderer ──────────────────────────────────────
+    // ── 3. Open, then load WebGL renderer ────────────────────────────────────
+    // Note: CanvasAddon is intentionally omitted — the vendored version has an
+    // API mismatch that causes it to throw on load, leaving orphaned 300×150
+    // canvases that are never connected to the renderer and never resized.
     xterm.open(container);
 
-    let gpuRenderer = false;
-    try { xterm.loadAddon(new WebglAddon.WebglAddon()); gpuRenderer = true; } catch {}
-    if (!gpuRenderer) {
-      try { xterm.loadAddon(new CanvasAddon.CanvasAddon()); } catch {}
-    }
+    try { xterm.loadAddon(new WebglAddon.WebglAddon()); } catch {}
     try { xterm.loadAddon(new WebLinksAddon.WebLinksAddon()); } catch {}
 
-    fitAddon.fit();
+    // Fit synchronously — useLayoutEffect fires before the browser paints,
+    // so the canvas is correctly sized from the very first frame.
+    try { fitAddon.fit(); } catch {}
     xtermRef.current = { xterm, fitAddon };
 
     // ── 4. Scroll control ─────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import { openNewSessionModal } from '../state/actions.js';
 import { SessionCard } from './SessionCard.js';
 import { WatchdogPanel } from './WatchdogPanel.js';
 import { TodoPanel } from './TodoPanel.js';
+import { FileBrowser } from './FileBrowser.js';
 import { initResize } from '../utils/dom.js';
 
 /**
@@ -88,6 +89,12 @@ export function ProjectDetail() {
               onClick=${() => setActiveTab('todos')}
               style=${`font-size:12px;padding:4px 12px;border-radius:var(--radius-sm);border:1px solid ${activeTab === 'todos' ? 'var(--accent)' : 'var(--border)'};background:${activeTab === 'todos' ? 'var(--accent)' : 'transparent'};color:${activeTab === 'todos' ? '#000' : 'var(--text-secondary)'};cursor:pointer;font-weight:${activeTab === 'todos' ? '600' : '400'};transition:all 0.15s;`}
             >TODOs</button>
+            <button
+              class=${'tab-btn' + (activeTab === 'files' ? ' active' : '')}
+              id="files-tab-btn"
+              onClick=${() => setActiveTab('files')}
+              style=${`font-size:12px;padding:4px 12px;border-radius:var(--radius-sm);border:1px solid ${activeTab === 'files' ? 'var(--accent)' : 'var(--border)'};background:${activeTab === 'files' ? 'var(--accent)' : 'transparent'};color:${activeTab === 'files' ? '#000' : 'var(--text-secondary)'};cursor:pointer;font-weight:${activeTab === 'files' ? '600' : '400'};transition:all 0.15s;`}
+            >Files</button>
           </div>
 
           ${activeTab === 'sessions' ? html`
@@ -100,6 +107,10 @@ export function ProjectDetail() {
           ` : activeTab === 'todos' ? html`
             <div id="todo-panel-container" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
               <${TodoPanel} projectId=${project.id} />
+            </div>
+          ` : activeTab === 'files' ? html`
+            <div id="file-browser-container" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
+              <${FileBrowser} projectId=${project.id} projectPath=${project.path} />
             </div>
           ` : html`
             <div id="watchdog-panel-container" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
