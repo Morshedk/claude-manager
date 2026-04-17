@@ -96,8 +96,13 @@ export const editSessionModalOpen = signal(false);
 /** The session object being edited (set when editSessionModalOpen opens) */
 export const editSessionTarget = signal(null);
 
-/** Whether the file browser panel is visible */
-export const fileBrowserOpen = signal(false);
+// ── File split pane ───────────────────────────────────────────────────────────
+/** Clamp bounds for split position — shared with FileSplitPane and SessionOverlay */
+export const SPLIT_MIN = 20;
+export const SPLIT_MAX = 85;
+
+/** File split target: { path, projectPath } when open, null when closed */
+export const fileSplitTarget = signal(null);
 
 // ── Toast notifications ───────────────────────────────────────────────────────
 /** Array of { id, message, type } toast notifications */

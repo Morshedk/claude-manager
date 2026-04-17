@@ -1,0 +1,98 @@
+=== T-1: Portrait card DOM structure ===
+Result: PASS
+Attempts: 2
+Duration: 9.8s
+Key observations:
+  - All four structural sections confirmed: .session-card-titlebar (with .session-card-name "test-portrait" and .session-card-summary "No summary yet"), .session-card-tags (2 badges: status + mode), pre.session-card-preview, .session-card-actionbar (1 .btn-icon button)
+  - No legacy .session-card-actions element
+  - flex-direction: column confirmed
+  - Preview pane is <pre> tag, not xterm canvas
+Fix applied (if any): Added mkdir -p /tmp/test-project — the project path must exist or the PTY spawns in error state. Also added git stash pop to apply the feature implementation which was in a WIP stash.
+
+=== T-2: Preview lines update after PTY output ===
+Result: PASS
+Attempts: 2
+Duration: 27.6s
+Key observations:
+  - After 25s wait (20s interval + 5s margin), previewLines was a non-empty array
+  - Marker PREVIEW_MARKER_T2_UNIQUE_12345 found in previewLines
+  - previewLines contained Claude Code TUI output mixed with the marker text (the PTY runs the Claude CLI by default for mode:direct)
+  - The first 5 lines were Claude Code TUI startup content; marker appeared in later lines
+Fix applied (if any): Added mkdir -p /tmp/test-project to seedDataDir() — without it the session status was 'error' and previewLines was never populated (preview interval only runs for RUNNING/STARTING sessions).
+
+=== T-3: cardSummary after watchdog ===
+Result: FAIL
+Attempts: 1
+Duration: 94.8s
+Key observations:
+  - No cardSummary was set on the session within 90s
+  - Root cause identified: the watchdog tick loop at line 1050 of WatchdogManager.js calls this.tmuxSessionExists(tmuxName) before summarizing. For mode:direct sessions there is no tmux window, so tmuxSessionExists() returns false and the session is skipped.
+  - The code path that sets liveSession.meta.cardSummary (line 635) is only reachable if summarizeSession() is called, which requires tmuxSessionExists() to return true.
+  - Therefore cardSummary integration works only for tmux-mode sessions, not direct-mode sessions.
+  - Server logs showed no watchdog summarization activity for the test session.
+  - The CLAUDE_CODE_OAUTH_TOKEN was available in the environment, so API access is not the cause.
+Fix applied (if any): None — this is a real feature bug, not an infrastructure issue.
+
+=== T-4: Settings change affects preview count ===
+Result: PASS
+Attempts: 2
+Duration: 53.1s
+Key observations:
+  - Before settings change: previewLines.length = 17 (within default 20 limit)
+  - PUT /api/settings { previewLines: 10 } returned { previewLines: 10 } confirming the setting was stored
+  - After 25s second sweep: previewLines.length = 10 (exactly at the new limit)
+  - The interval re-reads the setting on each tick (not cached)
+Fix applied (if any): Test timeout increased from 70000ms to 80000ms — the test requires two 25s waits (50s+ total) plus setup overhead, which exceeded the Jest default 70s timeout.
+
+=== T-5: Adversarial ANSI stripping ===
+Result: FAIL
+Attempts: 3
+Duration: ~30s per attempt
+Key observations:
+  - Attempt 1: mode:direct spawns Claude CLI (not bash). echo commands typed into Claude TUI produced wrong output format. CLEAN_SENTINEL_LINE not found.
+  - Attempt 2: Added command:'bash' so a real bash shell executes the echo commands. Commands used \\x1b (literal backslash-x-1-b) not actual ESC bytes. Bash terminal echo shows literal text including [31m pattern.
+  - Attempt 3: Changed to printf $'\x1b[31m...' (ANSI-C quoting) to send actual ESC bytes. CLEAN_SENTINEL_LINE found (control passes). Still FAIL:
+    (a) Command echo line contains [31m after stripAnsi removes the ESC byte, leaving "[31m" as literal residue. Root cause: stripAnsi regex /\x1b\[[0-9;]*[a-zA-Z]/ removes the ESC+bracket+params+terminator, but the command echo in the PTY ring buffer shows the user typed $'\x1b[31m' — the ESC is stripped but [31m text residue remains because the sequence spans a $'' string boundary context.
+    (b) Lines contain ?2004l, ?25l — partial sequences where \x1b[ was removed but the ?-prefixed params + terminator remain. The CSI regex matches [0-9;]*[a-zA-Z] but not ?[0-9;]*[a-zA-Z] (private modes starting with ?).
+    (c) Lines contain \r (char code 13). The stripAnsi implementation explicitly keeps \r (it removes [\x00-\x09\x0b\x0c\x0e-\x1f] — skipping \x0d=CR).
+  - Three real bugs confirmed: (b) private-mode sequences not fully stripped, (c) carriage returns not stripped.
+Fix applied (if any): Attempts 2-3 were infrastructure fixes (bash mode, actual ESC bytes). The failure at attempt 3 is a real feature bug.
+
+=== T-6: Wrench icon opens EditSessionModal ===
+Result: PASS
+Attempts: 1
+Duration: 1.4m
+Key observations:
+  - .btn-icon found in .session-card-actionbar
+  - title="Edit session" confirmed
+  - Clicking .btn-icon opened a modal with 1 .modal element
+  - Name input was visible and pre-filled with "wrench-test"
+  - No session overlay/canvas appeared (stopPropagation working correctly)
+  - No "Open" button present (old layout not rendered)
+Fix applied (if any): Added mkdir -p /tmp/test-project to beforeAll.
+
+=== T-7: Duplicate .btn-icon CSS regression ===
+Result: FAIL (expected — testing real bug)
+Attempts: 1
+Duration: ~20s
+Key observations:
+  - Computed style of .btn-icon inside .session-card-actionbar:
+      padding:    6px  (all sides = "6px 6px 6px 6px")
+      paddingTop: 6px  ← BUG: expected 0px
+      width:      24px ← correct
+      height:     24px ← correct
+  - The later rule at styles.css line 587 ".btn-icon { padding: 6px; border-radius: var(--radius-sm); color: var(--text-secondary); }" overrides the portrait-card-specific rule at line 379 ".btn-icon { padding: 0; width: 24px; height: 24px; ... }"
+  - Width and height are 24px (correct — the later rule does not set width/height).
+  - The duplicate rule causes the wrench button to have 6px padding on all sides instead of 0, making it visually larger than the 28px action bar height allows.
+Fix applied (if any): None — this is the known bug being tested.
+
+=== Summary ===
+T-1: PASS  (DOM structure — all 4 sections present, correct layout)
+T-2: PASS  (previewLines populated after 20s sweep, marker found)
+T-3: FAIL  (cardSummary never set — watchdog skips direct-mode sessions via tmuxSessionExists check)
+T-4: PASS  (settings change to previewLines:10 took effect on next sweep)
+T-5: FAIL  (stripAnsi bugs: private-mode sequences leave ?-param residue; \r not stripped; command echo context causes [31m residue after ESC removal)
+T-6: PASS  (wrench opens EditSessionModal, stopPropagation works, name pre-filled)
+T-7: FAIL  (expected — duplicate .btn-icon CSS: padding=6px from line 587 overrides padding=0 from line 379)
+
+Pass: 4/7  Fail: 3/7  (T-7 failure is expected/documented)

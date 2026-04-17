@@ -704,6 +704,29 @@ body.session-split #workspace {
   margin-right: calc(100% - var(--split-pos, 50%));
 }
 
+body.file-split #workspace {
+  margin-right: calc(100% - var(--split-pos, 50%));
+}
+
+.file-split-pane {
+  position: fixed;
+  left: var(--split-pos, 50%);
+  right: 0;
+  top: var(--topbar-h, 48px);
+  bottom: 0;
+  z-index: 100;
+  background: var(--bg-base);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.fb-path-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
 /* Split boundary resize handle — fixed, spans full height below topbar */
 .split-resize-handle {
   position: fixed;

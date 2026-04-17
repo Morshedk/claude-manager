@@ -4,13 +4,14 @@ import { TopBar } from './TopBar.js';
 import { ProjectSidebar } from './ProjectSidebar.js';
 import { ProjectDetail } from './ProjectDetail.js';
 import { SessionOverlay } from './SessionOverlay.js';
+import { FileSplitPane } from './FileSplitPane.js';
 import { NewSessionModal } from './NewSessionModal.js';
 import { NewProjectModal } from './NewProjectModal.js';
 import { EditProjectModal } from './EditProjectModal.js';
 import { EditSessionModal } from './EditSessionModal.js';
 import { SettingsModal } from './SettingsModal.js';
 import { initResize } from '../utils/dom.js';
-import { attachedSessionId, newSessionModalOpen, settingsModalOpen, newProjectModalOpen, editProjectModalOpen, editSessionModalOpen, toasts, splitView, splitPosition } from '../state/store.js';
+import { attachedSessionId, newSessionModalOpen, settingsModalOpen, newProjectModalOpen, editProjectModalOpen, editSessionModalOpen, toasts, splitView, splitPosition, fileSplitTarget } from '../state/store.js';
 
 /**
  * ToastContainer — inline small component for toast notifications.
@@ -67,6 +68,11 @@ export function App() {
     document.body.classList.toggle('session-split', inSplit);
   }, [splitView.value, attachedSessionId.value]);
 
+  // Apply/remove file-split body class when file split pane is open
+  useEffect(() => {
+    document.body.classList.toggle('file-split', !!fileSplitTarget.value);
+  }, [fileSplitTarget.value]);
+
   // Wire sidebar resize handle (always in DOM at mount)
   useEffect(() => {
     const sidebarHandle = document.getElementById('sidebar-resize');
@@ -83,7 +89,7 @@ export function App() {
         <div class="resize-handle resize-handle-h" id="sidebar-resize"></div>
         <${ProjectDetail} />
       </div>
-      ${attachedSessionId.value ? html`<${SessionOverlay} />` : null}
+      ${fileSplitTarget.value ? html`<${FileSplitPane} />` : attachedSessionId.value ? html`<${SessionOverlay} />` : null}
       ${newSessionModalOpen.value ? html`<${NewSessionModal} />` : null}
       ${newProjectModalOpen.value ? html`<${NewProjectModal} />` : null}
       ${editProjectModalOpen.value ? html`<${EditProjectModal} />` : null}

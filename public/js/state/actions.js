@@ -6,6 +6,7 @@ import {
   newSessionModalOpen, settingsModalOpen, newProjectModalOpen,
   editProjectModalOpen, editProjectTarget,
   editSessionModalOpen, editSessionTarget,
+  fileSplitTarget, splitView,
 } from './store.js';
 import { upsertSession, removeSession } from './sessionState.js';
 
@@ -154,6 +155,14 @@ export function openEditProjectModal(project) {
 export function closeEditProjectModal() {
   editProjectModalOpen.value = false;
   editProjectTarget.value = null;
+}
+
+export function openFileSplit(path, projectPath) {
+  fileSplitTarget.value = { path, projectPath };
+  splitView.value = true;
+}
+export function closeFileSplit() {
+  fileSplitTarget.value = null;
 }
 
 export function openEditSessionModal(session) {
