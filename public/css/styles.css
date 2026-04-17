@@ -763,24 +763,17 @@ body.file-split #workspace {
 ::-webkit-scrollbar-thumb { background: var(--bg-active); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* ===== TERMINAL SCROLLBAR (minimalist, visible on hover) ===== */
+/* ===== TERMINAL SCROLLBAR (always visible) ===== */
 .xterm-viewport {
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-  transition: scrollbar-color 0.3s;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
-.xterm:hover .xterm-viewport {
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
-}
-.xterm-viewport::-webkit-scrollbar { width: 4px; }
+.xterm-viewport::-webkit-scrollbar { width: 6px; }
 .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
 .xterm-viewport::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.0);
-  border-radius: 2px;
-}
-.xterm-viewport:hover::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
 }
 .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.4);
 }

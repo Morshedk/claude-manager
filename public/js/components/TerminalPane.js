@@ -2,6 +2,7 @@ import { html } from 'htm/preact';
 import { useRef, useLayoutEffect } from 'preact/hooks';
 import { on, off, send } from '../ws/connection.js';
 import { SERVER, CLIENT } from '../ws/protocol.js';
+import { showToast } from '../state/actions.js';
 
 // ── Full theme matching v1 XTERM_THEME ────────────────────────────────────────
 const XTERM_THEME = {
@@ -90,6 +91,42 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     try { fitAddon.fit(); } catch {}
 
     xtermRef.current = { xterm, fitAddon };
+
+    // ── Copy-to-clipboard: Ctrl+C / Cmd+C / Ctrl+Shift+C ─────────────────────
+    xterm.attachCustomKeyEventHandler((e) => {
+      if (e.type !== 'keydown') return true;
+      const isCtrlC = e.ctrlKey && !e.shiftKey && e.key === 'c';
+      const isCmdC  = e.metaKey && !e.shiftKey && e.key === 'c';
+      const isCtrlShiftC = e.ctrlKey && e.shiftKey && e.key === 'C';
+      if (isCtrlC || isCmdC || isCtrlShiftC) {
+        const sel = xterm.getSelection();
+        if (sel.length > 0) {
+          navigator.clipboard.writeText(sel).then(
+            () => showToast('Copied to clipboard', 'success'),
+            () => showToast('Copy failed — check clipboard permissions', 'error'),
+          );
+          xterm.clearSelection();
+          return false;
+        }
+        // No selection: Ctrl+Shift+C does nothing; Ctrl+C / Cmd+C passes through as SIGINT
+        if (isCtrlShiftC) return false;
+      }
+      return true;
+    });
+
+    // Right-click: copy selection if any, else allow native context menu
+    const handleContextMenu = (e) => {
+      const sel = xterm.getSelection();
+      if (sel.length > 0) {
+        e.preventDefault();
+        navigator.clipboard.writeText(sel).then(
+          () => showToast('Copied to clipboard', 'success'),
+          () => showToast('Copy failed — check clipboard permissions', 'error'),
+        );
+        xterm.clearSelection();
+      }
+    };
+    container.addEventListener('contextmenu', handleContextMenu);
 
     // ── 4. Scroll control — auto-scroll only when user is at bottom ───────────
     const vp = container.querySelector('.xterm-viewport');
@@ -214,6 +251,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
       off(SERVER.SESSION_OUTPUT, handleOutput);
       off('session:refreshed', handleRefreshed);
       off('connection:open', handleReconnect);
+      container.removeEventListener('contextmenu', handleContextMenu);
       resizeObserver.disconnect();
       if (scrollDisposable) scrollDisposable.dispose();
       if (inputDisposable) inputDisposable.dispose();

@@ -2,6 +2,7 @@ import { html } from 'htm/preact';
 import { useRef, useLayoutEffect } from 'preact/hooks';
 import { on, off, send } from '../ws/connection.js';
 import { SERVER, CLIENT } from '../ws/protocol.js';
+import { showToast } from '../state/actions.js';
 
 // ── Full theme matching TerminalPane ──────────────────────────────────────────
 const XTERM_THEME = {
@@ -80,6 +81,40 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
     try { fitAddon.fit(); } catch {}
     xtermRef.current = { xterm, fitAddon };
 
+    // ── Copy-to-clipboard: Ctrl+C / Cmd+C / Ctrl+Shift+C ─────────────────────
+    xterm.attachCustomKeyEventHandler((e) => {
+      if (e.type !== 'keydown') return true;
+      const isCtrlC = e.ctrlKey && !e.shiftKey && e.key === 'c';
+      const isCmdC  = e.metaKey && !e.shiftKey && e.key === 'c';
+      const isCtrlShiftC = e.ctrlKey && e.shiftKey && e.key === 'C';
+      if (isCtrlC || isCmdC || isCtrlShiftC) {
+        const sel = xterm.getSelection();
+        if (sel.length > 0) {
+          navigator.clipboard.writeText(sel).then(
+            () => showToast('Copied to clipboard', 'success'),
+            () => showToast('Copy failed — check clipboard permissions', 'error'),
+          );
+          xterm.clearSelection();
+          return false;
+        }
+        if (isCtrlShiftC) return false;
+      }
+      return true;
+    });
+
+    const handleContextMenu = (e) => {
+      const sel = xterm.getSelection();
+      if (sel.length > 0) {
+        e.preventDefault();
+        navigator.clipboard.writeText(sel).then(
+          () => showToast('Copied to clipboard', 'success'),
+          () => showToast('Copy failed — check clipboard permissions', 'error'),
+        );
+        xterm.clearSelection();
+      }
+    };
+    container.addEventListener('contextmenu', handleContextMenu);
+
     // ── 4. Scroll control ─────────────────────────────────────────────────────
     const vp = container.querySelector('.xterm-viewport');
     let userScrolledUp = false;
@@ -155,6 +190,7 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
       off(SERVER.TERMINAL_OUTPUT, handleOutput);
       off(SERVER.TERMINAL_CLOSED, handleClosed);
       off(SERVER.TERMINAL_ERROR, handleError);
+      container.removeEventListener('contextmenu', handleContextMenu);
       resizeObserver.disconnect();
       if (scrollDisposable) scrollDisposable.dispose();
       inputDisposable.dispose();
