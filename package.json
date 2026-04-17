@@ -1,6 +1,6 @@
 {
   "name": "claude-web-app-v2",
-  "version": "2.0.0",
+  "version": "2.01",
   "type": "module",
   "scripts": {
     "start": "node server.js",

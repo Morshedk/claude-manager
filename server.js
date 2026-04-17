@@ -64,7 +64,7 @@ wss.on('connection', (ws) => {
   clientRegistry.send(clientId, {
     type: 'init',
     clientId,
-    serverVersion: '2.0.0',
+    serverVersion: '2.01',
   });
 
   // Send current sessions list so client can populate UI immediately
