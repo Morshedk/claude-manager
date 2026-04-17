@@ -6,3 +6,4 @@ data/snapshots/
 data/activity-logs/
 *.snap
 .env
+data/sessionlog/
