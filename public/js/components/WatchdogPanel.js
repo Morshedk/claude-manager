@@ -12,6 +12,7 @@ export function WatchdogPanel() {
   const [lastTick, setLastTick] = useState(null);
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsError, setLogsError] = useState(null);
+  const [creditSnapshot, setCreditSnapshot] = useState(null);
 
   const s = settings.value || {};
   const wdSettings = s.watchdog || {};
@@ -19,7 +20,16 @@ export function WatchdogPanel() {
 
   useEffect(() => {
     loadLogs();
+    loadSummary();
   }, []);
+
+  async function loadSummary() {
+    try {
+      const data = await fetch('/api/watchdog/state').then(r => r.ok ? r.json() : null);
+      if (data?.lastCreditSnapshot) setCreditSnapshot(data.lastCreditSnapshot);
+      if (data?.lastTick) setLastTick(data.lastTick);
+    } catch {}
+  }
 
   async function loadLogs() {
     setLogsLoading(true);
@@ -52,7 +62,7 @@ export function WatchdogPanel() {
         </span>
         <div style="flex:1;"></div>
         <button
-          onClick=${loadLogs}
+          onClick=${() => { loadLogs(); loadSummary(); }}
           style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer;"
         >Refresh</button>
       </div>
@@ -81,6 +91,37 @@ export function WatchdogPanel() {
         </div>
         ${wdSettings.defaultFlags ? html`
           <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Flags: ${wdSettings.defaultFlags}</div>
+        ` : null}
+        ${creditSnapshot ? html`
+          <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-top:2px;">
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:6px;">Credits · ${timeAgo(creditSnapshot.timestamp)}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              ${creditSnapshot.block ? html`
+                ${creditSnapshot.block.isActive && creditSnapshot.block.burnRate ? html`
+                  <div style="flex:1;min-width:100px;">
+                    <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">Burn rate</div>
+                    <div style="font-size:13px;color:var(--text-primary);">$${(creditSnapshot.block.burnRate.costPerHour).toFixed(2)}/hr</div>
+                  </div>
+                ` : null}
+                <div style="flex:1;min-width:100px;">
+                  <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">Block cost</div>
+                  <div style="font-size:13px;color:var(--text-primary);">$${(creditSnapshot.block.costUSD || 0).toFixed(2)}</div>
+                </div>
+                ${creditSnapshot.block.isActive && creditSnapshot.block.projection ? html`
+                  <div style="flex:1;min-width:100px;">
+                    <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">Projected</div>
+                    <div style="font-size:13px;color:var(--warning);">$${creditSnapshot.block.projection.totalCost.toFixed(2)} (${creditSnapshot.block.projection.remainingMinutes}min left)</div>
+                  </div>
+                ` : null}
+              ` : html`<div style="font-size:12px;color:var(--text-muted);">No active block</div>`}
+              ${creditSnapshot.todayCostUSD != null ? html`
+                <div style="flex:1;min-width:100px;">
+                  <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">Today</div>
+                  <div style="font-size:13px;color:var(--text-primary);">$${creditSnapshot.todayCostUSD.toFixed(2)}</div>
+                </div>
+              ` : null}
+            </div>
+          </div>
         ` : null}
       </div>
 
