@@ -111,6 +111,38 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
         // No selection: Ctrl+Shift+C does nothing; Ctrl+C / Cmd+C passes through as SIGINT
         if (isCtrlShiftC) return false;
       }
+      // Ctrl+V / Cmd+V: handle image paste ourselves before xterm can intercept
+      const isCtrlV = e.ctrlKey && !e.metaKey && e.key === 'v';
+      const isCmdV  = e.metaKey && !e.ctrlKey && e.key === 'v';
+      if ((isCtrlV || isCmdV) && e.type === 'keydown') {
+        navigator.clipboard.read().then((items) => {
+          for (const item of items) {
+            const imageType = item.types.find(t => t.startsWith('image/'));
+            if (imageType) {
+              item.getType(imageType).then((blob) => {
+                fetch('/api/paste-image', {
+                  method: 'POST',
+                  headers: { 'Content-Type': blob.type },
+                  body: blob,
+                })
+                  .then(r => r.json())
+                  .then(({ path }) => {
+                    xterm.paste(path);
+                    showToast('Image saved — path pasted', 'success');
+                  })
+                  .catch(() => showToast('Image paste failed', 'error'));
+              });
+              return;
+            }
+          }
+          // No image — paste text normally
+          navigator.clipboard.readText().then(text => { if (text) xterm.paste(text); }).catch(() => {});
+        }).catch(() => {
+          // clipboard.read() not permitted — fall back to text paste
+          navigator.clipboard.readText().then(text => { if (text) xterm.paste(text); }).catch(() => {});
+        });
+        return false; // block xterm's default Ctrl+V handling
+      }
       return true;
     });
 
@@ -129,32 +161,6 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     container.addEventListener('contextmenu', handleContextMenu);
 
     // Right-click: copy selection if any, else allow native context menu
-
-    // Paste: if clipboard contains an image, upload it and paste the file path
-    const handlePaste = (e) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          e.preventDefault();
-          const blob = item.getAsFile();
-          if (!blob) return;
-          fetch('/api/paste-image', {
-            method: 'POST',
-            headers: { 'Content-Type': blob.type },
-            body: blob,
-          })
-            .then(r => r.json())
-            .then(({ path }) => {
-              xterm.paste(path);
-              showToast('Image saved — path pasted', 'success');
-            })
-            .catch(() => showToast('Image paste failed', 'error'));
-          return;
-        }
-      }
-    };
-    container.addEventListener('paste', handlePaste);
 
     // ── 4. Scroll control — auto-scroll only when user is at bottom ───────────
     const vp = container.querySelector('.xterm-viewport');
@@ -280,7 +286,6 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
       off('session:refreshed', handleRefreshed);
       off('connection:open', handleReconnect);
       container.removeEventListener('contextmenu', handleContextMenu);
-      container.removeEventListener('paste', handlePaste);
       resizeObserver.disconnect();
       if (scrollDisposable) scrollDisposable.dispose();
       if (inputDisposable) inputDisposable.dispose();
