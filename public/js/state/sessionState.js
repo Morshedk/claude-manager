@@ -1,6 +1,6 @@
 import { on } from '../ws/connection.js';
 import { SERVER } from '../ws/protocol.js';
-import { sessions, connected, clientId, attachedSessionId } from './store.js';
+import { sessions, connected, clientId, attachedSessionId, serverVersion, serverEnv } from './store.js';
 import {
   loadProjects,
   loadSessions,
@@ -75,6 +75,8 @@ export function initMessageHandlers() {
   on(SERVER.INIT, (msg) => {
     connected.value = true;
     if (msg.clientId) clientId.value = msg.clientId;
+    if (msg.serverVersion) serverVersion.value = msg.serverVersion;
+    if (msg.serverEnv) serverEnv.value = msg.serverEnv;
     loadProjects();
     loadSessions();
     loadSettings();

@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { connected } from '../state/store.js';
+import { connected, serverVersion, serverEnv } from '../state/store.js';
 import { openSettingsModal } from '../state/actions.js';
 
 /**
@@ -8,22 +8,27 @@ import { openSettingsModal } from '../state/actions.js';
  */
 export function TopBar() {
   const isConnected = connected.value;
+  const ver = serverVersion.value;
+  const env = serverEnv.value;
+  const isBeta = env === 'BETA';
+  const versionLabel = ver ? `v${ver} ${env}` : 'v2';
+  const badgeStyle = `
+    font-family:var(--font-mono);
+    font-size:9px;
+    border-radius:3px;
+    padding:1px 5px;
+    letter-spacing:0.04em;
+    background:${isBeta ? 'rgba(245,158,11,0.12)' : 'var(--accent-bg)'};
+    color:${isBeta ? '#f59e0b' : 'var(--accent-dim)'};
+    border:1px solid ${isBeta ? 'rgba(245,158,11,0.35)' : 'var(--accent-border)'};
+  `;
 
   return html`
     <header id="topbar">
       <div class="brand">
         <span class="brand-icon">⚡</span>
         <span class="brand-text">CLAUDE<span class="brand-sub"> MANAGER</span></span>
-        <span style="
-          font-family:var(--font-mono);
-          font-size:9px;
-          background:var(--accent-bg);
-          color:var(--accent-dim);
-          border:1px solid var(--accent-border);
-          border-radius:3px;
-          padding:1px 5px;
-          letter-spacing:0.04em;
-        ">v2</span>
+        <span style="${badgeStyle}">${versionLabel}</span>
       </div>
 
       <div class="global-stats"></div>

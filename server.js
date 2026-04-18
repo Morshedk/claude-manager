@@ -65,6 +65,7 @@ wss.on('connection', (ws) => {
     type: 'init',
     clientId,
     serverVersion: '2.02',
+    serverEnv: process.env.NODE_ENV === 'production' ? 'PROD' : 'BETA',
   });
 
   // Send current sessions list so client can populate UI immediately

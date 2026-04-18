@@ -7,6 +7,12 @@ export const connected = signal(false);
 /** The clientId assigned by the server on init */
 export const clientId = signal(null);
 
+/** Server version string received on init (e.g. '2.02') */
+export const serverVersion = signal(null);
+
+/** Server environment received on init: 'PROD' or 'BETA' */
+export const serverEnv = signal(null);
+
 // ── Projects ──────────────────────────────────────────────────────────────────
 /** Array of project records: { id, name, path, createdAt, settings } */
 export const projects = signal([]);
