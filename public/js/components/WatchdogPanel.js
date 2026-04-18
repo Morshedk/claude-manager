@@ -37,7 +37,9 @@ export function WatchdogPanel() {
     try {
       const data = await fetch('/api/watchdog/credit-history').then(r => r.ok ? r.json() : []);
       if (Array.isArray(data)) setCreditHistory(data.slice(-48));
-    } catch {}
+    } catch {
+      setCreditHistory([]);
+    }
   }
 
   async function loadLogs() {
