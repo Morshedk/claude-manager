@@ -115,6 +115,31 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
     };
     container.addEventListener('contextmenu', handleContextMenu);
 
+    const handlePaste = (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const blob = item.getAsFile();
+          if (!blob) return;
+          fetch('/api/paste-image', {
+            method: 'POST',
+            headers: { 'Content-Type': blob.type },
+            body: blob,
+          })
+            .then(r => r.json())
+            .then(({ path }) => {
+              xterm.paste(path);
+              showToast('Image saved — path pasted', 'success');
+            })
+            .catch(() => showToast('Image paste failed', 'error'));
+          return;
+        }
+      }
+    };
+    container.addEventListener('paste', handlePaste);
+
     // ── 4. Scroll control ─────────────────────────────────────────────────────
     const vp = container.querySelector('.xterm-viewport');
     let userScrolledUp = false;
@@ -191,6 +216,7 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
       off(SERVER.TERMINAL_CLOSED, handleClosed);
       off(SERVER.TERMINAL_ERROR, handleError);
       container.removeEventListener('contextmenu', handleContextMenu);
+      container.removeEventListener('paste', handlePaste);
       resizeObserver.disconnect();
       if (scrollDisposable) scrollDisposable.dispose();
       inputDisposable.dispose();
