@@ -51,8 +51,8 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
       rightClickSelectsWord: true,
       altClickMovesCursor: true,
       scrollOnEraseInDisplay: true,
-      fastScrollSensitivity: 5,
-      scrollSensitivity: 1,
+      fastScrollSensitivity: 10,
+      scrollSensitivity: 3,
       rescaleOverlappingGlyphs: true,
     });
 

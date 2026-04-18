@@ -55,8 +55,8 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
       rightClickSelectsWord: true,
       altClickMovesCursor: true,
       scrollOnEraseInDisplay: true,
-      fastScrollSensitivity: 5,
-      scrollSensitivity: 1,
+      fastScrollSensitivity: 10,
+      scrollSensitivity: 3,
       rescaleOverlappingGlyphs: true,
     });
 
