@@ -1,17 +1,26 @@
 /**
- * QA Pipeline — bug: session-log-formatting
+ * QA Pipeline — bug: session-log-no-timestamps
  *
- * Unit test for lib/utils/stripAnsi.js
+ * Tests that SessionLogManager.tailLog() returns timestamp/event markers
+ * even when the log is dominated by blank spinner lines.
  *
- * Tests 3 and 4 FAIL on current broken code (bare \r deleted instead of
- * treated as a line boundary), PASS after the correct fix.
+ * Tests 2 and 3 FAIL on current broken code (500-line hard tail swamps
+ * markers), PASS after the correct fix.
  *
  * Run with:  node qa-pipeline/test.js
  * Exit 0 → all PASS, Exit 1 → at least one FAIL
  */
 
-import { stripAnsi } from '../lib/utils/stripAnsi.js';
+import { SessionLogManager } from '../lib/sessionlog/SessionLogManager.js';
+import { writeFileSync, mkdirSync, rmSync } from 'fs';
+import { join } from 'path';
+import { tmpdir } from 'os';
 import assert from 'assert';
+
+const tmpDir = join(tmpdir(), `qa-sessionlog-${Date.now()}`);
+mkdirSync(join(tmpDir, 'sessionlog'), { recursive: true });
+
+const SESSION_ID = '00000000-0000-0000-0000-000000000001';
 
 let passed = 0;
 let failed = 0;
@@ -28,81 +37,76 @@ function test(name, fn) {
   }
 }
 
-// Test 1: cursor-forward \x1b[1C between tokens produces a space
-// (cursor-forward fix already in place — this is a regression guard)
-test('\\x1b[1C between tokens produces a space', () => {
-  const input = '\x1b[38;5;114m\u25cf\x1b[1C\x1b[39m\x1b[1mBash\x1b[22m\x1b[1C(git\x1b[1Ccheckout\x1b[1Cbeta)\r\r\n';
-  const output = stripAnsi(input);
-  assert.doesNotMatch(output, /\x1b/, 'raw \\x1b still present in output');
-  assert.match(output, /Bash \(git/,    'space missing between "Bash" and "(git"');
-  assert.match(output, /git checkout/,  'space missing between "git" and "checkout"');
-  assert.match(output, /checkout beta/, 'space missing between "checkout" and "beta"');
+// Build a synthetic .log file that mirrors an active Claude Code session:
+//
+//   Line 1:   (empty — injectEvent leading newline)
+//   Line 2:   === PTY:ATTACH | ts1 | session attached ===
+//   Line 3:   (empty)
+//   Line 4:   --- ts2 ---          ← tick 1 timestamp marker
+//   Lines 5-604: 600 blank lines  ← simulated spinner output from tick 1
+//   Line 605: --- ts3 ---          ← tick 2 timestamp marker
+//   Lines 606-1205: 600 blank lines ← simulated spinner output from tick 2
+//
+// Total: ~1205 lines. Last marker (ts3) is at line 605 — 600 lines before EOF.
+// tailLog(id, 500) on CURRENT code slices the last 500 lines (all blank) → markers invisible.
+// The fix must ensure markers survive into the returned window.
+
+const ts1 = '2026-04-18T10:00:00.000Z';
+const ts2 = '2026-04-18T10:00:20.000Z';
+const ts3 = '2026-04-18T10:00:40.000Z';
+
+const blankBatch = '\n'.repeat(600);
+
+const logContent =
+  `\n=== PTY:ATTACH | ${ts1} | session attached ===\n` +
+  `\n--- ${ts2} ---\n` +
+  blankBatch +
+  `\n--- ${ts3} ---\n` +
+  blankBatch;
+
+writeFileSync(join(tmpDir, 'sessionlog', `${SESSION_ID}.log`), logContent);
+
+const manager = new SessionLogManager({ dataDir: tmpDir });
+const tail = manager.tailLog(SESSION_ID, 500);
+
+// Test 1: tailLog returns an array (infrastructure check)
+test('tailLog returns an array', () => {
+  assert.ok(Array.isArray(tail), `expected array, got ${typeof tail}: ${JSON.stringify(tail)}`);
 });
 
-// Test 2: cursor-forward \x1b[5C produces 5 leading spaces
-// (regression guard)
-test('\\x1b[5C produces 5 leading spaces', () => {
-  const input = '\x1b[5CnStore.save()\x1b[1Cprevents\r\r\n';
-  const output = stripAnsi(input);
-  assert.doesNotMatch(output, /\x1b/, 'raw \\x1b still present in output');
+// Test 2: timestamp marker visible in tail — THIS FAILS ON CURRENT CODE
+//
+// Current behavior: last 600 blank lines fill the 500-line window; markers are
+// >600 lines before EOF and invisible. Fix must surface them.
+test('at least one --- timestamp --- line visible in 500-line tail (spec Then clause)', () => {
+  const found = (tail || []).some(l => /^--- 2026-04-18T/.test(l.trim()));
+  const nonBlank = (tail || []).filter(l => l.trim()).length;
   assert.ok(
-    output.startsWith('     '),
-    `expected 5 leading spaces, got: "${output.slice(0, 15).replace(/\n/g, '\\n').replace(/\r/g, '\\r')}"`
-  );
-  assert.match(output, /nStore\.save\(\) prevents/, 'spacing wrong in "nStore.save() prevents"');
-});
-
-// Test 3: bare \r must not merge adjacent lines — THE CORE BUG
-//
-// From spec Preliminary Investigation:
-//   stripAnsi("line1\r\rline2\r\r\n") currently returns "line1line2\n"
-//   Expected: lines appear separately (not merged into one string)
-//
-// THIS TEST FAILS ON CURRENT CODE.
-test('bare \\r does not merge adjacent lines (core spec regression)', () => {
-  const input = 'line1\r\rline2\r\r\n';
-  const output = stripAnsi(input);
-  assert.ok(
-    !output.includes('line1line2'),
-    `lines were concatenated: got "${output.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}" — must not be merged`
-  );
-  const lines = output.split('\n').filter(l => l.length > 0);
-  assert.ok(lines.some(l => l.includes('line1')), `"line1" not found as its own line in: ${JSON.stringify(lines)}`);
-  assert.ok(lines.some(l => l.includes('line2')), `"line2" not found as its own line in: ${JSON.stringify(lines)}`);
-});
-
-// Test 4: spinner-pattern \r overwrite must not concatenate output
-//
-// Claude Code uses bare \r to overwrite the current line (spinners, progress).
-// Deleting \r merges the original and the overwrite into one string.
-//
-// THIS TEST FAILS ON CURRENT CODE.
-test('spinner-pattern \\r overwrite does not concatenate lines', () => {
-  const input = 'Running...\rDone      \r\n';
-  const output = stripAnsi(input);
-  assert.doesNotMatch(output, /\x1b/, 'raw \\x1b still present in output');
-  assert.ok(
-    !output.includes('Running...Done'),
-    `overwrites were concatenated: got "${output.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}" — must not merge`
+    found,
+    `No "--- 2026-04-18T..." timestamp found in tail.\n` +
+    `  Tail length: ${(tail || []).length}, non-blank lines: ${nonBlank}.\n` +
+    `  First non-blank line: ${(tail || []).find(l => l.trim()) || '(none)'}\n` +
+    `  This test FAILS on current code because the 500-line tail is entirely blank.`
   );
 });
 
-// Test 5: no raw escape codes remain in output (regression guard)
-test('no raw escape codes remain in output', () => {
-  const input = [
-    '\x1b[38;5;114mcolored text\x1b[0m',
-    '\x1b]0;window title\x07',
-    '\x1b(Bcharset',
-    '\x1b=alt keypad',
-    '\x1b[2J clear screen',
-    '\x1b[3Acursor up 3',
-  ].join('\n');
-  const output = stripAnsi(input);
-  assert.doesNotMatch(output, /\x1b/, `raw \\x1b found in output: ${JSON.stringify(output.slice(0, 120))}`);
-  assert.match(output, /colored text/, '"colored text" was stripped along with escape codes');
-  assert.match(output, /charset/,      '"charset" was stripped along with G-set escape');
-  assert.match(output, /clear screen/, '"clear screen" was stripped along with CSI');
+// Test 3: PTY:ATTACH event marker visible in tail — THIS FAILS ON CURRENT CODE
+//
+// Same root cause: PTY:ATTACH is injected near the top of the log, >600 lines
+// before EOF after two ticks of spinner output. Invisible in a 500-line tail.
+test('at least one === PTY:ATTACH === event line visible in 500-line tail (spec Then clause)', () => {
+  const found = (tail || []).some(l => /^=== PTY:ATTACH \|/.test(l.trim()));
+  const nonBlank = (tail || []).filter(l => l.trim()).length;
+  assert.ok(
+    found,
+    `No "=== PTY:ATTACH |..." event found in tail.\n` +
+    `  Tail length: ${(tail || []).length}, non-blank lines: ${nonBlank}.\n` +
+    `  This test FAILS on current code because the 500-line tail is entirely blank.`
+  );
 });
+
+// Cleanup
+try { rmSync(tmpDir, { recursive: true, force: true }); } catch { /* ignore */ }
 
 // Summary
 console.log('');
