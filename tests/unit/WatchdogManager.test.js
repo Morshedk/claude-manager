@@ -726,18 +726,13 @@ describe('WatchdogManager — tick', () => {
     };
 
     const wd = createWatchdog();
+    stubTickDependencies(wd);
     wd.checkCcusage = jest.fn().mockResolvedValue(fakeSnapshot);
-    wd._checkSession = jest.fn().mockResolvedValue(undefined);
-    wd.checkResources = jest.fn().mockReturnValue({ alerts: [] });
-    wd.tmuxSessionExists = jest.fn().mockReturnValue(false);
-    wd.killOrphanBuns = jest.fn();
-    wd.sendTelegram = jest.fn().mockResolvedValue(true);
 
     await wd.tick();
 
     expect(wd.checkCcusage).toHaveBeenCalled();
 
-    // Snapshot appended to each SESSIONS log
     for (const sess of SESSIONS) {
       const log = wd.getLog(sess.name);
       const snap = log.find(e => e.type === 'creditSnapshot');
