@@ -789,3 +789,70 @@ describe('WatchdogManager — getSummary', () => {
     expect(summary.sessionCount).toBe(SESSIONS.length);
   });
 });
+
+// ─── checkCcusage ─────────────────────────────────────────────────────────────
+
+describe('WatchdogManager — checkCcusage', () => {
+  test('returns null and records nothing when _runCcusage errors', async () => {
+    const wd = createWatchdog();
+    wd._runCcusage = jest.fn().mockResolvedValue(null);
+
+    const result = await wd.checkCcusage();
+    expect(result).toBeNull();
+    expect(wd._lastCreditSnapshot).toBeNull();
+
+    wd.stop();
+  });
+
+  test('parses blocks JSON and stores snapshot on _lastCreditSnapshot', async () => {
+    const wd = createWatchdog();
+
+    const fakeBlocksData = {
+      blocks: [{
+        costUSD: 12.5,
+        totalTokens: 5000000,
+        isActive: true,
+        burnRate: { costPerHour: 3.2 },
+        projection: { totalCost: 15.0, remainingMinutes: 55 },
+      }],
+    };
+    const fakeDailyData = { daily: [], totals: { totalCost: 20.1 } };
+
+    wd._runCcusage = jest.fn().mockImplementation((args) => {
+      if (args.includes('blocks')) return Promise.resolve(fakeBlocksData);
+      return Promise.resolve(fakeDailyData);
+    });
+
+    const result = await wd.checkCcusage();
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('creditSnapshot');
+    expect(result.block.costUSD).toBe(12.5);
+    expect(result.block.burnRate.costPerHour).toBe(3.2);
+    expect(result.block.projection.totalCost).toBe(15.0);
+    expect(result.todayCostUSD).toBe(20.1);
+    expect(wd._lastCreditSnapshot).toBe(result);
+
+    wd.stop();
+  });
+
+  test('respects 5-minute rate limit — skips if called too soon', async () => {
+    const wd = createWatchdog();
+    wd._lastCcusageCheck = Date.now() / 1000 - 60; // 1 min ago (< 5 min limit)
+
+    const spy = jest.spyOn(wd, '_runCcusage');
+    const result = await wd.checkCcusage();
+    expect(result).toBeNull();
+    expect(spy).not.toHaveBeenCalled();
+
+    wd.stop();
+  });
+
+  test('getSummary includes lastCreditSnapshot field', () => {
+    const wd = createWatchdog();
+    const snap = { type: 'creditSnapshot', block: { costUSD: 5 }, timestamp: new Date().toISOString() };
+    wd._lastCreditSnapshot = snap;
+    const summary = wd.getSummary();
+    expect(summary.lastCreditSnapshot).toBe(snap);
+    wd.stop();
+  });
+});
