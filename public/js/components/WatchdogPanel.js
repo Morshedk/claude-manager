@@ -13,6 +13,7 @@ export function WatchdogPanel() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsError, setLogsError] = useState(null);
   const [creditSnapshot, setCreditSnapshot] = useState(null);
+  const [creditHistory, setCreditHistory] = useState([]);
 
   const s = settings.value || {};
   const wdSettings = s.watchdog || {};
@@ -21,6 +22,7 @@ export function WatchdogPanel() {
   useEffect(() => {
     loadLogs();
     loadSummary();
+    loadHistory();
   }, []);
 
   async function loadSummary() {
@@ -28,6 +30,13 @@ export function WatchdogPanel() {
       const data = await fetch('/api/watchdog/state').then(r => r.ok ? r.json() : null);
       if (data?.lastCreditSnapshot) setCreditSnapshot(data.lastCreditSnapshot);
       if (data?.lastTick) setLastTick(data.lastTick);
+    } catch {}
+  }
+
+  async function loadHistory() {
+    try {
+      const data = await fetch('/api/watchdog/credit-history').then(r => r.ok ? r.json() : []);
+      if (Array.isArray(data)) setCreditHistory(data.slice(-48));
     } catch {}
   }
 
@@ -62,7 +71,7 @@ export function WatchdogPanel() {
         </span>
         <div style="flex:1;"></div>
         <button
-          onClick=${() => { loadLogs(); loadSummary(); }}
+          onClick=${() => { loadLogs(); loadSummary(); loadHistory(); }}
           style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer;"
         >Refresh</button>
       </div>
@@ -120,6 +129,49 @@ export function WatchdogPanel() {
                   <div style="font-size:13px;color:var(--text-primary);">$${creditSnapshot.todayCostUSD.toFixed(2)}</div>
                 </div>
               ` : null}
+            </div>
+            ${creditSnapshot.breakdown && creditSnapshot.breakdown.total > 0 ? html`
+              <div style="margin-top:8px;">
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:4px;">By Source (lifetime)</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  ${[
+                    ['Factory', creditSnapshot.breakdown.factory],
+                    ['Watchdog', creditSnapshot.breakdown.watchdog],
+                    ['Dev v2', creditSnapshot.breakdown.devV2],
+                    ['Dev v1', creditSnapshot.breakdown.devV1],
+                    ['Other', creditSnapshot.breakdown.other],
+                  ].filter(([, cost]) => cost > 0).map(([label, cost]) => html`
+                    <div style="background:var(--bg-base);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;font-size:11px;">
+                      <span style="color:var(--text-muted);">${label} </span>
+                      <span style="color:var(--text-primary);font-weight:600;">$${cost.toFixed(2)}</span>
+                    </div>
+                  `)}
+                </div>
+              </div>
+            ` : null}
+          </div>
+        ` : null}
+        ${creditHistory.length >= 2 ? html`
+          <div style="padding:8px 0 2px;">
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:4px;">Burn Rate $/hr</div>
+            ${(function() {
+              const vals = creditHistory.map(d => d.burnRateCostPerHour ?? 0);
+              const max = Math.max(...vals, 0.01);
+              const W = 300, H = 50, pad = 3;
+              const pts = vals.map((v, i) => {
+                const x = pad + (i / (vals.length - 1)) * (W - 2 * pad);
+                const y = H - pad - (v / max) * (H - 2 * pad);
+                return x.toFixed(1) + ',' + y.toFixed(1);
+              }).join(' ');
+              return html`
+                <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;display:block;" preserveAspectRatio="none">
+                  <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                </svg>
+              `;
+            })()}
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px;">
+              <span>${creditHistory.length > 0 ? timeAgo(creditHistory[0].timestamp) : ''}</span>
+              <span>now</span>
             </div>
           </div>
         ` : null}
