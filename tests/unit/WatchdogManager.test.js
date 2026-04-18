@@ -883,3 +883,116 @@ describe('WatchdogManager — checkCcusage', () => {
     wd.stop();
   });
 });
+
+// ─── buildBreakdown ───────────────────────────────────────────────────────────
+
+describe('WatchdogManager — buildBreakdown', () => {
+  test('attributes sessions by sessionId prefix', () => {
+    const sessions = [
+      { sessionId: '-projects-niyyah', totalCost: 10 },
+      { sessionId: '-tmp', totalCost: 5 },
+      { sessionId: '-home-claude-runner-apps-claude-web-app-v2', totalCost: 8 },
+      { sessionId: '-home-claude-runner-apps-claude-web-app', totalCost: 3 },
+      { sessionId: '-home-claude-runner-scripts', totalCost: 1 },
+    ];
+    const result = WatchdogManager.buildBreakdown(sessions);
+    expect(result.factory).toBeCloseTo(10);
+    expect(result.watchdog).toBeCloseTo(5);
+    expect(result.devV2).toBeCloseTo(8);
+    expect(result.devV1).toBeCloseTo(3);
+    expect(result.other).toBeCloseTo(1);
+    expect(result.total).toBeCloseTo(27);
+  });
+
+  test('attributes subagent sessions by projectPath prefix', () => {
+    const sessions = [
+      { sessionId: 'subagents', projectPath: '-home-claude-runner-apps-claude-web-app-v2/abc', totalCost: 4 },
+      { sessionId: 'subagents', projectPath: '-home-claude-runner-apps-claude-web-app/xyz', totalCost: 2 },
+      { sessionId: 'subagents', projectPath: '-projects-niyyah/foo', totalCost: 6 },
+    ];
+    const result = WatchdogManager.buildBreakdown(sessions);
+    expect(result.devV2).toBeCloseTo(4);
+    expect(result.devV1).toBeCloseTo(2);
+    expect(result.factory).toBeCloseTo(6);
+    expect(result.total).toBeCloseTo(12);
+  });
+
+  test('returns all-zero breakdown for empty sessions', () => {
+    const result = WatchdogManager.buildBreakdown([]);
+    expect(result.total).toBe(0);
+    expect(result.factory).toBe(0);
+  });
+});
+
+// ─── credit history ───────────────────────────────────────────────────────────
+
+describe('WatchdogManager — credit history', () => {
+  test('getCreditHistory returns [] when file missing', () => {
+    const wd = createWatchdog();
+    expect(wd.getCreditHistory()).toEqual([]);
+    wd.stop();
+  });
+
+  test('getCreditHistory filters out entries without timestamp', () => {
+    const wd = createWatchdog();
+    const file = path.join(tmpDir, 'credit-history.json');
+    fs.writeFileSync(file, JSON.stringify([
+      { timestamp: '2026-01-01T00:00:00.000Z', burnRateCostPerHour: 1 },
+      { burnRateCostPerHour: 2 },  // missing timestamp — should be filtered
+      null,
+    ]));
+    const result = wd.getCreditHistory();
+    expect(result).toHaveLength(1);
+    expect(result[0].burnRateCostPerHour).toBe(1);
+    wd.stop();
+  });
+
+  test('_appendCreditHistory writes entry and caps at 200', () => {
+    const wd = createWatchdog();
+    // Write 201 entries
+    for (let i = 0; i < 201; i++) {
+      wd._appendCreditHistory({
+        timestamp: new Date(Date.now() + i * 1000).toISOString(),
+        block: { burnRate: { costPerHour: i }, costUSD: i },
+        todayCostUSD: i,
+        breakdown: { factory: 0, watchdog: 0, devV2: 0, devV1: 0, other: 0, total: 0 },
+      });
+    }
+    const history = wd.getCreditHistory();
+    expect(history.length).toBe(200);
+    // Most recent entry should be #200 (0-indexed), i.e. burnRateCostPerHour: 200
+    expect(history[history.length - 1].burnRateCostPerHour).toBe(200);
+    wd.stop();
+  });
+
+  test('checkCcusage includes breakdown and appends to history', async () => {
+    const wd = createWatchdog();
+    const fakeSessionData = {
+      sessions: [
+        { sessionId: '-projects-niyyah', totalCost: 10, projectPath: '' },
+        { sessionId: '-tmp', totalCost: 2, projectPath: '' },
+      ],
+    };
+    wd._runCcusage = jest.fn().mockImplementation((args) => {
+      if (args[0] === 'blocks') return Promise.resolve({
+        blocks: [{ costUSD: 5, totalTokens: 1000, isActive: true, burnRate: { costPerHour: 1.5 }, projection: { totalCost: 6, remainingMinutes: 30 } }],
+      });
+      if (args[0] === 'daily') return Promise.resolve({ totals: { totalCost: 20 } });
+      if (args[0] === 'session') return Promise.resolve(fakeSessionData);
+      return Promise.resolve(null);
+    });
+
+    const result = await wd.checkCcusage();
+    expect(result.breakdown).toBeDefined();
+    expect(result.breakdown.factory).toBeCloseTo(10);
+    expect(result.breakdown.watchdog).toBeCloseTo(2);
+    expect(result.breakdown.total).toBeCloseTo(12);
+
+    // History should have 1 entry
+    const history = wd.getCreditHistory();
+    expect(history).toHaveLength(1);
+    expect(history[0].burnRateCostPerHour).toBe(1.5);
+    expect(history[0].breakdown.factory).toBeCloseTo(10);
+    wd.stop();
+  });
+});
