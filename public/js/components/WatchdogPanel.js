@@ -100,7 +100,7 @@ export function WatchdogPanel() {
                 ${creditSnapshot.block.isActive && creditSnapshot.block.burnRate ? html`
                   <div style="flex:1;min-width:100px;">
                     <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">Burn rate</div>
-                    <div style="font-size:13px;color:var(--text-primary);">$${(creditSnapshot.block.burnRate.costPerHour).toFixed(2)}/hr</div>
+                    <div style="font-size:13px;color:var(--text-primary);">$${(creditSnapshot.block.burnRate.costPerHour ?? 0).toFixed(2)}/hr</div>
                   </div>
                 ` : null}
                 <div style="flex:1;min-width:100px;">
@@ -110,7 +110,7 @@ export function WatchdogPanel() {
                 ${creditSnapshot.block.isActive && creditSnapshot.block.projection ? html`
                   <div style="flex:1;min-width:100px;">
                     <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">Projected</div>
-                    <div style="font-size:13px;color:var(--warning);">$${creditSnapshot.block.projection.totalCost.toFixed(2)} (${creditSnapshot.block.projection.remainingMinutes}min left)</div>
+                    <div style="font-size:13px;color:var(--warning);">$${(creditSnapshot.block.projection.totalCost ?? 0).toFixed(2)} (${creditSnapshot.block.projection.remainingMinutes ?? '?'}min left)</div>
                   </div>
                 ` : null}
               ` : html`<div style="font-size:12px;color:var(--text-muted);">No active block</div>`}
