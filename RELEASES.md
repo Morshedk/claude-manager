@@ -6,6 +6,34 @@ Two environments:
 
 ---
 
+## v2.02 — 2026-04-18
+
+**Released to beta:** 2026-04-18
+**Released to prod:** 2026-04-18
+
+### New features
+- **Terminal copy-to-clipboard** — Ctrl+C / Cmd+C copies selected text instead of sending
+  SIGINT when text is highlighted. Ctrl+Shift+C always copies (Linux convention). Right-click
+  copies selection and suppresses the browser context menu. Failed clipboard writes show an
+  error toast.
+- **Clipboard image paste** — Ctrl+V with an image on the clipboard saves it to
+  `/tmp/claude-paste-<timestamp>.png` and types the file path into the terminal so Claude
+  can read it directly. Text pastes are unaffected.
+- **Always-visible terminal scrollbar** — scrollbar is now permanently visible (6px,
+  `rgba(255,255,255,0.2)`) rather than only appearing on hover.
+
+### Bug fixes
+- **Session events log — missing spaces** — Claude Code renders spaces as `ESC[1C`
+  (cursor-forward-1) rather than literal 0x20. The ANSI stripper now converts `ESC[NC` to N
+  spaces, so word spacing is preserved in the events log.
+- **Session events log — greedy escape catch-all** — the previous `\x1b[^\x1b]*` fallback
+  regex could eat entire lines of text if an unrecognised escape sequence appeared mid-line.
+  Replaced with `\x1b.` (two-char sequences only).
+- **Terminal scroll sensitivity** — raised from 1 line/event to 3 (fast: 5→10) so scrolling
+  back through output is not sluggish.
+
+---
+
 ## v2.01 — 2026-04-17
 
 **Released to beta:** 2026-04-17  
