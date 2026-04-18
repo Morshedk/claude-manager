@@ -1,317 +1,116 @@
 /**
- * QA Pipeline — bug: blank-terminal-switch-back
+ * QA Pipeline — bug: session-log-formatting
  *
- * Reproduces: switching away from a tmux session and back shows blank terminal.
+ * Unit test for lib/utils/stripAnsi.js
  *
- * Flow:
- *   1. Start isolated server on temp port
- *   2. Create a tmux session via WS; grab ID from session:state (not session:created,
- *      which is blocked by the watchdog logSessionLifecycle error)
- *   3. Subscribe via WS, send "echo SWITCH_BACK_SENTINEL" as input, wait for it to
- *      appear in session:output, then close the setup WS — this populates _previewBuffer
- *      on fixed code, or leaves it empty on broken code
- *   4. Open browser with Playwright, navigate to the session
- *   5. Verify sentinel is visible in terminal (tests first-subscribe path)
- *   6. Navigate away to a second session
- *   7. Navigate back to original session (second subscribe)
- *   8. Assert sentinel is still visible — FAIL on broken code (blank), PASS on fixed code
+ * Tests 3 and 4 FAIL on current broken code (bare \r deleted instead of
+ * treated as a line boundary), PASS after the correct fix.
  *
- * Port: 3488
+ * Run with:  node qa-pipeline/test.js
+ * Exit 0 → all PASS, Exit 1 → at least one FAIL
  */
 
-import { chromium } from 'playwright';
-import { execSync, spawn } from 'child_process';
-import path from 'path';
-import fs from 'fs';
-import WebSocket from 'ws';
+import { stripAnsi } from '../lib/utils/stripAnsi.js';
+import assert from 'assert';
 
-const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3488;
-const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SENTINEL = 'SWITCH_BACK_SENTINEL';
+let passed = 0;
+let failed = 0;
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-let serverProc = null;
-let tmpDir = '';
-let browser = null;
-let page = null;
-// Track tmux sessions created so we can clean them up
-const createdTmuxSessions = [];
-
-async function waitForServer(timeout = 20000) {
-  const deadline = Date.now() + timeout;
-  while (Date.now() < deadline) {
-    try {
-      const r = await fetch(`${BASE_URL}/api/projects`);
-      if (r.ok) return;
-    } catch {}
-    await sleep(300);
-  }
-  throw new Error(`Server failed to start within ${timeout}ms`);
-}
-
-/**
- * Create a tmux session via WS. Returns the session ID.
- * Grabs ID from session:state events since session:created may be blocked
- * by the watchdog logSessionLifecycle error in the current codebase.
- */
-async function createTmuxSession(projectId, name, timeout = 15000) {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://127.0.0.1:${PORT}`);
-    const t = setTimeout(() => {
-      ws.close();
-      reject(new Error(`WS timeout creating session after ${timeout}ms`));
-    }, timeout);
-
-    let sessionId = null;
-
-    ws.on('message', (raw) => {
-      const msg = JSON.parse(raw.toString());
-
-      if (msg.type === 'init') {
-        ws.send(JSON.stringify({
-          type: 'session:create',
-          projectId,
-          name,
-          // mode:tmux — this is the mode with the bug.
-          // Command is just 'bash'; server will append --session-id which bash rejects,
-          // but TmuxSession wraps it as: bash -c "bash --session-id uuid; exec bash"
-          // so exec bash gives us a working shell regardless.
-          mode: 'tmux',
-          command: 'bash',
-        }));
-      }
-
-      // Grab the session ID from state events (session:created may not arrive
-      // due to watchdogManager.logSessionLifecycle not being a function)
-      if ((msg.type === 'session:state' || msg.type === 'session:created') && !sessionId) {
-        sessionId = msg.id || (msg.session && msg.session.id);
-      }
-
-      // Resolve once session reaches running state
-      if (msg.type === 'session:state' && msg.state === 'running' && sessionId) {
-        clearTimeout(t);
-        ws.close();
-        resolve(sessionId);
-      }
-    });
-
-    ws.on('error', (e) => { clearTimeout(t); reject(e); });
-  });
-}
-
-/**
- * Subscribe to a session, send input, wait for sentinel to appear,
- * then close the connection. This populates _previewBuffer on fixed code.
- */
-async function populateSentinel(sessionId, timeout = 30000) {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://127.0.0.1:${PORT}`);
-    const t = setTimeout(() => {
-      ws.close();
-      reject(new Error(`Sentinel never appeared in session output within ${timeout}ms`));
-    }, timeout);
-
-    let subscribed = false;
-    let sentinelSent = false;
-
-    ws.on('message', (raw) => {
-      const msg = JSON.parse(raw.toString());
-
-      if (msg.type === 'init') {
-        ws.send(JSON.stringify({ type: 'session:subscribe', id: sessionId }));
-      }
-
-      if (msg.type === 'session:subscribed' && msg.id === sessionId) {
-        subscribed = true;
-        // Wait a moment for shell to be ready, then send the sentinel command
-        setTimeout(() => {
-          ws.send(JSON.stringify({
-            type: 'session:input',
-            id: sessionId,
-            data: `echo ${SENTINEL}\r`,
-          }));
-          sentinelSent = true;
-        }, 1500);
-      }
-
-      if (msg.type === 'session:output' && msg.id === sessionId && sentinelSent) {
-        if (msg.data && msg.data.includes(SENTINEL)) {
-          clearTimeout(t);
-          // Close after brief delay so _previewBuffer has time to accumulate
-          setTimeout(() => { ws.close(); resolve(); }, 500);
-        }
-      }
-    });
-
-    ws.on('error', (e) => { clearTimeout(t); reject(e); });
-  });
-}
-
-async function setup() {
-  try { execSync(`fuser -k ${PORT}/tcp 2>/dev/null || true`); } catch {}
-  await sleep(500);
-
-  tmpDir = execSync('mktemp -d /tmp/qa-switch-back-XXXXXX').toString().trim();
-  console.log(`[setup] tmpDir: ${tmpDir}`);
-
-  const projADir = path.join(tmpDir, 'project-a');
-  const projBDir = path.join(tmpDir, 'project-b');
-  fs.mkdirSync(projADir, { recursive: true });
-  fs.mkdirSync(projBDir, { recursive: true });
-
-  fs.writeFileSync(path.join(tmpDir, 'projects.json'), JSON.stringify({
-    projects: [
-      { id: 'proj-a', name: 'Project Alpha', path: projADir, createdAt: '2026-01-01T00:00:00.000Z', settings: {} },
-      { id: 'proj-b', name: 'Project Beta',  path: projBDir, createdAt: '2026-01-01T00:00:00.000Z', settings: {} },
-    ],
-    scratchpad: [],
-  }));
-
-  serverProc = spawn('node', ['server-with-crash-log.mjs'], {
-    cwd: APP_DIR,
-    env: { ...process.env, DATA_DIR: tmpDir, PORT: String(PORT) },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  serverProc.stdout.on('data', d => process.stdout.write(`[srv] ${d}`));
-  serverProc.stderr.on('data', d => process.stdout.write(`[srv:ERR] ${d}`));
-
-  await waitForServer();
-  console.log('[setup] Server ready');
-
-  // Session A — the session under test (tmux)
-  console.log('[setup] Creating Session A (tmux)...');
-  const sessionAId = await createTmuxSession('proj-a', 'session-a');
-  console.log(`[setup] Session A: ${sessionAId}`);
-  createdTmuxSessions.push(`cm-${sessionAId.slice(0, 8)}`);
-
-  // Populate sentinel into session A via WS input, then close connection.
-  // On fixed code: _previewBuffer now contains the sentinel.
-  // On broken code: no buffer exists; second subscriber will get blank terminal.
-  console.log('[setup] Populating sentinel into Session A...');
-  await populateSentinel(sessionAId);
-  console.log(`[setup] Sentinel "${SENTINEL}" confirmed in Session A output`);
-
-  // Session B — used only as the "other session" to navigate to
-  console.log('[setup] Creating Session B (tmux)...');
-  const sessionBId = await createTmuxSession('proj-b', 'session-b');
-  console.log(`[setup] Session B: ${sessionBId}`);
-  createdTmuxSessions.push(`cm-${sessionBId.slice(0, 8)}`);
-
-  return { sessionAId, sessionBId };
-}
-
-async function teardown() {
-  if (page) { try { await page.close(); } catch {} }
-  if (browser) { try { await browser.close(); } catch {} }
-  if (serverProc) { try { serverProc.kill('SIGTERM'); } catch {} }
-  for (const name of createdTmuxSessions) {
-    try { execSync(`tmux kill-session -t ${name} 2>/dev/null || true`); } catch {}
-  }
-  if (tmpDir) { try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {} }
-  console.log('[teardown] Complete');
-}
-
-async function getTerminalText() {
-  return page.evaluate(() => {
-    const rows = document.querySelectorAll('.xterm-rows > div');
-    return Array.from(rows).map(r => r.textContent).join('\n');
-  });
-}
-
-async function run() {
-  let passed = false;
-  let failReason = '';
-
+function test(name, fn) {
   try {
-    const { sessionAId } = await setup();
-
-    browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
-    page = await browser.newPage();
-    await page.setViewportSize({ width: 1400, height: 900 });
-
-    // ── Step 1: Navigate to app ───────────────────────────────────────────────
-    console.log('\n[T] Step 1: Navigate to app...');
-    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-    await sleep(1500);
-    await page.screenshot({ path: `${tmpDir}/step1-loaded.png` });
-
-    // ── Step 2: Open Project Alpha → Session A ────────────────────────────────
-    console.log('[T] Step 2: Open Session A...');
-    await page.locator('text=Project Alpha').first().waitFor({ timeout: 10000 });
-    await page.locator('text=Project Alpha').first().click();
-    await sleep(600);
-    await page.locator('text=session-a').first().waitFor({ timeout: 10000 });
-    await page.locator('text=session-a').first().click();
-    await sleep(1500);
-    await page.screenshot({ path: `${tmpDir}/step2-session-a.png` });
-
-    // ── Step 3: Verify sentinel visible in terminal ───────────────────────────
-    console.log('[T] Step 3: Waiting for sentinel in terminal...');
-    let sentinelVisible = false;
-    const deadline = Date.now() + 20000;
-    while (Date.now() < deadline) {
-      const text = await getTerminalText();
-      if (text.includes(SENTINEL)) { sentinelVisible = true; break; }
-      await sleep(500);
-    }
-    if (!sentinelVisible) {
-      const t = await getTerminalText();
-      await page.screenshot({ path: `${tmpDir}/step3-no-sentinel.png` });
-      throw new Error(`Sentinel never appeared before switch-away. Terminal: "${t.slice(0, 300)}"`);
-    }
-    console.log('[T] ✓ Sentinel visible before switch-away');
-    await page.screenshot({ path: `${tmpDir}/step3-sentinel-visible.png` });
-
-    // ── Step 4: Navigate away to Project Beta → Session B ─────────────────────
-    console.log('[T] Step 4: Navigate away to Session B...');
-    await page.locator('text=Project Beta').first().click();
-    await sleep(400);
-    await page.locator('text=session-b').first().waitFor({ timeout: 10000 });
-    await page.locator('text=session-b').first().click();
-    await sleep(1000);
-    await page.screenshot({ path: `${tmpDir}/step4-session-b.png` });
-    console.log('[T] Navigated to Session B');
-
-    // ── Step 5: Navigate back to Session A ───────────────────────────────────
-    console.log('[T] Step 5: Navigate back to Session A...');
-    await page.locator('text=Project Alpha').first().click();
-    await sleep(400);
-    await page.locator('text=session-a').first().waitFor({ timeout: 10000 });
-    await page.locator('text=session-a').first().click();
-    await sleep(1500);
-    await page.screenshot({ path: `${tmpDir}/step5-returned.png` });
-
-    // ── Step 6: Assert sentinel still visible after switch-back ──────────────
-    console.log('[T] Step 6: Asserting sentinel visible after switch-back...');
-    const textAfter = await getTerminalText();
-    console.log(`[T] Terminal text after return (first 300): "${textAfter.slice(0, 300)}"`);
-
-    if (textAfter.includes(SENTINEL)) {
-      passed = true;
-      console.log('[T] ✓ PASS — sentinel visible after switch-back');
-    } else {
-      failReason = `Terminal blank after switch-back. Got: "${textAfter.slice(0, 200)}"`;
-      console.log(`[T] ✗ FAIL — ${failReason}`);
-    }
-    await page.screenshot({ path: `${tmpDir}/step6-final.png` });
-
+    fn();
+    console.log(`PASS  ${name}`);
+    passed++;
   } catch (err) {
-    failReason = err.message;
-    console.error(`\n[T] ✗ ERROR — ${err.message}`);
-    if (page) await page.screenshot({ path: `${tmpDir}/error.png` }).catch(() => {});
-  } finally {
-    await teardown();
-  }
-
-  if (passed) {
-    console.log('\n=== RESULT: PASS ===');
-    process.exit(0);
-  } else {
-    console.log(`\n=== RESULT: FAIL ===\nReason: ${failReason}`);
-    process.exit(1);
+    console.log(`FAIL  ${name}`);
+    console.log(`      ${err.message}`);
+    failed++;
   }
 }
 
-run();
+// Test 1: cursor-forward \x1b[1C between tokens produces a space
+// (cursor-forward fix already in place — this is a regression guard)
+test('\\x1b[1C between tokens produces a space', () => {
+  const input = '\x1b[38;5;114m\u25cf\x1b[1C\x1b[39m\x1b[1mBash\x1b[22m\x1b[1C(git\x1b[1Ccheckout\x1b[1Cbeta)\r\r\n';
+  const output = stripAnsi(input);
+  assert.doesNotMatch(output, /\x1b/, 'raw \\x1b still present in output');
+  assert.match(output, /Bash \(git/,    'space missing between "Bash" and "(git"');
+  assert.match(output, /git checkout/,  'space missing between "git" and "checkout"');
+  assert.match(output, /checkout beta/, 'space missing between "checkout" and "beta"');
+});
+
+// Test 2: cursor-forward \x1b[5C produces 5 leading spaces
+// (regression guard)
+test('\\x1b[5C produces 5 leading spaces', () => {
+  const input = '\x1b[5CnStore.save()\x1b[1Cprevents\r\r\n';
+  const output = stripAnsi(input);
+  assert.doesNotMatch(output, /\x1b/, 'raw \\x1b still present in output');
+  assert.ok(
+    output.startsWith('     '),
+    `expected 5 leading spaces, got: "${output.slice(0, 15).replace(/\n/g, '\\n').replace(/\r/g, '\\r')}"`
+  );
+  assert.match(output, /nStore\.save\(\) prevents/, 'spacing wrong in "nStore.save() prevents"');
+});
+
+// Test 3: bare \r must not merge adjacent lines — THE CORE BUG
+//
+// From spec Preliminary Investigation:
+//   stripAnsi("line1\r\rline2\r\r\n") currently returns "line1line2\n"
+//   Expected: lines appear separately (not merged into one string)
+//
+// THIS TEST FAILS ON CURRENT CODE.
+test('bare \\r does not merge adjacent lines (core spec regression)', () => {
+  const input = 'line1\r\rline2\r\r\n';
+  const output = stripAnsi(input);
+  assert.ok(
+    !output.includes('line1line2'),
+    `lines were concatenated: got "${output.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}" — must not be merged`
+  );
+  const lines = output.split('\n').filter(l => l.length > 0);
+  assert.ok(lines.some(l => l.includes('line1')), `"line1" not found as its own line in: ${JSON.stringify(lines)}`);
+  assert.ok(lines.some(l => l.includes('line2')), `"line2" not found as its own line in: ${JSON.stringify(lines)}`);
+});
+
+// Test 4: spinner-pattern \r overwrite must not concatenate output
+//
+// Claude Code uses bare \r to overwrite the current line (spinners, progress).
+// Deleting \r merges the original and the overwrite into one string.
+//
+// THIS TEST FAILS ON CURRENT CODE.
+test('spinner-pattern \\r overwrite does not concatenate lines', () => {
+  const input = 'Running...\rDone      \r\n';
+  const output = stripAnsi(input);
+  assert.doesNotMatch(output, /\x1b/, 'raw \\x1b still present in output');
+  assert.ok(
+    !output.includes('Running...Done'),
+    `overwrites were concatenated: got "${output.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}" — must not merge`
+  );
+});
+
+// Test 5: no raw escape codes remain in output (regression guard)
+test('no raw escape codes remain in output', () => {
+  const input = [
+    '\x1b[38;5;114mcolored text\x1b[0m',
+    '\x1b]0;window title\x07',
+    '\x1b(Bcharset',
+    '\x1b=alt keypad',
+    '\x1b[2J clear screen',
+    '\x1b[3Acursor up 3',
+  ].join('\n');
+  const output = stripAnsi(input);
+  assert.doesNotMatch(output, /\x1b/, `raw \\x1b found in output: ${JSON.stringify(output.slice(0, 120))}`);
+  assert.match(output, /colored text/, '"colored text" was stripped along with escape codes');
+  assert.match(output, /charset/,      '"charset" was stripped along with G-set escape');
+  assert.match(output, /clear screen/, '"clear screen" was stripped along with CSI');
+});
+
+// Summary
+console.log('');
+console.log(`Results: ${passed} passed, ${failed} failed`);
+if (failed > 0) {
+  console.log('\n=== RESULT: FAIL ===');
+  process.exit(1);
+} else {
+  console.log('\n=== RESULT: PASS ===');
+  process.exit(0);
+}
