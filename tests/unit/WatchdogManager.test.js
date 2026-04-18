@@ -656,6 +656,7 @@ describe('WatchdogManager — tick', () => {
     wd._checkSession = jest.fn().mockResolvedValue(undefined);
     wd.killOrphanBuns = jest.fn().mockReturnValue(0);
     wd.checkResources = jest.fn().mockReturnValue({ alerts: [] });
+    wd.checkCcusage = jest.fn().mockResolvedValue(null);
     wd.tmuxSessionExists = jest.fn().mockReturnValue(false);
     wd.summarizeSession = jest.fn().mockResolvedValue(null);
     // Disable save/load so no disk I/O during tick
@@ -714,6 +715,37 @@ describe('WatchdogManager — tick', () => {
     expect(events[0].creditState).toBe('exhausted');
     // _checkSession should NOT have been called
     expect(watchdog._checkSession).not.toHaveBeenCalled();
+  });
+
+  test('tick calls checkCcusage and appends creditSnapshot to session logs', async () => {
+    const fakeSnapshot = {
+      timestamp: new Date().toISOString(),
+      type: 'creditSnapshot',
+      block: { costUSD: 9.5, totalTokens: 3000000, isActive: true, burnRate: { costPerHour: 2.1 }, projection: { totalCost: 11.0, remainingMinutes: 45 } },
+      todayCostUSD: 22.3,
+    };
+
+    const wd = createWatchdog();
+    wd.checkCcusage = jest.fn().mockResolvedValue(fakeSnapshot);
+    wd._checkSession = jest.fn().mockResolvedValue(undefined);
+    wd.checkResources = jest.fn().mockReturnValue({ alerts: [] });
+    wd.tmuxSessionExists = jest.fn().mockReturnValue(false);
+    wd.killOrphanBuns = jest.fn();
+    wd.sendTelegram = jest.fn().mockResolvedValue(true);
+
+    await wd.tick();
+
+    expect(wd.checkCcusage).toHaveBeenCalled();
+
+    // Snapshot appended to each SESSIONS log
+    for (const sess of SESSIONS) {
+      const log = wd.getLog(sess.name);
+      const snap = log.find(e => e.type === 'creditSnapshot');
+      expect(snap).toBeDefined();
+      expect(snap.block.costUSD).toBe(9.5);
+    }
+
+    wd.stop();
   });
 });
 
