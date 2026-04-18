@@ -1,6 +1,6 @@
 import { html } from 'htm/preact';
 import { connected, serverVersion, serverEnv } from '../state/store.js';
-import { openSettingsModal } from '../state/actions.js';
+import { openSettingsModal, manualReconnect } from '../state/actions.js';
 
 /**
  * TopBar — app-level header.
@@ -34,10 +34,21 @@ export function TopBar() {
       <div class="global-stats"></div>
 
       <div class="topbar-right">
-        <div class="system-status">
-          <div class="status-dot ${isConnected ? 'connected' : 'error'}"></div>
-          <span class="status-text">${isConnected ? 'Connected' : 'Disconnected'}</span>
-        </div>
+        ${isConnected
+          ? html`<div class="system-status" title="Already connected">
+              <div class="status-dot connected"></div>
+              <span class="status-text">Connected</span>
+            </div>`
+          : html`<button
+              type="button"
+              class="system-status system-status-clickable"
+              title="Click to reconnect now"
+              onClick=${manualReconnect}
+            >
+              <div class="status-dot error"></div>
+              <span class="status-text">Disconnected</span>
+            </button>`
+        }
         <button
           class="btn btn-ghost btn-sm"
           title="Settings"

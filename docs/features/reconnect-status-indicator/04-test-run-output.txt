@@ -1,0 +1,54 @@
+=== T-1: Connected state — indicator is NOT clickable ===
+Result: PASS
+Attempts: 1
+Duration: 5.0s
+Key observations:
+  - .system-status element is a DIV (tagName = DIV) when connected
+  - title="Already connected" confirmed
+  - Computed cursor = "auto" (not pointer)
+  - Click produced zero "Reconnecting" toast elements
+  - .status-dot.connected remained present after click
+Fix applied: none
+
+=== T-2: Disconnected state — click triggers reconnect ===
+Result: PASS
+Attempts: 1
+Duration: 4.7s
+Key observations:
+  - After server SIGKILL, .status-dot.error appeared and .system-status became <button>
+  - After server restart and button click: "Reconnecting" toast appeared (waitForSelector resolved within 500ms window)
+  - Click-to-connected latency: 78ms (well under 1000ms threshold; auto-retry at 3000ms was irrelevant)
+  - After reconnect, .system-status reverted to <div>
+Fix applied: none
+
+=== T-3: Same-origin safety — WebSocket URL built from window.location ===
+Result: PASS
+Attempts: 2
+Duration: 4.7s (attempt 2)
+Key observations:
+  - Initial WS URL: ws://localhost:3203/ (exact match confirmed)
+  - After manual reconnect click, second WS URL: ws://localhost:3203/ (exact match confirmed)
+  - Both URLs identical — same protocol, host, port as page origin
+  - connection.js source (read from disk) contains "location.host" derivation
+  - connection.js contains no hardcoded ws:// strings
+Fix applied (attempt 1→2): Static source assertion used `page.evaluate(() => fetch('/public/js/ws/connection.js').text())`
+  which failed because the server serves public/ as root (path should be /js/ws/connection.js),
+  and backtick template rendering added ambiguity. Fixed by reading the file directly from disk
+  with `fs.readFileSync(path.join(APP_DIR, 'public', 'js', 'ws', 'connection.js'))`.
+  This is an infrastructure fix (URL path wrong) — assertion logic (checking location.host is
+  used, no hardcoded ws://) is unchanged.
+
+=== T-4 (adversarial): Rapid clicks while disconnected — only one socket per real close ===
+Result: PASS
+Attempts: 1
+Duration: 9.9s
+Key observations:
+  - Initial WS count: 1
+  - After 10 rapid clicks while server was down: 0 new WS connections (OPEN/CONNECTING guard prevented all)
+  - After server restart, auto-retry fired: 1 new WS connection
+  - Total WS URLs across entire test: 2 (well under the ≤ 4 limit)
+  - All WS URLs were ws://127.0.0.1:3204/ — no cross-origin leakage
+  - 0 new sockets from 10 clicks proves the OPEN/CONNECTING guard in reconnectNow() works:
+    since the server was down, the first reconnectNow() call created a CONNECTING socket
+    (or the socket was still in CLOSING state), and subsequent clicks were no-ops
+Fix applied: none

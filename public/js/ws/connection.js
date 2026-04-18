@@ -108,7 +108,37 @@ export function once(type, handler) {
 }
 
 /**
+ * Trigger an immediate reconnect, bypassing the auto-reconnect timer.
+ *
+ * SAFETY: Do NOT add a URL parameter to this function. The WebSocket URL is
+ * derived from `location.protocol` and `location.host` inside `connect()`.
+ * Same-origin is a hard invariant — the URL must never come from user input.
+ */
+export function reconnectNow() {
+  // Cancel any pending auto-reconnect so it cannot race this manual call.
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+
+  if (!_ws) {
+    connect();
+    return;
+  }
+
+  const state = _ws.readyState;
+  if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) {
+    // Already open or connecting — nothing to do.
+    return;
+  }
+  if (state === WebSocket.CLOSING) {
+    // Let the close event finish first, then open a new socket.
+    setTimeout(connect, 0);
+    return;
+  }
+  // CLOSED or any other state — connect immediately.
+  connect();
+}
+
+/**
  * Compatibility object export — allows `import { ws } from './connection.js'`
  * and calling `ws.send(...)`, `ws.on(...)`, etc.
  */
-export const ws = { connect, send, on, off, once };
+export const ws = { connect, send, on, off, once, reconnectNow };

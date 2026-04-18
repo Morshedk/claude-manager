@@ -1,4 +1,4 @@
-import { send } from '../ws/connection.js';
+import { send, reconnectNow } from '../ws/connection.js';
 import { CLIENT } from '../ws/protocol.js';
 import {
   sessions, projects, attachedSessionId,
@@ -6,7 +6,7 @@ import {
   newSessionModalOpen, settingsModalOpen, newProjectModalOpen,
   editProjectModalOpen, editProjectTarget,
   editSessionModalOpen, editSessionTarget,
-  fileSplitTarget, splitView,
+  fileSplitTarget, splitView, connected,
 } from './store.js';
 import { upsertSession, removeSession } from './sessionState.js';
 
@@ -144,6 +144,16 @@ export function closeNewSessionModal() { newSessionModalOpen.value = false; }
 
 export function openSettingsModal() { settingsModalOpen.value = true; }
 export function closeSettingsModal() { settingsModalOpen.value = false; }
+
+/**
+ * Trigger an immediate manual reconnect when the WebSocket is disconnected.
+ * No-op when already connected (defense in depth — TopBar also gates on this).
+ */
+export function manualReconnect() {
+  if (connected.value) return;
+  showToast('Reconnecting…', 'info', 1500);
+  reconnectNow();
+}
 
 export function openNewProjectModal() { newProjectModalOpen.value = true; }
 export function closeNewProjectModal() { newProjectModalOpen.value = false; }
