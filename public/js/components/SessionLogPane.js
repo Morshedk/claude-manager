@@ -1,7 +1,8 @@
 // public/js/components/SessionLogPane.js
 import { html } from 'htm/preact';
 import { useState, useEffect, useRef, useCallback } from 'preact/hooks';
-import { openFileInThirdSpace } from '../state/actions.js';
+import { openFileInThirdSpace, showToast } from '../state/actions.js';
+import { copyText } from '../utils/clipboard.js';
 
 const FILE_PATH_RE = /((?:\/|~\/)[\w.\-/]+\.\w[\w]*)/g;
 
@@ -111,6 +112,17 @@ export function SessionLogPane({ sessionId }) {
         <span style="font-size:12px;font-weight:600;color:var(--text-bright);">Session Events</span>
         <div style="flex:1;"></div>
         ${loading ? html`<span style="font-size:10px;color:var(--text-muted);">Loading…</span>` : null}
+        <button
+          onClick=${() => {
+            if (lines.length === 0) return;
+            copyText(lines.join('\n')).then(
+              () => showToast('Copied to clipboard', 'success'),
+              () => showToast('Copy failed', 'error'),
+            );
+          }}
+          style="font-size:11px;color:var(--text-muted);background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:2px 7px;cursor:pointer;"
+          title="Copy all log lines"
+        >⎘ Copy</button>
         <a
           href=${`/api/sessionlog/${sessionId}/full`}
           download
