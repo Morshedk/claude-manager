@@ -3,6 +3,7 @@ import { useRef, useLayoutEffect } from 'preact/hooks';
 import { on, off, send } from '../ws/connection.js';
 import { SERVER, CLIENT } from '../ws/protocol.js';
 import { showToast } from '../state/actions.js';
+import { copyText } from '../utils/clipboard.js';
 
 // ── Full theme matching TerminalPane ──────────────────────────────────────────
 const XTERM_THEME = {
@@ -90,9 +91,9 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
       if (isCtrlC || isCmdC || isCtrlShiftC) {
         const sel = xterm.getSelection();
         if (sel.length > 0) {
-          navigator.clipboard.writeText(sel).then(
+          copyText(sel).then(
             () => showToast('Copied to clipboard', 'success'),
-            () => showToast('Copy failed — check clipboard permissions', 'error'),
+            () => showToast('Copy failed', 'error'),
           );
           xterm.clearSelection();
           return false;
@@ -138,9 +139,9 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
       const sel = xterm.getSelection();
       if (sel.length > 0) {
         e.preventDefault();
-        navigator.clipboard.writeText(sel).then(
+        copyText(sel).then(
           () => showToast('Copied to clipboard', 'success'),
-          () => showToast('Copy failed — check clipboard permissions', 'error'),
+          () => showToast('Copy failed', 'error'),
         );
         xterm.clearSelection();
       }
