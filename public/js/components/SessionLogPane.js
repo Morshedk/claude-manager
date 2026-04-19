@@ -1,6 +1,36 @@
 // public/js/components/SessionLogPane.js
 import { html } from 'htm/preact';
 import { useState, useEffect, useRef, useCallback } from 'preact/hooks';
+import { openFileInThirdSpace } from '../state/actions.js';
+
+const FILE_PATH_RE = /((?:\/|~\/)[\w.\-/]+\.\w[\w]*)/g;
+
+function lineColor(line) {
+  if (line.startsWith('===')) return 'var(--warning)';
+  if (line.startsWith('---')) return 'var(--text-muted)';
+  return 'var(--text-secondary)';
+}
+
+function renderLineWithPaths(line, color) {
+  const parts = [];
+  let lastIdx = 0;
+  let m;
+  FILE_PATH_RE.lastIndex = 0;
+  while ((m = FILE_PATH_RE.exec(line)) !== null) {
+    if (m.index > lastIdx) {
+      parts.push(line.slice(lastIdx, m.index));
+    }
+    const path = m[0];
+    parts.push(html`<span
+      style="color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px;"
+      onClick=${() => openFileInThirdSpace(path)}
+      title=${'Open ' + path}
+    >${path}</span>`);
+    lastIdx = m.index + path.length;
+  }
+  if (lastIdx < line.length) parts.push(line.slice(lastIdx));
+  return parts;
+}
 
 export function SessionLogPane({ sessionId }) {
   const [lines, setLines] = useState([]);
@@ -54,12 +84,6 @@ export function SessionLogPane({ sessionId }) {
     if (!loading && lines.length > 0) scrollToBottom();
   }, [loading]);
 
-  const lineColor = (line) => {
-    if (line.startsWith('===')) return 'var(--warning)';
-    if (line.startsWith('---')) return 'var(--text-muted)';
-    return 'var(--text-secondary)';
-  };
-
   return html`
     <div style="display:flex;flex-direction:column;height:100%;background:var(--bg-base);border-left:1px solid var(--border);overflow:hidden;">
       <!-- Header -->
@@ -81,7 +105,9 @@ export function SessionLogPane({ sessionId }) {
         ` : null}
         ${error ? html`<span style="color:var(--danger);">Error: ${error}</span>` : null}
         ${lines.map((line, i) => html`
-          <div key=${i} style=${'color:' + lineColor(line) + ';'}>${line}</div>
+          <div key=${i} style=${'color:' + lineColor(line) + ';'}>
+            ${renderLineWithPaths(line, lineColor(line))}
+          </div>
         `)}
         <div ref=${bottomRef}></div>
       </div>
