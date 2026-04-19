@@ -43,7 +43,7 @@ export function NewSessionModal() {
 
   const defaultCmd = buildDefaultCommand(s);
   const isLowCredit = s && s.lowCredit && s.lowCredit.enabled && s.lowCredit.active;
-  const settingsMode = (s && s.session && s.session.defaultMode) || 'direct';
+  const settingsMode = (s && s.session && s.session.defaultMode) || 'tmux';
 
   const [sessionName, setSessionName] = useState('');
   const [command, setCommand] = useState(defaultCmd);
