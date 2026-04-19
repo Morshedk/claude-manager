@@ -64,7 +64,7 @@ wss.on('connection', (ws) => {
   clientRegistry.send(clientId, {
     type: 'init',
     clientId,
-    serverVersion: '2.02',
+    serverVersion: '2.03',
     serverEnv: process.env.NODE_ENV === 'production' ? 'PROD' : 'BETA',
   });
 
