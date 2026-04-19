@@ -114,6 +114,89 @@ describe('SessionLogManager — startCapture()', () => {
 
 // --------------------------------------------------------------------------
 
+describe('SessionLogManager — startCapture() — scrollback catch-up on reconnect', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  test('does NOT call capture-pane on first start (no raw file yet)', () => {
+    const dir = makeTempDir();
+    const mgr = makeManager(dir);
+    // raw file does not exist (fresh temp dir)
+
+    mgr.startCapture(VALID_ID, 'cm-a1b2c3d4');
+
+    const capturePaneCall = mockExecSync.mock.calls.find(c => c[0].includes('capture-pane'));
+    expect(capturePaneCall).toBeUndefined();
+  });
+
+  test('calls capture-pane BEFORE pipe-pane when raw file already exists (reconnect)', () => {
+    const dir = makeTempDir();
+    const mgr = makeManager(dir);
+    // create the raw file to simulate a reconnect
+    const rawPath = join(dir, 'sessionlog', `${VALID_ID}.raw`);
+    writeFileSync(rawPath, 'prior captured content\n');
+
+    mockExecSync.mockReturnValue(Buffer.from('scrollback line\n'));
+    mgr.startCapture(VALID_ID, 'cm-a1b2c3d4');
+
+    const calls      = mockExecSync.mock.calls.map(c => c[0]);
+    const captureIdx = calls.findIndex(c => c.includes('capture-pane'));
+    const pipeIdx    = calls.findIndex(c => c.includes('pipe-pane'));
+    expect(captureIdx).toBeGreaterThanOrEqual(0);
+    expect(pipeIdx).toBeGreaterThanOrEqual(0);
+    expect(captureIdx).toBeLessThan(pipeIdx);
+  });
+
+  test('capture-pane call uses -p and -S -2000 flags', () => {
+    const dir = makeTempDir();
+    const mgr = makeManager(dir);
+    const rawPath = join(dir, 'sessionlog', `${VALID_ID}.raw`);
+    writeFileSync(rawPath, 'existing content\n');
+
+    mockExecSync.mockReturnValue(Buffer.from(''));
+    mgr.startCapture(VALID_ID, 'cm-a1b2c3d4');
+
+    const captureCall = mockExecSync.mock.calls.find(c => c[0].includes('capture-pane'))?.[0];
+    expect(captureCall).toContain('capture-pane');
+    expect(captureCall).toContain('-p');
+    expect(captureCall).toContain('-S -2000');
+    expect(captureCall).toContain('cm-a1b2c3d4');
+  });
+
+  test('pipe-pane still starts when capture-pane throws on reconnect', () => {
+    const dir = makeTempDir();
+    const mgr = makeManager(dir);
+    const rawPath = join(dir, 'sessionlog', `${VALID_ID}.raw`);
+    writeFileSync(rawPath, 'existing content\n');
+
+    mockExecSync
+      .mockImplementationOnce(() => { throw new Error('tmux: no pane'); }) // capture-pane fails
+      .mockReturnValue(Buffer.from('')); // pipe-pane succeeds
+
+    mgr.startCapture(VALID_ID, 'cm-a1b2c3d4');
+
+    const pipePaneCall = mockExecSync.mock.calls.find(c => c[0].includes('pipe-pane'));
+    expect(pipePaneCall).toBeDefined();
+    expect(mgr.capturing.has(VALID_ID)).toBe(true);
+  });
+
+  test('capture-pane output is appended to existing raw file', () => {
+    const dir = makeTempDir();
+    const mgr = makeManager(dir);
+    const rawPath = join(dir, 'sessionlog', `${VALID_ID}.raw`);
+    writeFileSync(rawPath, 'prior content\n');
+
+    const scrollback = Buffer.from('new scrollback line\n');
+    mockExecSync.mockReturnValue(scrollback);
+    mgr.startCapture(VALID_ID, 'cm-a1b2c3d4');
+
+    const rawContent = readFileSync(rawPath, 'utf8');
+    expect(rawContent).toContain('prior content');
+    expect(rawContent).toContain('new scrollback line');
+  });
+});
+
+// --------------------------------------------------------------------------
+
 describe('SessionLogManager — stopCapture()', () => {
   beforeEach(() => jest.clearAllMocks());
 
