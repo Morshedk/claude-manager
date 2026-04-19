@@ -775,6 +775,7 @@ body.file-split #workspace {
 
 /* ===== TERMINAL SCROLLBAR (always visible) ===== */
 .xterm-viewport {
+  overflow-y: scroll !important;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
