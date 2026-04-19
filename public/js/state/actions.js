@@ -7,6 +7,7 @@ import {
   editProjectModalOpen, editProjectTarget,
   editSessionModalOpen, editSessionTarget,
   fileSplitTarget, splitView, connected,
+  thirdSpaceTab, fileBrowserTarget,
 } from './store.js';
 import { upsertSession, removeSession } from './sessionState.js';
 
@@ -254,4 +255,10 @@ export function handleTodosUpdated(msg) {
   if (msg.projectId) {
     todos.value = { ...todos.value, [msg.projectId]: msg.todos };
   }
+}
+
+/** Navigate the third space FileBrowser to a specific file path */
+export function openFileInThirdSpace(path) {
+  fileBrowserTarget.value = path;
+  thirdSpaceTab.value = 'files';
 }

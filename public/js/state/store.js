@@ -113,3 +113,10 @@ export const fileSplitTarget = signal(null);
 // ── Toast notifications ───────────────────────────────────────────────────────
 /** Array of { id, message, type } toast notifications */
 export const toasts = signal([]);
+
+// ── Third space ───────────────────────────────────────────────────────────────
+/** Active tab in the third space: 'files' | 'todos' | <terminalId> */
+export const thirdSpaceTab = signal('files');
+
+/** File path to navigate to in FileBrowser; consumed and cleared by FileBrowser */
+export const fileBrowserTarget = signal(null);
