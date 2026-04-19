@@ -59,7 +59,7 @@ export function NewSessionModal() {
     const s2 = settings.value;
     setSessionName('');
     setCommand(buildDefaultCommand(s2));
-    setMode((s2 && s2.session && s2.session.defaultMode) || 'direct');
+    setMode((s2 && s2.session && s2.session.defaultMode) || 'tmux');
     setTelegramEnabled(false);
 
     // Check telegram status
