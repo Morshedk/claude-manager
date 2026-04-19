@@ -11,6 +11,26 @@ function lineColor(line) {
   return 'var(--text-secondary)';
 }
 
+function formatTimestamp(iso) {
+  const t = iso.split('T')[1];
+  return t ? t.replace('Z', '').split('.')[0] : iso;
+}
+
+function renderLine(line, i) {
+  const parts = line.split(' | ');
+  if (line.startsWith('===') && parts.length >= 2) {
+    const rawTs = parts[1]?.trim();
+    const isIso = rawTs && /^\d{4}-\d{2}-\d{2}T/.test(rawTs);
+    const timeStr = isIso ? formatTimestamp(rawTs) : null;
+    const displayText = timeStr ? parts[0] + ' | ' + parts.slice(2).join(' | ') : line;
+    return html`<div key=${i} style="display:flex;gap:8px;align-items:baseline;">
+      ${timeStr ? html`<span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);flex-shrink:0;letter-spacing:0.02em;opacity:0.85;">${timeStr}</span>` : null}
+      <span style="color:var(--warning);">${renderLineWithPaths(displayText, 'var(--warning)')}</span>
+    </div>`;
+  }
+  return html`<div key=${i} style=${'color:' + lineColor(line) + ';'}>${renderLineWithPaths(line, lineColor(line))}</div>`;
+}
+
 function renderLineWithPaths(line, color) {
   const parts = [];
   let lastIdx = 0;
@@ -104,11 +124,7 @@ export function SessionLogPane({ sessionId }) {
           <span style="color:var(--text-muted);font-style:italic;">No log yet — waiting for session output…</span>
         ` : null}
         ${error ? html`<span style="color:var(--danger);">Error: ${error}</span>` : null}
-        ${lines.map((line, i) => html`
-          <div key=${i} style=${'color:' + lineColor(line) + ';'}>
-            ${renderLineWithPaths(line, lineColor(line))}
-          </div>
-        `)}
+        ${lines.map((line, i) => renderLine(line, i))}
         <div ref=${bottomRef}></div>
       </div>
     </div>
