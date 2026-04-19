@@ -121,6 +121,13 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     // The canvas is correctly sized from the very first frame; no black-box flash.
     try { fitAddon.fit(); } catch {}
 
+    // Microtask re-fit: xterm's scrollBarWidth is only measured after the viewport
+    // DOM element syncs for the first time (on the first data write or scroll).
+    // The sync fit() above may see scrollBarWidth=0, calculating 1-2 extra cols.
+    // A microtask runs after the current synchronous block, giving xterm enough
+    // time to measure the real scrollbar width from the live DOM.
+    Promise.resolve().then(() => { try { fitAddon.fit(); } catch {} });
+
     xtermRef.current = { xterm, fitAddon };
 
     // ── Copy-to-clipboard: Ctrl+C / Cmd+C / Ctrl+Shift+C ─────────────────────
@@ -290,6 +297,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     // snapshot and resume live output.
     const handleReconnect = () => {
       xterm.reset();
+      try { fitAddon.fit(); } catch {}
       const dims = fitAddon.proposeDimensions();
       send({
         type: CLIENT.SESSION_SUBSCRIBE,
