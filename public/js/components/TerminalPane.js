@@ -11,7 +11,7 @@ const XTERM_THEME = {
   foreground:          '#d0d8e0',
   cursor:              '#00d4aa',
   cursorAccent:        '#0c1117',
-  selectionBackground: 'rgba(0,212,170,0.25)',
+  selectionBackground: 'rgba(0,212,170,0.4)',
   black:   '#1a2332', red:     '#f04848', green:  '#34c759', yellow: '#e8a020',
   blue:    '#4080ff', magenta: '#c060d0', cyan:   '#00c4aa', white:  '#c8d4e0',
   brightBlack:   '#253448', brightRed:     '#ff6060', brightGreen:  '#44d769',
@@ -243,14 +243,13 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
 
     // ── 6. WebSocket message handlers ─────────────────────────────────────────
 
-    // session:subscribed -> client clears xterm buffer before live output begins.
-    // This prevents buffer accumulation across reconnects/restarts.
+    // session:subscribed → server finished sending scrollback; re-fit and sync PTY dims.
+    // Note: reset() is intentionally NOT called here. The server streams scrollback as
+    // session:output events before sending subscribed, so reset() would erase the
+    // scrollback the user just received. On reconnect, handleReconnect already resets
+    // before re-subscribing, so there is no stale content to clear here.
     const handleSubscribed = (msg) => {
       if (msg.id !== sessionId) return;
-      xterm.reset();
-      // Re-fit terminal and sync dimensions with PTY after refresh/reconnect.
-      // Without this, the PTY may be at stale dimensions after restart.
-      // Mirrors the logic in the connection:open reconnect handler.
       requestAnimationFrame(() => {
         try { fitAddon.fit(); } catch {}
         xterm.focus();
