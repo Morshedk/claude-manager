@@ -2,7 +2,7 @@ import { html } from 'htm/preact';
 import { useRef, useLayoutEffect } from 'preact/hooks';
 import { on, off, send } from '../ws/connection.js';
 import { SERVER, CLIENT } from '../ws/protocol.js';
-import { showToast } from '../state/actions.js';
+import { showToast, openFileInThirdSpace } from '../state/actions.js';
 
 // ── Full theme matching v1 XTERM_THEME ────────────────────────────────────────
 const XTERM_THEME = {
@@ -84,6 +84,36 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
     } catch {}
 
     try { xterm.loadAddon(new WebLinksAddon.WebLinksAddon()); } catch {}
+
+    // Register file path link provider — clicks open the file in the third space
+    try {
+      xterm.registerLinkProvider({
+        provideLinks(bufferLineNumber, callback) {
+          const line = xterm.buffer.active.getLine(bufferLineNumber);
+          if (!line) { callback(undefined); return; }
+          const text = line.translateToString(true);
+          const re = /((?:\/|~\/)[\w.\-/]+\.\w[\w]*)/g;
+          const links = [];
+          let m;
+          while ((m = re.exec(text)) !== null) {
+            const filePath = m[0];
+            const x1 = m.index + 1; // xterm columns are 1-based
+            const x2 = m.index + filePath.length;
+            links.push({
+              range: {
+                start: { x: x1, y: bufferLineNumber },
+                end: { x: x2, y: bufferLineNumber },
+              },
+              text: filePath,
+              activate(_e, _text) { openFileInThirdSpace(filePath); },
+            });
+          }
+          callback(links);
+        },
+      });
+    } catch (e) {
+      console.warn('[TerminalPane] link provider failed:', e);
+    }
 
     // Fit synchronously — useLayoutEffect fires before the browser paints, and
     // the container already has its resolved flex dimensions at this point.
