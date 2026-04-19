@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { showToast, openFileSplit } from '../state/actions.js';
-import { attachedSessionId } from '../state/store.js';
+import { attachedSessionId, fileBrowserTarget } from '../state/store.js';
 import { FileContentView } from './FileContentView.js';
 import { formatBytes } from '../utils/format.js';
 
@@ -37,6 +37,18 @@ export function FileBrowser({ projectId, projectPath }) {
   const [activeFile, setActiveFile] = useState(null);
   const [pathInput, setPathInput] = useState('');
   const dirAbortRef = useRef(null);
+
+  // Navigate to external filepath requests (from clickable paths in terminal/events)
+  const navTarget = fileBrowserTarget.value;
+  useEffect(() => {
+    if (!navTarget) return;
+    const parts = navTarget.split('/');
+    parts.pop(); // strip filename to get directory
+    const dir = parts.join('/') || '/';
+    loadDirectory(dir);
+    setActiveFile(navTarget);
+    fileBrowserTarget.value = null; // consume
+  }, [navTarget]);
 
   // Load directory on mount and when currentPath changes
   useEffect(() => {
