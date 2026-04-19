@@ -2,10 +2,10 @@
  * QA Pipeline — bug: session-log-no-timestamps
  *
  * Tests that SessionLogManager.tailLog() returns timestamp/event markers
- * even when the log is dominated by blank spinner lines.
+ * even when the log is dominated by spinner noise lines (blank OR non-blank).
  *
- * Tests 2 and 3 FAIL on current broken code (500-line hard tail swamps
- * markers), PASS after the correct fix.
+ * Tests 2, 3, and 4 FAIL on original broken code.
+ * All tests PASS after the fix.
  *
  * Run with:  node qa-pipeline/test.js
  * Exit 0 → all PASS, Exit 1 → at least one FAIL
@@ -20,7 +20,8 @@ import assert from 'assert';
 const tmpDir = join(tmpdir(), `qa-sessionlog-${Date.now()}`);
 mkdirSync(join(tmpDir, 'sessionlog'), { recursive: true });
 
-const SESSION_ID = '00000000-0000-0000-0000-000000000001';
+const SESSION_BLANK  = '00000000-0000-0000-0000-000000000001';
+const SESSION_SPINNER = '00000000-0000-0000-0000-000000000002';
 
 let passed = 0;
 let failed = 0;
@@ -37,72 +38,82 @@ function test(name, fn) {
   }
 }
 
-// Build a synthetic .log file that mirrors an active Claude Code session:
-//
-//   Line 1:   (empty — injectEvent leading newline)
-//   Line 2:   === PTY:ATTACH | ts1 | session attached ===
-//   Line 3:   (empty)
-//   Line 4:   --- ts2 ---          ← tick 1 timestamp marker
-//   Lines 5-604: 600 blank lines  ← simulated spinner output from tick 1
-//   Line 605: --- ts3 ---          ← tick 2 timestamp marker
-//   Lines 606-1205: 600 blank lines ← simulated spinner output from tick 2
-//
-// Total: ~1205 lines. Last marker (ts3) is at line 605 — 600 lines before EOF.
-// tailLog(id, 500) on CURRENT code slices the last 500 lines (all blank) → markers invisible.
-// The fix must ensure markers survive into the returned window.
+// ── Scenario A: markers buried under BLANK lines ──────────────────────────────
+// (original bug: 500-line tail was all blank)
 
 const ts1 = '2026-04-18T10:00:00.000Z';
 const ts2 = '2026-04-18T10:00:20.000Z';
 const ts3 = '2026-04-18T10:00:40.000Z';
 
-const blankBatch = '\n'.repeat(600);
-
-const logContent =
+const blankLog =
   `\n=== PTY:ATTACH | ${ts1} | session attached ===\n` +
   `\n--- ${ts2} ---\n` +
-  blankBatch +
+  '\n'.repeat(600) +
   `\n--- ${ts3} ---\n` +
-  blankBatch;
+  '\n'.repeat(600);
 
-writeFileSync(join(tmpDir, 'sessionlog', `${SESSION_ID}.log`), logContent);
+writeFileSync(join(tmpDir, 'sessionlog', `${SESSION_BLANK}.log`), blankLog);
 
-const manager = new SessionLogManager({ dataDir: tmpDir });
-const tail = manager.tailLog(SESSION_ID, 500);
+// ── Scenario B: markers buried under NON-BLANK spinner lines ─────────────────
+// (second bug: spinner chars like ✢ ✶ ✻ are non-blank, still swamp the window)
 
-// Test 1: tailLog returns an array (infrastructure check)
+const spinnerNoise = Array.from({ length: 600 }, (_, i) =>
+  ['✢', '✶', '✻', '✽', '·', '●', '* Sketching…', '  Thinking…'][i % 8]
+).join('\n');
+
+const spinnerLog =
+  `\n=== PTY:ATTACH | ${ts1} | session attached ===\n` +
+  `\n--- ${ts2} ---\n` +
+  spinnerNoise + '\n' +
+  `\n--- ${ts3} ---\n` +
+  spinnerNoise + '\n';
+
+writeFileSync(join(tmpDir, 'sessionlog', `${SESSION_SPINNER}.log`), spinnerLog);
+
+const mgr = new SessionLogManager({ dataDir: tmpDir });
+
+// Test 1: tailLog returns an array
 test('tailLog returns an array', () => {
-  assert.ok(Array.isArray(tail), `expected array, got ${typeof tail}: ${JSON.stringify(tail)}`);
+  const tail = mgr.tailLog(SESSION_BLANK, 500);
+  assert.ok(Array.isArray(tail), `expected array, got ${typeof tail}`);
 });
 
-// Test 2: timestamp marker visible in tail — THIS FAILS ON CURRENT CODE
-//
-// Current behavior: last 600 blank lines fill the 500-line window; markers are
-// >600 lines before EOF and invisible. Fix must surface them.
-test('at least one --- timestamp --- line visible in 500-line tail (spec Then clause)', () => {
+// Test 2: timestamp visible when buried under BLANK lines
+test('--- timestamp --- visible in tail when buried under blank lines', () => {
+  const tail = mgr.tailLog(SESSION_BLANK, 500);
   const found = (tail || []).some(l => /^--- 2026-04-18T/.test(l.trim()));
-  const nonBlank = (tail || []).filter(l => l.trim()).length;
-  assert.ok(
-    found,
-    `No "--- 2026-04-18T..." timestamp found in tail.\n` +
-    `  Tail length: ${(tail || []).length}, non-blank lines: ${nonBlank}.\n` +
-    `  First non-blank line: ${(tail || []).find(l => l.trim()) || '(none)'}\n` +
-    `  This test FAILS on current code because the 500-line tail is entirely blank.`
-  );
+  assert.ok(found,
+    `No timestamp found. Tail (${(tail||[]).length} lines): ` +
+    JSON.stringify((tail||[]).slice(0, 5)));
 });
 
-// Test 3: PTY:ATTACH event marker visible in tail — THIS FAILS ON CURRENT CODE
-//
-// Same root cause: PTY:ATTACH is injected near the top of the log, >600 lines
-// before EOF after two ticks of spinner output. Invisible in a 500-line tail.
-test('at least one === PTY:ATTACH === event line visible in 500-line tail (spec Then clause)', () => {
+// Test 3: event marker visible when buried under BLANK lines
+test('=== PTY:ATTACH === visible in tail when buried under blank lines', () => {
+  const tail = mgr.tailLog(SESSION_BLANK, 500);
   const found = (tail || []).some(l => /^=== PTY:ATTACH \|/.test(l.trim()));
-  const nonBlank = (tail || []).filter(l => l.trim()).length;
-  assert.ok(
-    found,
-    `No "=== PTY:ATTACH |..." event found in tail.\n` +
-    `  Tail length: ${(tail || []).length}, non-blank lines: ${nonBlank}.\n` +
-    `  This test FAILS on current code because the 500-line tail is entirely blank.`
-  );
+  assert.ok(found,
+    `No PTY:ATTACH event found. Tail (${(tail||[]).length} lines): ` +
+    JSON.stringify((tail||[]).slice(0, 5)));
+});
+
+// Test 4: timestamp visible when buried under NON-BLANK spinner lines
+// This is the second failure mode: spinner chars like ✢ ✶ ✻ are non-blank
+// and swamp the window even after blank-line filtering.
+test('--- timestamp --- visible in tail when buried under spinner noise lines', () => {
+  const tail = mgr.tailLog(SESSION_SPINNER, 500);
+  const found = (tail || []).some(l => /^--- 2026-04-18T/.test(l.trim()));
+  assert.ok(found,
+    `No timestamp found in spinner-noise session. Tail (${(tail||[]).length} lines): ` +
+    JSON.stringify((tail||[]).slice(0, 5)));
+});
+
+// Test 5: event marker visible when buried under NON-BLANK spinner lines
+test('=== PTY:ATTACH === visible in tail when buried under spinner noise lines', () => {
+  const tail = mgr.tailLog(SESSION_SPINNER, 500);
+  const found = (tail || []).some(l => /^=== PTY:ATTACH \|/.test(l.trim()));
+  assert.ok(found,
+    `No PTY:ATTACH event found in spinner-noise session. Tail (${(tail||[]).length} lines): ` +
+    JSON.stringify((tail||[]).slice(0, 5)));
 });
 
 // Cleanup
