@@ -27,7 +27,7 @@ const XTERM_THEME = {
  * - WebGL renderer only (CanvasAddon version is incompatible — loads orphaned canvases)
  * - useLayoutEffect fires before browser paint: fit() runs synchronously so the
  *   canvas is correctly sized from the very first frame (no black-box flash)
- * - On session:subscribed -> xterm.reset() clears buffer before live output
+ * - On session:subscribed → xterm.reset() clears stale buffer; scrollback arrives after
  * - On session:output → write live PTY stream
  * - DA/DA2 responses from xterm replaying scrollback are filtered before forwarding
  *
@@ -243,13 +243,12 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
 
     // ── 6. WebSocket message handlers ─────────────────────────────────────────
 
-    // session:subscribed → server finished sending scrollback; re-fit and sync PTY dims.
-    // Note: reset() is intentionally NOT called here. The server streams scrollback as
-    // session:output events before sending subscribed, so reset() would erase the
-    // scrollback the user just received. On reconnect, handleReconnect already resets
-    // before re-subscribing, so there is no stale content to clear here.
+    // session:subscribed → clear stale buffer, then server sends fresh scrollback.
+    // Server protocol: subscribed fires BEFORE scrollback so reset() clears any
+    // stale content (wrong session, wrong cols) before the new scrollback arrives.
     const handleSubscribed = (msg) => {
       if (msg.id !== sessionId) return;
+      xterm.reset();
       requestAnimationFrame(() => {
         try { fitAddon.fit(); } catch {}
         xterm.focus();
