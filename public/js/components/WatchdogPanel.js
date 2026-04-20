@@ -14,6 +14,7 @@ export function WatchdogPanel() {
   const [logsError, setLogsError] = useState(null);
   const [creditSnapshot, setCreditSnapshot] = useState(null);
   const [creditHistory, setCreditHistory] = useState([]);
+  const [hiddenSeries, setHiddenSeries] = useState(new Set());
 
   const s = settings.value || {};
   const wdSettings = s.watchdog || {};
@@ -155,26 +156,109 @@ export function WatchdogPanel() {
         ` : null}
         ${creditHistory.length >= 2 ? html`
           <div style="padding:8px 0 2px;">
-            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:4px;">Burn Rate $/hr</div>
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:6px;">Burn Rate $/hr · By Session</div>
             ${(function() {
-              const vals = creditHistory.map(d => d.burnRateCostPerHour ?? 0);
-              const max = Math.max(...vals, 0.01);
-              const W = 300, H = 50, pad = 3;
-              const pts = vals.map((v, i) => {
-                const x = pad + (i / (vals.length - 1)) * (W - 2 * pad);
-                const y = H - pad - (v / max) * (H - 2 * pad);
-                return x.toFixed(1) + ',' + y.toFixed(1);
-              }).join(' ');
+              const PALETTE = ['#4488ff', '#00ccdd', '#44dd88', '#cc66ff', '#ddcc00'];
+
+              // Define series from the most recent history entry that has session data
+              const latestWithSessions = [...creditHistory].reverse().find(h => h.sessionSnapshot?.sessions?.length > 0);
+              const sessionSeries = (latestWithSessions?.sessionSnapshot?.sessions || []).map((s, i) => ({
+                id: s.id, label: s.label, color: PALETTE[i] || '#888888',
+              }));
+
+              // Compute burn-rate points (Δcost/Δtime) between consecutive history entries
+              const pts = [];
+              for (let i = 1; i < creditHistory.length; i++) {
+                const prev = creditHistory[i - 1], cur = creditHistory[i];
+                const dtH = (new Date(cur.timestamp) - new Date(prev.timestamp)) / 3600000;
+                if (dtH < 0.001) continue;
+                const pt = { t: new Date(cur.timestamp).getTime() };
+                pt.watchdog = Math.max(0, ((cur.sessionSnapshot?.watchdog || 0) - (prev.sessionSnapshot?.watchdog || 0)) / dtH);
+                pt.other = Math.max(0, ((cur.sessionSnapshot?.other || 0) - (prev.sessionSnapshot?.other || 0)) / dtH);
+                for (const s of sessionSeries) {
+                  const c = (cur.sessionSnapshot?.sessions || []).find(x => x.id === s.id)?.cost || 0;
+                  const p = (prev.sessionSnapshot?.sessions || []).find(x => x.id === s.id)?.cost || 0;
+                  pt[s.id] = Math.max(0, (c - p) / dtH);
+                }
+                pts.push(pt);
+              }
+
+              // Fall back to total sparkline while session data accumulates
+              if (pts.length < 2 || !latestWithSessions) {
+                const vals = creditHistory.map(d => d.burnRateCostPerHour || 0);
+                const maxV = Math.max(...vals, 0.01);
+                const W2 = 300, H2 = 50, pad = 3;
+                const sparkPts = vals.map((v, i) => {
+                  const x = pad + (i / (vals.length - 1)) * (W2 - 2 * pad);
+                  const y = H2 - pad - (v / maxV) * (H2 - 2 * pad);
+                  return x.toFixed(1) + ',' + y.toFixed(1);
+                }).join(' ');
+                return html`
+                  <svg viewBox="0 0 ${W2} ${H2}" style="width:100%;height:50px;display:block;" preserveAspectRatio="none">
+                    <polyline points="${sparkPts}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                  </svg>
+                  <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Session data accumulating…</div>
+                `;
+              }
+
+              // Chart geometry
+              const W = 600, H = 190, pL = 44, pR = 8, pT = 10, pB = 22;
+              const cW = W - pL - pR, cH = H - pT - pB;
+              const tMin = pts[0].t, tMax = pts[pts.length - 1].t;
+              const xOf = t => pL + ((t - tMin) / (tMax - tMin || 1)) * cW;
+              const allVals = pts.flatMap(p => [p.watchdog, p.other, ...sessionSeries.map(s => p[s.id] || 0)]);
+              const maxY = Math.max(...allVals, 0.1);
+              const yOf = v => pT + (1 - Math.min(v, maxY) / maxY) * cH;
+              const poly = key => pts.map(p => `${xOf(p.t).toFixed(1)},${yOf(p[key] || 0).toFixed(1)}`).join(' ');
+              const yLabels = [1, 0.75, 0.5, 0.25, 0].map(f => ({ y: pT + (1 - f) * cH, val: (maxY * f).toFixed(2) }));
+
+              const allSeries = [
+                ...sessionSeries.map(s => ({ key: s.id, label: s.label, color: s.color, always: false })),
+                { key: 'watchdog', label: 'watchdog', color: '#ff8800', always: true, dash: '6,2' },
+                { key: 'other', label: 'other', color: '#555577', always: false, dash: '3,3' },
+              ];
+
+              const toggleSeries = key => setHiddenSeries(prev => {
+                const next = new Set(prev);
+                if (next.has(key)) next.delete(key); else next.add(key);
+                return next;
+              });
+
               return html`
-                <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;display:block;" preserveAspectRatio="none">
-                  <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;" preserveAspectRatio="none">
+                  ${yLabels.map(g => html`
+                    <line x1="${pL}" y1="${g.y.toFixed(1)}" x2="${W - pR}" y2="${g.y.toFixed(1)}" stroke="#2a2a45" stroke-width="1"/>
+                    <text x="${pL - 3}" y="${(g.y + 3).toFixed(0)}" font-size="8" fill="#666688" text-anchor="end">${g.val}</text>
+                  `)}
+                  <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT + cH}" stroke="#444466" stroke-width="1"/>
+                  <line x1="${pL}" y1="${pT + cH}" x2="${W - pR}" y2="${pT + cH}" stroke="#444466" stroke-width="1"/>
+                  <text x="${pL}" y="${H - 4}" font-size="8" fill="#666688" text-anchor="middle">${timeAgo(new Date(pts[0].t).toISOString())}</text>
+                  <text x="${W - pR}" y="${H - 4}" font-size="8" fill="#666688" text-anchor="end">now</text>
+                  ${allSeries.filter(s => !hiddenSeries.has(s.key) || s.always).map(s => html`
+                    <polyline
+                      points="${poly(s.key)}"
+                      fill="none"
+                      stroke="${s.color}"
+                      stroke-width="${s.always ? '2.5' : '1.5'}"
+                      stroke-linejoin="round"
+                      stroke-dasharray="${s.dash || ''}"
+                    />
+                  `)}
                 </svg>
+                <div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;">
+                  ${allSeries.map(s => html`
+                    <div
+                      onClick=${() => { if (!s.always) toggleSeries(s.key); }}
+                      style="display:flex;align-items:center;gap:5px;cursor:${s.always ? 'default' : 'pointer'};font-size:10px;color:var(--text-primary);opacity:${hiddenSeries.has(s.key) ? '0.35' : '1'};"
+                    >
+                      <span style="width:14px;height:3px;background:${s.color};display:inline-block;border-radius:1px;flex-shrink:0;"></span>
+                      ${s.label}
+                      ${s.always ? html`<span style="font-size:8px;color:#ff8800;">locked</span>` : null}
+                    </div>
+                  `)}
+                </div>
               `;
             })()}
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px;">
-              <span>${creditHistory.length > 0 ? timeAgo(creditHistory[0].timestamp) : ''}</span>
-              <span>now</span>
-            </div>
           </div>
         ` : null}
       </div>
