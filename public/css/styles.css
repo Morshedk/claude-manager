@@ -777,14 +777,14 @@ body.file-split #workspace {
 .xterm-viewport {
   overflow-y: scroll !important;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.4) rgba(255,255,255,0.04);
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
 .xterm-viewport::-webkit-scrollbar { width: 6px; }
-.xterm-viewport::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+.xterm-viewport::-webkit-scrollbar-track { background: transparent; }
 .xterm-viewport::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.2);
   border-radius: 3px;
 }
 .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.4);
 }
