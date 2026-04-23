@@ -18,6 +18,19 @@ pm2 restart claude-v2-beta
 
 **To create a QA branch:** branch off `main` (or `beta` if the fix targets beta-only code), do the work, merge into `beta` to deploy.
 
+## Local Skills
+
+Custom skills live at `~/.claude/skills/` and are NOT auto-surfaced by any plugin. Always invoke them by name via the `Skill` tool when the task matches.
+
+| Skill | When to use |
+|-------|-------------|
+| `qa` | Any bug report — full Bug Report Pipeline (spec → test → confirm failure → fix → verify) |
+| `dev` | New feature — multi-agent design → implement → test pipeline |
+| `test` | Ad-hoc adversarial/UX testing of a specific change |
+| `evaluate-app` | Holistic app quality evaluation |
+
+**For bugs: always invoke `qa` before doing anything else.**
+
 ## Servers
 
 Managed by PM2. Never start with `node` directly.

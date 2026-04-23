@@ -71,6 +71,7 @@ const PLAYWRIGHT_TESTS = [
   '**/adversarial/T-49-auth-fail-graceful.test.js',
   '**/adversarial/T-50-concurrent-refresh.test.js',
   '**/adversarial/T-51-refresh-typing.test.js',
+  '**/adversarial/T-52-session-switch-no-garble.test.js',
   // ── B / F series ─────────────────────────────────────────────────────────
   '**/adversarial/B-rendering.test.js',
   '**/adversarial/F-bug-reproductions.test.js',
