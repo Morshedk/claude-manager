@@ -1,0 +1,77 @@
+=== T-1: DA2 response leak (\x1b[>0;276;0c) ===
+Pre-fix result: FAIL (leaked frames detected)
+  - 1 session:input frame with DA2 response: 1b 5b 3e 30 3b 32 37 36 3b 30 63 (\x1b[>0;276;0c)
+  - Trigger: after browser subscribes, inject `printf '\x1b[>c'\n` into live PTY; xterm auto-replies
+Post-fix result: PASS (0 leaked frames)
+Attempts: 3 (infrastructure fix: corrected trigger timing — must inject AFTER browser subscribes)
+Duration: ~26s
+Key observations:
+  - The xterm DA2 auto-reply fires through onData only when the DA2 query arrives in the live stream
+    while the terminal is mounted. Pre-seeding scrollback before browser connects does not work because
+    DirectSession has no scrollback replay — it only streams live PTY output from the point of subscribe.
+  - Infrastructure fix applied: moved injection to after browser has subscribed to session.
+  - xterm confirms it's an "xterm" terminal type and uses triggerDataEvent for DA2 replies.
+Fix applied: None to test logic; infrastructure fix only (injection timing).
+
+=== T-2: OSC color query response leak (\x1b]10;rgb:...\x1b\) ===
+Pre-fix result: FAIL (leaked frames detected)
+  - 2 session:input frames with OSC responses:
+    * 1b 5d 31 30 3b 72 67 62 3a 64 30 64 30 2f 64 38 64 38 2f 65 30 65 30 1b 5c (\x1b]10;rgb:d0d0/d8d8/e0e0\x1b\)
+    * 1b 5d 31 31 3b 72 67 62 3a 30 63 30 63 2f 31 31 31 31 2f 31 37 31 37 1b 5c (\x1b]11;rgb:0c0c/1111/1717\x1b\)
+  - Trigger: inject `printf '\x1b]10;?\x07' && printf '\x1b]11;?\x07'\n` into live PTY
+  - Note: xterm replies with ST terminator (\x1b\) not BEL (\x07) — the fix regex handles both
+Post-fix result: PASS (0 leaked frames)
+Attempts: 1 (clean run after T-1 infrastructure fix applied to same timing pattern)
+Duration: ~25s
+Key observations:
+  - xterm generates OSC color responses via triggerDataEvent when it processes OSC color queries
+  - Responses use C1_ESCAPED.ST (\x1b\\) not BEL, confirming the fix regex needs both terminators
+  - The fix regex /^\x1b\]\d+;[^\x07\x1b]*(\x07|\x1b\\)$/ correctly catches both variants
+Fix applied: None (same timing fix as T-1 already applied).
+
+=== T-3: SGR mouse event leak (\x1b[<0;col;rowM) ===
+Pre-fix result: FAIL (leaked frames detected)
+  - 6 session:input frames with SGR mouse events:
+    * \x1b[<0;40;21M (mousedown), \x1b[<0;40;21m (mouseup), \x1b[<0;42;21M, \x1b[<0;42;21m, etc.
+  - Trigger: inject `printf '\x1b[?1000h\x1b[?1006h'\n` via live PTY, then dispatchEvent MouseEvents
+Post-fix result: PASS (0 leaked frames)
+Attempts: 3 (infrastructure fix: mouse mode alone insufficient; required dispatchEvent on .xterm-screen)
+Duration: ~28s
+Key observations:
+  - ?1000h (VT200 protocol) + ?1006h (SGR encoding) required together
+  - Playwright's page.mouse.down/up alone insufficient in headless mode; dispatchEvent on .xterm-screen
+    element was required to reliably trigger xterm's internal mouse event handler
+  - After the fix, all 6 mouse event frames are blocked before reaching send()
+  - The fix regex /^\x1b\[<[\d;]+[Mm]$/ correctly matches press (M) and release (m) events
+Fix applied: Two infrastructure fixes:
+  1. Inject AFTER browser subscribes (same as T-1)
+  2. Use dispatchEvent with {bubbles:true} on .xterm-screen to reliably trigger mouse mode in headless
+
+=== T-4: Normal input still flows (anti-over-filter) ===
+Pre-fix result: PASS (no leaks — correct, this is an anti-over-filter test)
+  - 11 session:input frames captured for "echo hello\r"
+  - All 10 expected chars present (e c h o   h e l l o)
+Post-fix result: PASS
+  - 11 session:input frames captured for "echo hello\r"
+  - All 10 expected chars present
+Attempts: 1
+Duration: ~27s
+Key observations:
+  - Normal keyboard input is completely unaffected by the fix
+  - Characters end in letters A-D/not c/n/M/m so no regex matches
+Fix applied: None.
+
+=== T-5: Arrow keys, special keys, and DA1 regression guard ===
+Pre-fix result: PASS
+  - 8 arrow key frames captured (\x1b[A, \x1b[B, \x1b[C, \x1b[D × 2 each)
+  - 0 DA1 response frames leaked (existing filter already handles \x1b[?1;2c)
+Post-fix result: PASS
+  - 8 arrow key frames captured (same)
+  - 0 DA1 response frames leaked (rewritten regex still handles DA1 correctly)
+Attempts: 1
+Duration: ~27s
+Key observations:
+  - Arrow keys (\x1b[A-D) end in A-D letters, not matched by any of the 3 filter patterns
+  - DA1 response (\x1b[?1;2c): ? hits the new [\?>\d] char class, 1;2 hits [;\d]*, c terminates
+  - The rewritten DA/DA2 regex correctly filters DA1 without regression
+Fix applied: None.

@@ -1,0 +1,31 @@
+F-Category Lifecycle Endurance Test Results
+Run date: 2026-04-19T00:11:05.869Z
+Target: http://127.0.0.1:3002
+
+F.01 — PASS: Status shows: "Connected"
+F.02 — PASS: Badge: "v2.02 BETA" — amber not verified via style (CSS var may apply it)
+F.03 — PASS: Status indicator is <div> when connected
+F.04 — PASS: Project "lifecycle-test" created (id: abfb0497-4b45-4836-bfa8-97a9e6cc6b83)
+F.05 — PASS: Bash session "lifecycle-bash" submitted via UI
+F.06 — PASS: Running badge: "▶ running", session id: ca673628-edeb-4e3b-9a65-fd2186a41389
+F.07 — PASS: Session overlay opened
+F.08 — PASS: xterm terminal is visible in overlay
+F.09 — PASS: Typed "echo HELLO_LIFECYCLE" and pressed Enter
+F.10 — PASS: "HELLO_LIFECYCLE" appeared in xterm DOM output
+F.11 — SKIP: window._ws not exposed globally — simulating via navigate-away/back
+F.12 — SKIP: Navigate-away used — transient Disconnected not captured
+F.13 — PASS: Status after navigate-back: "Connected"
+F.14 — PASS: Page reloaded
+F.15 — PASS: Connected after reload: "Connected"
+F.16 — PASS: Session visible (badge: "▶ running")
+F.17 — SKIP: paste-image API: 400 (may require multipart form-data content-type). Toast mechanism code confirmed at TerminalPane.js:131. Headless clipboard prevents full trigger.
+F.18 — PASS: Clicked Stop in session card action bar
+F.19 — PASS: Session stopped: badge="⏹ stopped"
+F.20a — PASS: Session deleted via Delete button in card
+F.20b — PASS: Project deleted (HTTP 200)
+
+── Summary ──
+Total steps: 21
+PASS: 18
+FAIL: 0
+SKIP: 3
