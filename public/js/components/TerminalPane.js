@@ -252,7 +252,6 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
         try { fitAddon.fit(); } catch {}
         xterm.focus();
         const dims = fitAddon.proposeDimensions();
-        console.log(`[TerminalPane] SUBSCRIBED id=${sessionId.slice(0,8)} post-fit proposeDimensions=${JSON.stringify(dims)} containerW=${container.clientWidth}px`);
         if (dims) {
           send({ type: CLIENT.SESSION_RESIZE, id: sessionId, cols: dims.cols, rows: dims.rows });
         }
@@ -285,7 +284,6 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
       const initDims = fitAddon.proposeDimensions();
       const sendCols = initDims?.cols || cols;
       const sendRows = initDims?.rows || rows;
-      console.log(`[TerminalPane] SUBSCRIBE id=${sessionId.slice(0,8)} proposeDimensions=${JSON.stringify(initDims)} sending cols=${sendCols} rows=${sendRows} containerW=${container.clientWidth}px`);
       send({ type: CLIENT.SESSION_SUBSCRIBE, id: sessionId,
         cols: sendCols,
         rows: sendRows,
