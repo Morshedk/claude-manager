@@ -1,17 +1,29 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { jest } from '@jest/globals';
 import { ProjectStore } from '../../lib/projects/ProjectStore.js';
 
 let tmpDir;
 let store;
+let existsSyncSpy;
 
 beforeEach(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'proj-test-'));
   store = new ProjectStore(path.join(tmpDir, 'projects.json'));
+  // ProjectStore.create/update validates path exists on disk.
+  // Tests use fake paths (/home/user/app, /a, etc.) that don't exist.
+  // Mock existsSync to return true for fake paths, real result for /tmp paths
+  // (so _save()'s dir-creation logic still works correctly).
+  const realExistsSync = fs.existsSync.bind(fs);
+  existsSyncSpy = jest.spyOn(fs, 'existsSync').mockImplementation((p) => {
+    if (typeof p === 'string' && p.startsWith('/tmp')) return realExistsSync(p);
+    return true;
+  });
 });
 
 afterEach(() => {
+  existsSyncSpy.mockRestore();
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
