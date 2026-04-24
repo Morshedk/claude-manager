@@ -37,7 +37,7 @@ export function WatchdogPanel() {
   async function loadHistory() {
     try {
       const data = await fetch('/api/watchdog/credit-history').then(r => r.ok ? r.json() : []);
-      if (Array.isArray(data)) setCreditHistory(data.slice(-48));
+      if (Array.isArray(data)) setCreditHistory(data);
     } catch {
       setCreditHistory([]);
     }
@@ -182,6 +182,9 @@ export function WatchdogPanel() {
                 }
                 pts.push(pt);
               }
+              // Discard points older than 10 days
+              const tenDaysCutoff = Date.now() - 10 * 24 * 3600000;
+              while (pts.length > 0 && pts[0].t < tenDaysCutoff) pts.shift();
 
               // Fall back to total sparkline while session data accumulates
               if (pts.length < 2 || !latestWithSessions) {
@@ -206,6 +209,18 @@ export function WatchdogPanel() {
               const cW = W - pL - pR, cH = H - pT - pB;
               const tMin = pts[0].t, tMax = pts[pts.length - 1].t;
               const xOf = t => pL + ((t - tMin) / (tMax - tMin || 1)) * cW;
+              const SIX_H = 6 * 3600000;
+              const firstTick = Math.ceil(tMin / SIX_H) * SIX_H;
+              const xTicks = [];
+              for (let t = firstTick; t <= tMax; t += SIX_H) {
+                const d = new Date(t);
+                const h = d.getHours();
+                xTicks.push({
+                  x: xOf(t),
+                  isMidnight: h === 0,
+                  label: h === 0 ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : `${h}h`,
+                });
+              }
               const allVals = pts.flatMap(p => [p.watchdog, p.other, ...sessionSeries.map(s => p[s.id] || 0)]);
               const maxY = Math.max(...allVals, 0.1);
               const yOf = v => pT + (1 - Math.min(v, maxY) / maxY) * cH;
@@ -232,8 +247,10 @@ export function WatchdogPanel() {
                   `)}
                   <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT + cH}" stroke="#444466" stroke-width="1"/>
                   <line x1="${pL}" y1="${pT + cH}" x2="${W - pR}" y2="${pT + cH}" stroke="#444466" stroke-width="1"/>
-                  <text x="${pL}" y="${H - 4}" font-size="8" fill="#666688" text-anchor="middle">${timeAgo(new Date(pts[0].t).toISOString())}</text>
-                  <text x="${W - pR}" y="${H - 4}" font-size="8" fill="#666688" text-anchor="end">now</text>
+                  ${xTicks.map(tick => html`
+                    <line x1="${tick.x.toFixed(1)}" y1="${(pT + cH).toFixed(1)}" x2="${tick.x.toFixed(1)}" y2="${(pT + cH + 4).toFixed(1)}" stroke="${tick.isMidnight ? '#666688' : '#444466'}" stroke-width="1"/>
+                    <text x="${tick.x.toFixed(1)}" y="${H - 3}" font-size="7" fill="${tick.isMidnight ? '#8888aa' : '#555577'}" text-anchor="middle">${tick.label}</text>
+                  `)}
                   ${allSeries.filter(s => !hiddenSeries.has(s.key) || s.always).map(s => html`
                     <polyline
                       points="${poly(s.key)}"
