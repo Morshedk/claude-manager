@@ -34,9 +34,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3102;
+const PORTS = { direct: 3102, tmux: 3702 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T05-resume-on-refresh');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T05-resume-on-refresh-${MODE}`);
 const PROJECT_PATH = '/tmp/qa-T05-project';
 const PROJECT_ID = 'proj-t05';
 
@@ -46,7 +50,7 @@ function ts() {
   return `+${((Date.now() - (ts._t0 || (ts._t0 = Date.now()))) / 1000).toFixed(1)}s`;
 }
 
-test.describe('T-05 — Refresh preserves conversation (--resume)', () => {
+test.describe(`T-05 — Refresh preserves conversation (--resume) [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let browser = null;
@@ -293,7 +297,7 @@ test.describe('T-05 — Refresh preserves conversation (--resume)', () => {
           projectId: PROJECT_ID,
           name: `T05-haiku-iter${i + 1}`,
           command: 'claude --model claude-haiku-4-5-20251001 --dangerously-skip-permissions --strict-mcp-config',
-          mode: 'direct',
+          mode: MODE,
           cols: 120,
           rows: 30,
         }));
@@ -598,3 +602,4 @@ test.describe('T-05 — Refresh preserves conversation (--resume)', () => {
     ).toBe(iterations.length);
   });
 });
+} // end for (const MODE of MODES)

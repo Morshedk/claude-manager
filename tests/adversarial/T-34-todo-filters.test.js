@@ -26,14 +26,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3131;
+const PORTS = { direct: 3131, tmux: 3731 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-34-todo-filters');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-34-todo-filters-${MODE}`);
 const HARNESS_FILE = path.join(APP_DIR, 'public', 'test-harness-T34.html');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-34 — TODO Priority Filters Hide/Show Items', () => {
+test.describe(`T-34 — TODO Priority Filters Hide/Show Items [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let projectId = '';
@@ -278,3 +282,4 @@ test.describe('T-34 — TODO Priority Filters Hide/Show Items', () => {
     }
   });
 });
+} // end for (const MODE of MODES)

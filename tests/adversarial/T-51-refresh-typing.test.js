@@ -39,9 +39,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3151;
+const PORTS = { direct: 3151, tmux: 3751 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T51-refresh-typing');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T51-refresh-typing-${MODE}`);
 
 const SLOW = !!process.env.SLOW;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -49,7 +53,7 @@ const humanDelay = SLOW ? (ms = 800) => sleep(ms) : () => Promise.resolve();
 
 // ── Server lifecycle ──────────────────────────────────────────────────────────
 
-test.describe('T-51 — Typing after Refresh without clicking terminal', () => {
+test.describe(`T-51 — Typing after Refresh without clicking terminal [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let testProjectId = '';
@@ -426,3 +430,4 @@ test.describe('T-51 — Typing after Refresh without clicking terminal', () => {
     }
   });
 });
+} // end for (const MODE of MODES)

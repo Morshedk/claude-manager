@@ -26,16 +26,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3108;
+const PORTS = { direct: 3108, tmux: 3708 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T11-first-5-minutes');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T11-first-5-minutes-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 let serverProc = null;
 let tmpDir = '';
 
-test.describe('T-11 — New User First 5 Minutes', () => {
+test.describe(`T-11 — New User First 5 Minutes [${MODE}]`, () => {
 
   test.beforeAll(async () => {
     fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
@@ -309,3 +313,4 @@ test.describe('T-11 — New User First 5 Minutes', () => {
   });
 
 });
+} // end for (const MODE of MODES)

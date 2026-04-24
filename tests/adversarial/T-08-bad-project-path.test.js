@@ -14,7 +14,11 @@ import fs from 'fs';
 import path from 'path';
 import http from 'http';
 
-const PORT = 3105;
+const PORTS = { direct: 3105, tmux: 3705 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://localhost:${PORT}`;
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
 const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots/T-08-bad-path');
@@ -274,3 +278,4 @@ test('T-08 final: no projects created after all bad-path attempts', async () => 
   }
   expect(list.length, 'Final: no projects should exist after 3 bad-path attempts').toBe(0);
 });
+} // end for (const MODE of MODES)

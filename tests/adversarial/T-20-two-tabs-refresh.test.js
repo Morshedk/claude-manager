@@ -28,9 +28,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3117;
+const PORTS = { direct: 3117, tmux: 3717 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T20-two-tabs');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T20-two-tabs-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -73,7 +77,7 @@ let projectId = 'proj-t20';
 let testSessionId = null;
 let ctrlWs = null;
 
-test.describe('T-20 — Two Tabs, One Refresh', () => {
+test.describe(`T-20 — Two Tabs, One Refresh [${MODE}]`, () => {
 
   test.beforeAll(async () => {
     fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
@@ -130,7 +134,7 @@ test.describe('T-20 — Two Tabs, One Refresh', () => {
       projectId,
       name: 't20-shared-session',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     });
@@ -395,3 +399,4 @@ test.describe('T-20 — Two Tabs, One Refresh', () => {
 
 // Workaround: page2.screenshot → need page var in scope (was shadowed by page1 locator)
 // Correction: page1.screenshot is called directly as page1 is in scope
+} // end for (const MODE of MODES)

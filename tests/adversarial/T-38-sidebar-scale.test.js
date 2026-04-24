@@ -21,10 +21,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3135;
+const PORTS = { direct: 3135, tmux: 3735 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const WS_URL = `ws://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T38-sidebar-scale');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T38-sidebar-scale-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -72,7 +76,7 @@ function waitForMsg(ws, predicate, timeout = 10000) {
   });
 }
 
-test.describe('T-38 — 10-Project Sidebar Layout and Navigation', () => {
+test.describe(`T-38 — 10-Project Sidebar Layout and Navigation [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let projectsMeta = [];
@@ -125,7 +129,7 @@ test.describe('T-38 — 10-Project Sidebar Layout and Navigation', () => {
         projectId: proj.id,
         name: `session-for-proj-${num}`,
         command: 'bash',
-        mode: 'direct',
+        mode: MODE,
         cols: 80,
         rows: 24,
       }));
@@ -350,3 +354,4 @@ test.describe('T-38 — 10-Project Sidebar Layout and Navigation', () => {
     console.log(`\n  T-38: ALL CHECKS PASSED`);
   });
 });
+} // end for (const MODE of MODES)

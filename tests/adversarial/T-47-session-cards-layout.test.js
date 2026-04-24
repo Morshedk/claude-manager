@@ -24,13 +24,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3144;
+const PORTS = { direct: 3144, tmux: 3744 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 't47-session-cards-layout');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `t47-session-cards-layout-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-47 — 10+ Session Cards Layout', () => {
+test.describe(`T-47 — 10+ Session Cards Layout [${MODE}]`, () => {
 
   let serverProc = null;
   let dataDir = '';
@@ -118,7 +122,7 @@ test.describe('T-47 — 10+ Session Cards Layout', () => {
               projectId: 'proj-t47',
               name,
               command: 'bash',
-              mode: 'direct',
+              mode: MODE,
             }));
             await sleep(200);
           }
@@ -366,3 +370,4 @@ test.describe('T-47 — 10+ Session Cards Layout', () => {
   });
 
 });
+} // end for (const MODE of MODES)

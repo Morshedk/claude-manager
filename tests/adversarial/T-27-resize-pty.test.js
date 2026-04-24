@@ -28,9 +28,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3124;
+const PORTS = { direct: 3124, tmux: 3724 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T27-resize-pty');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T27-resize-pty-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -88,7 +92,7 @@ async function waitForStatus(baseUrl, sessionId, targetStatus, timeoutMs = 12000
 
 // ── Test suite ─────────────────────────────────────────────────────────────────
 
-test.describe('T-27 — Browser Resize While Terminal Is Open', () => {
+test.describe(`T-27 — Browser Resize While Terminal Is Open [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   const projId = 'proj-t27';
@@ -183,7 +187,7 @@ test.describe('T-27 — Browser Resize While Terminal Is Open', () => {
       projectId: projId,
       name: 't27-resize',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -545,3 +549,4 @@ test.describe('T-27 — Browser Resize While Terminal Is Open', () => {
     }
   });
 });
+} // end for (const MODE of MODES)

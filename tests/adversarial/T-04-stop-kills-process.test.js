@@ -23,15 +23,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3101;
+const PORTS = { direct: 3101, tmux: 3701 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T04-stop-kills');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T04-stop-kills-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ── Server lifecycle ──────────────────────────────────────────────────────────
 
-test.describe('T-04 — Stop Button Actually Kills the Process', () => {
+test.describe(`T-04 — Stop Button Actually Kills the Process [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
 
@@ -181,7 +185,7 @@ test.describe('T-04 — Stop Button Actually Kills the Process', () => {
       projectId: 'proj-t04',
       name,
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -417,3 +421,4 @@ test.describe('T-04 — Stop Button Actually Kills the Process', () => {
     console.log('\n  ✓ T-04 ALL ITERATIONS PASSED — Stop button kills process at OS level');
   });
 });
+} // end for (const MODE of MODES)

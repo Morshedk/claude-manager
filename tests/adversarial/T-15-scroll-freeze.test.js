@@ -28,9 +28,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3112;
+const PORTS = { direct: 3112, tmux: 3712 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-15-scroll-freeze');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-15-scroll-freeze-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -128,7 +132,7 @@ async function getScrollState(page) {
 
 // ── Main test ─────────────────────────────────────────────────────────────────
 
-test.describe('T-15 — Scroll Freeze While Streaming + Input While Scrolled Up', () => {
+test.describe(`T-15 — Scroll Freeze While Streaming + Input While Scrolled Up [${MODE}]`, () => {
 
   let serverProc = null;
   let tmpDir = '';
@@ -192,7 +196,7 @@ test.describe('T-15 — Scroll Freeze While Streaming + Input While Scrolled Up'
       projectId: 'proj-t15',
       name: 'T15-bash',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -478,3 +482,4 @@ test.describe('T-15 — Scroll Freeze While Streaming + Input While Scrolled Up'
     }
   });
 });
+} // end for (const MODE of MODES)

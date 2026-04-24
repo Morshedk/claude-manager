@@ -23,9 +23,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3140;
+const PORTS = { direct: 3140, tmux: 3740 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T43-haiku-endurance');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T43-haiku-endurance-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -36,7 +40,7 @@ function ts() {
 }
 
 // ── Server lifecycle — single describe so beforeAll/afterAll run ONCE ──────────
-test.describe('T-43 — Haiku Endurance: 20 ACKs + Refresh + Reload + Overlay lifecycle', () => {
+test.describe(`T-43 — Haiku Endurance: 20 ACKs + Refresh + Reload + Overlay lifecycle [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let testProjectId = '';
@@ -283,7 +287,7 @@ test.describe('T-43 — Haiku Endurance: 20 ACKs + Refresh + Reload + Overlay li
         projectId: testProjectId,
         name: 'T43-haiku',
         command: 'claude --model claude-haiku-4-5-20251001 --dangerously-skip-permissions --strict-mcp-config',
-        mode: 'direct',
+        mode: MODE,
         cols: 120,
         rows: 30,
       }));
@@ -667,3 +671,4 @@ test.describe('T-43 — Haiku Endurance: 20 ACKs + Refresh + Reload + Overlay li
     }
   });
 });
+} // end for (const MODE of MODES)

@@ -23,9 +23,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3106;
+const PORTS = { direct: 3106, tmux: 3706 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T09-settings-persist');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T09-settings-persist-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -188,7 +192,7 @@ async function readModalState(page) {
 
 // ── Test suite — single test to avoid cross-test state dependency ─────────────
 
-test.describe('T-09 — Settings Persist Across Browser Reload', () => {
+test.describe(`T-09 — Settings Persist Across Browser Reload [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let browser = null;
@@ -405,3 +409,4 @@ test.describe('T-09 — Settings Persist Across Browser Reload', () => {
     await context.close();
   });
 });
+} // end for (const MODE of MODES)

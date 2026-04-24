@@ -22,13 +22,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3103;
+const PORTS = { direct: 3103, tmux: 3703 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 't06-ws-reconnect');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `t06-ws-reconnect-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-06 — WebSocket Auto-Reconnect: Terminal Re-Subscribes Without User Action', () => {
+test.describe(`T-06 — WebSocket Auto-Reconnect: Terminal Re-Subscribes Without User Action [${MODE}]`, () => {
 
   let serverProc = null;
   let dataDir = '';
@@ -520,3 +524,4 @@ test.describe('T-06 — WebSocket Auto-Reconnect: Terminal Re-Subscribes Without
   });
 
 }); // end describe
+} // end for (const MODE of MODES)

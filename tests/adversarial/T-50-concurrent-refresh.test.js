@@ -27,7 +27,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3147;
+const PORTS = { direct: 3147, tmux: 3747 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -129,7 +133,7 @@ function countProcessesByMarker(marker) {
 
 // ── Main test suite ───────────────────────────────────────────────────────────
 
-test.describe('T-50 — Concurrent Refresh on Two Tabs: No Orphaned PTY Processes', () => {
+test.describe(`T-50 — Concurrent Refresh on Two Tabs: No Orphaned PTY Processes [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let markerScriptPath = '';
@@ -240,7 +244,7 @@ test.describe('T-50 — Concurrent Refresh on Two Tabs: No Orphaned PTY Processe
       projectId: PROJECT_ID,
       name: 't50-refresh-race',
       command: markerScriptPath,
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -402,7 +406,7 @@ test.describe('T-50 — Concurrent Refresh on Two Tabs: No Orphaned PTY Processe
       projectId: PROJECT_ID,
       name: 't50-sequential-refresh',
       command: markerScriptPath,
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -509,3 +513,4 @@ test.describe('T-50 — Concurrent Refresh on Two Tabs: No Orphaned PTY Processe
     console.log('  [T-50c] PASS — crash.log has no unhandled errors');
   });
 });
+} // end for (const MODE of MODES)

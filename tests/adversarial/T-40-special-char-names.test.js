@@ -22,10 +22,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3137;
+const PORTS = { direct: 3137, tmux: 3737 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const WS_URL = `ws://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T40-special-chars');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T40-special-chars-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -60,7 +64,7 @@ function waitForMsg(ws, predicate, timeout = 10000) {
   });
 }
 
-test.describe('T-40 — Session Names with Special Characters', () => {
+test.describe(`T-40 — Session Names with Special Characters [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   const sessionIds = {}; // name -> sessionId
@@ -117,7 +121,7 @@ test.describe('T-40 — Session Names with Special Characters', () => {
         projectId: 'proj-t40',
         name,
         command: 'bash',
-        mode: 'direct',
+        mode: MODE,
         cols: 80,
         rows: 24,
       }));
@@ -333,3 +337,4 @@ test.describe('T-40 — Session Names with Special Characters', () => {
     console.log(`\n  T-40: ALL CHECKS PASSED`);
   });
 });
+} // end for (const MODE of MODES)

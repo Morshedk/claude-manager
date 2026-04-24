@@ -32,9 +32,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3138;
+const PORTS = { direct: 3138, tmux: 3738 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-41-upload-interrupt');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-41-upload-interrupt-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -94,7 +98,7 @@ async function startServer(tmpDir, crashLogPath) {
 
 // ── Main test ─────────────────────────────────────────────────────────────────
 
-test.describe('T-41 — Reload Browser During Active File Upload', () => {
+test.describe(`T-41 — Reload Browser During Active File Upload [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let crashLogPath = '';
@@ -146,7 +150,7 @@ test.describe('T-41 — Reload Browser During Active File Upload', () => {
       projectId: testProjectId,
       name: 'T-41-session',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
     }));
 
     const createdMsg = await waitForMessage(ws, m => m.type === 'session:created', 15000);
@@ -326,3 +330,4 @@ test.describe('T-41 — Reload Browser During Active File Upload', () => {
     console.log(`  [T-41.04] PASS: Session ${testSessionId.slice(0, 8)} has status: ${status}, projectId intact`);
   });
 });
+} // end for (const MODE of MODES)

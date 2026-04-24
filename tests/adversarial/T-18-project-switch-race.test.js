@@ -23,13 +23,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3115;
+const PORTS = { direct: 3115, tmux: 3715 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T18-project-switch-race');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T18-project-switch-race-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-18 — Switching Projects While a Session Is Starting', () => {
+test.describe(`T-18 — Switching Projects While a Session Is Starting [${MODE}]`, () => {
 
   let serverProc = null;
   let tmpDir = '';
@@ -408,3 +412,4 @@ test.describe('T-18 — Switching Projects While a Session Is Starting', () => {
     }
   });
 });
+} // end for (const MODE of MODES)

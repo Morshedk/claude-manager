@@ -37,9 +37,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3141;
+const PORTS = { direct: 3141, tmux: 3741 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-44-watchdog-badge');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-44-watchdog-badge-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -70,7 +74,7 @@ async function startServer(tmpDir, crashLogPath) {
 
 // ── Main test ─────────────────────────────────────────────────────────────────
 
-test.describe('T-44 — Watchdog Status Badge Reflects Actual Enabled/Disabled State', () => {
+test.describe(`T-44 — Watchdog Status Badge Reflects Actual Enabled/Disabled State [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let crashLogPath = '';
@@ -417,3 +421,4 @@ test.describe('T-44 — Watchdog Status Badge Reflects Actual Enabled/Disabled S
     console.log(`  [T-44.06] PASS: Badge would show "Enabled" — confirmed end-to-end`);
   });
 });
+} // end for (const MODE of MODES)

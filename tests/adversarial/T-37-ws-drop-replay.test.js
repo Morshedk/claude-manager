@@ -26,10 +26,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3134;
+const PORTS = { direct: 3134, tmux: 3734 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const WS_URL = `ws://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T37-ws-drop');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T37-ws-drop-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -58,7 +62,7 @@ function waitForMsg(ws, predicate, timeout = 15000) {
   });
 }
 
-test.describe('T-37 — WS Drop During Streaming', () => {
+test.describe(`T-37 — WS Drop During Streaming [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
 
@@ -136,7 +140,7 @@ test.describe('T-37 — WS Drop During Streaming', () => {
       projectId: 'proj-t37',
       name: 'bash-stream',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -357,3 +361,4 @@ test.describe('T-37 — WS Drop During Streaming', () => {
     console.log(`\n  T-37: ALL CHECKS PASSED`);
   });
 });
+} // end for (const MODE of MODES)

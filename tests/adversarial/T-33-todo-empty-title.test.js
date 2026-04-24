@@ -28,14 +28,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3130;
+const PORTS = { direct: 3130, tmux: 3730 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-33-todo-empty-title');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-33-todo-empty-title-${MODE}`);
 const HARNESS_FILE = path.join(APP_DIR, 'public', 'test-harness-T33.html');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-33 — TODO Empty Title Blocked', () => {
+test.describe(`T-33 — TODO Empty Title Blocked [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let projectId = '';
@@ -263,3 +267,4 @@ test.describe('T-33 — TODO Empty Title Blocked', () => {
     }
   });
 });
+} // end for (const MODE of MODES)
