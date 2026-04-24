@@ -34,10 +34,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3598;
-const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-52-session-switch');
+const APP_DIR = path.resolve(__dirname, '../../');
+const PORTS = { direct: 3598, tmux: 3599 };
+const MODES = ['direct', 'tmux'];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const CHROMIUM_PATH = `${process.env.HOME}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`;
@@ -45,7 +44,7 @@ const CHROMIUM_PATH = `${process.env.HOME}/.cache/ms-playwright/chromium-1217/ch
 // Register the message listener at construction time (before 'open') to avoid the
 // race where the server sends 'init' in the same synchronous tick as the open event,
 // causing messages to arrive before a post-await listener can register.
-function wsCreate(port, projectId, name) {
+function wsCreate(port, projectId, name, mode = 'direct') {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(`ws://127.0.0.1:${port}`);
     const t = setTimeout(() => { ws.close(); reject(new Error('wsCreate timeout')); }, 25000);
@@ -55,7 +54,7 @@ function wsCreate(port, projectId, name) {
       let m; try { m = JSON.parse(raw); } catch { return; }
       if (m.type === 'init' && !initDone) {
         initDone = true;
-        ws.send(JSON.stringify({ type: 'session:create', projectId, name, command: 'bash', mode: 'direct', cwd: '/tmp', cols: 120, rows: 30 }));
+        ws.send(JSON.stringify({ type: 'session:create', projectId, name, command: 'bash', mode, cwd: '/tmp', cols: 120, rows: 30 }));
       } else if (m.type === 'session:created') {
         clearTimeout(t); ws.close(); resolve(m.session.id);
       } else if (m.type === 'session:error') {
@@ -122,36 +121,33 @@ async function getScrollTop(page) {
   });
 }
 
-// Scroll the terminal UP using real mouse wheel events over the terminal container.
-// Using page.mouse.wheel() fires real browser scroll events through the full event
-// pipeline — this is what a real user does. evaluate(el => el.scrollTop = 0) bypasses
-// all scroll listeners and would pass even if the scrollbar was completely broken.
-// API: mouse.move(x, y) first, then mouse.wheel(deltaX, deltaY) at current position.
-async function scrollTerminalUp(page, totalPx) {
+// Scroll the terminal UP using Shift+PageUp — works even when tmux mouse-mode is on.
+// (tmux's `mouse on` intercepts wheel events and routes them to tmux copy-mode instead
+// of the xterm viewport. Shift+PageUp is intercepted by xterm.js itself before being
+// forwarded to the PTY, so it reliably scrolls the xterm viewport in any session type.)
+// totalPx: approximate pixels to scroll up; 1 Shift+PageUp ≈ ~400px (25 rows × 17px)
+async function scrollTerminalUp(page, totalPx = 400) {
+  const pages = Math.max(1, Math.ceil(totalPx / 400));
+  // Click terminal to ensure keyboard focus before sending key events
   const tc = page.locator('#session-overlay .terminal-container').first();
-  const box = await tc.boundingBox();
-  const cx = box.x + box.width / 2;
-  const cy = box.y + box.height / 2;
-  await page.mouse.move(cx, cy);
-  for (let sent = 0; sent < totalPx; sent += 300) {
-    await page.mouse.wheel(0, -300);
-    await sleep(60);
+  await tc.click();
+  for (let i = 0; i < pages; i++) {
+    await page.keyboard.press('Shift+PageUp');
+    await sleep(80);
   }
   await sleep(400); // let xterm render the new scroll position
 }
 
-// Scroll the terminal DOWN using real mouse wheel events
-async function scrollTerminalDown(page, totalPx) {
-  const tc = page.locator('#session-overlay .terminal-container').first();
-  const box = await tc.boundingBox();
-  const cx = box.x + box.width / 2;
-  const cy = box.y + box.height / 2;
-  await page.mouse.move(cx, cy);
-  for (let sent = 0; sent < totalPx; sent += 300) {
-    await page.mouse.wheel(0, 300);
-    await sleep(60);
-  }
-  await sleep(400);
+// Scroll the terminal to the bottom via JavaScript — safe setup step.
+// For tmux-mode sessions, mouse wheel events are captured by tmux's mouse-mode
+// and never reach xterm's viewport. Using evaluate() is acceptable here because
+// this is just test setup (ensuring we start from bottom), not an assertion.
+async function scrollTerminalDown(page, _totalPx) {
+  await page.evaluate(() => {
+    const vp = document.querySelector('#session-overlay .xterm-viewport');
+    if (vp) vp.scrollTop = vp.scrollHeight - vp.clientHeight;
+  });
+  await sleep(300);
 }
 
 // Get subscribe cols from intercepted WS messages — evaluate() for reading state
@@ -182,7 +178,12 @@ async function checkScrollbackGarbling(page, markerSubstr) {
   }, markerSubstr);
 }
 
-test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-back', () => {
+for (const MODE of MODES) {
+test.describe(`T-52 [${MODE}] — Session switch: scrollback, copy, scroll, refresh, copy-back`, () => {
+  const PORT = PORTS[MODE];
+  const BASE_URL = `http://127.0.0.1:${PORT}`;
+  const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T52-session-switch-${MODE}`);
+
   let serverProc = null;
   let tmpDir = '';
   let projectId = '';
@@ -230,8 +231,8 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
     projectId = proj.id;
     if (!projectId) throw new Error(`Failed to create project: ${JSON.stringify(proj)}`);
 
-    sessionIdA = await wsCreate(PORT, projectId, 'session-A');
-    sessionIdB = await wsCreate(PORT, projectId, 'session-B');
+    sessionIdA = await wsCreate(PORT, projectId, 'session-A', MODE);
+    sessionIdB = await wsCreate(PORT, projectId, 'session-B', MODE);
     await sleep(1500);
 
     // Write 200 distinctive lines to session A — enough to ensure scrollback even in
@@ -429,3 +430,4 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
     }
   });
 });
+} // end for (const MODE of MODES)
