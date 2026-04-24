@@ -22,13 +22,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3145;
+const PORTS = { direct: 3145, tmux: 3745 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 't48-settings-escape');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `t48-settings-escape-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-48 — Settings Escape Key Discards Changes', () => {
+test.describe(`T-48 — Settings Escape Key Discards Changes [${MODE}]`, () => {
 
   let serverProc = null;
   let dataDir = '';
@@ -392,3 +396,4 @@ test.describe('T-48 — Settings Escape Key Discards Changes', () => {
   });
 
 });
+} // end for (const MODE of MODES)

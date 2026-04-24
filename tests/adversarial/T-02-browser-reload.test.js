@@ -20,14 +20,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3099;
+const PORTS = { direct: 3099, tmux: 3699 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 't02-hard-reload');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `t02-hard-reload-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ── Server lifecycle ──────────────────────────────────────────────────────────
-test.describe('T-02 — Browser Hard-Reload Reconnects and Shows Live Session', () => {
+test.describe(`T-02 — Browser Hard-Reload Reconnects and Shows Live Session [${MODE}]`, () => {
 
   let serverProc = null;
   let dataDir = '';
@@ -513,3 +517,4 @@ test.describe('T-02 — Browser Hard-Reload Reconnects and Shows Live Session', 
   });
 
 }); // end describe
+} // end for (const MODE of MODES)

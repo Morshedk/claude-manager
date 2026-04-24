@@ -27,9 +27,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3111;
+const PORTS = { direct: 3111, tmux: 3711 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T14-delete-cancel');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T14-delete-cancel-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -74,7 +78,7 @@ function wsTransaction(port, sendMsg, predicate, timeoutMs = 10000) {
 async function createSession(port, projectId, name) {
   return wsTransaction(
     port,
-    { type: 'session:create', projectId, name, command: 'bash', mode: 'direct', cols: 120, rows: 30 },
+    { type: 'session:create', projectId, name, command: 'bash', mode: MODE, cols: 120, rows: 30 },
     msg => msg.type === 'session:created',
     12000
   ).then(msg => msg.session);
@@ -132,7 +136,7 @@ async function getSessionsRest() {
 
 // ── Test suite ────────────────────────────────────────────────────────────────
 
-test.describe('T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact', () => {
+test.describe(`T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact [${MODE}]`, () => {
 
   let serverProc = null;
   let tmpDir = '';
@@ -542,3 +546,4 @@ test.describe('T-14 — Delete Confirmation Dialog: Cancel Leaves Session Intact
   });
 
 });
+} // end for (const MODE of MODES)

@@ -26,9 +26,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3125;
+const PORTS = { direct: 3125, tmux: 3725 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-28-no-delete-running');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-28-no-delete-running-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -134,7 +138,7 @@ async function waitForSessionStopped(ws, sessionId, timeoutMs = 20000) {
 
 // ── Main test ─────────────────────────────────────────────────────────────────
 
-test.describe('T-28 — Delete button absent on running session', () => {
+test.describe(`T-28 — Delete button absent on running session [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let projPath = '';
@@ -392,3 +396,4 @@ test.describe('T-28 — Delete button absent on running session', () => {
     }
   });
 });
+} // end for (const MODE of MODES)

@@ -22,9 +22,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3104;
+const PORTS = { direct: 3104, tmux: 3704 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T07-invalid-command');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T07-invalid-command-${MODE}`);
 
 const INVALID_CMD = 'claude-nonexistent-binary-xyz';
 
@@ -73,7 +77,7 @@ async function createSessionAndCollectStates(wsUrl, projectId, sessionName) {
         projectId,
         name: sessionName,
         command: INVALID_CMD,
-        mode: 'direct',
+        mode: MODE,
         cols: 120,
         rows: 30,
       }));
@@ -109,7 +113,7 @@ async function createSessionAndCollectStates(wsUrl, projectId, sessionName) {
   });
 }
 
-test.describe('T-07 — Invalid Command Error Badge', () => {
+test.describe(`T-07 — Invalid Command Error Badge [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let testProjectId = '';
@@ -235,7 +239,7 @@ test.describe('T-07 — Invalid Command Error Badge', () => {
       projectId: testProjectId,
       name: sessionName,
       command: INVALID_CMD,
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -516,3 +520,4 @@ test.describe('T-07 — Invalid Command Error Badge', () => {
     }
   });
 });
+} // end for (const MODE of MODES)

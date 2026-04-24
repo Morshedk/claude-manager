@@ -25,9 +25,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3126;
+const PORTS = { direct: 3126, tmux: 3726 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-29-telegram-badge');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-29-telegram-badge-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -72,7 +76,7 @@ function wsWaitFor(ws, predicate, timeoutMs = 20000) {
   });
 }
 
-test.describe('T-29 — Telegram badge persists after browser reload', () => {
+test.describe(`T-29 — Telegram badge persists after browser reload [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let projPath = '';
@@ -239,3 +243,4 @@ test.describe('T-29 — Telegram badge persists after browser reload', () => {
     }
   });
 });
+} // end for (const MODE of MODES)

@@ -31,9 +31,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3146;
+const PORTS = { direct: 3146, tmux: 3746 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T49-auth-fail');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T49-auth-fail-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -94,7 +98,7 @@ function isProcessAlive(pid) {
 
 // ── Main test suite ───────────────────────────────────────────────────────────
 
-test.describe('T-49 — Auth Failure Mid-Session: Graceful Degradation', () => {
+test.describe(`T-49 — Auth Failure Mid-Session: Graceful Degradation [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let failScriptPath = '';
@@ -215,7 +219,7 @@ test.describe('T-49 — Auth Failure Mid-Session: Graceful Degradation', () => {
       projectId: PROJECT_ID,
       name: SESSION_NAME,
       command: failScriptPath,  // Script file path — no flag stripping issue
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -321,7 +325,7 @@ test.describe('T-49 — Auth Failure Mid-Session: Graceful Degradation', () => {
       projectId: PROJECT_ID,
       name: SESSION_NAME,
       command: failScriptPath,
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -543,3 +547,4 @@ test.describe('T-49 — Auth Failure Mid-Session: Graceful Degradation', () => {
     console.log('  [T-49d] PASS — crash.log has no unhandled errors');
   });
 });
+} // end for (const MODE of MODES)

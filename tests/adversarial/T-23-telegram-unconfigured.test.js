@@ -26,13 +26,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3120;
+const PORTS = { direct: 3120, tmux: 3720 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-23-telegram-unconfigured');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-23-telegram-unconfigured-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-23 — Telegram Toggle: Unconfigured State Is Disabled', () => {
+test.describe(`T-23 — Telegram Toggle: Unconfigured State Is Disabled [${MODE}]`, () => {
 
   let serverProc = null;
   let tmpDir = '';
@@ -385,3 +389,4 @@ test.describe('T-23 — Telegram Toggle: Unconfigured State Is Disabled', () => 
   });
 
 });
+} // end for (const MODE of MODES)

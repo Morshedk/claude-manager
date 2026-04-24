@@ -33,9 +33,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3142;
+const PORTS = { direct: 3142, tmux: 3742 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-45-stop-refresh-race');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-45-stop-refresh-race-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -111,7 +115,7 @@ async function startServer(tmpDir, crashLogPath) {
 
 // ── Main test ─────────────────────────────────────────────────────────────────
 
-test.describe('T-45 — Stop then Immediately Refresh — No Race Condition', () => {
+test.describe(`T-45 — Stop then Immediately Refresh — No Race Condition [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let crashLogPath = '';
@@ -170,7 +174,7 @@ test.describe('T-45 — Stop then Immediately Refresh — No Race Condition', ()
       projectId,
       name: 'race-test-1',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
     }));
 
     const created = await waitForMessage(ws, m => m.type === 'session:created', 15000);
@@ -262,7 +266,7 @@ test.describe('T-45 — Stop then Immediately Refresh — No Race Condition', ()
       projectId,
       name: 'race-test-2',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
     }));
 
     const created = await waitForMessage(ws, m => m.type === 'session:created', 15000);
@@ -376,7 +380,7 @@ test.describe('T-45 — Stop then Immediately Refresh — No Race Condition', ()
       projectId,
       name: 'browser-race-test',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
     }));
 
     const created = await waitForMessage(ws, m => m.type === 'session:created', 15000);
@@ -534,3 +538,4 @@ test.describe('T-45 — Stop then Immediately Refresh — No Race Condition', ()
     console.log(`  [T-45.05] PASS: Server healthy, sessions: ${body.managed.length}, no crashes`);
   });
 });
+} // end for (const MODE of MODES)

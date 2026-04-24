@@ -27,9 +27,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3113;
+const PORTS = { direct: 3113, tmux: 3713 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-16-refresh-starting');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-16-refresh-starting-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -70,7 +74,7 @@ function openWs(projectId) {
 
 // ── Main test suite ──────────────────────────────────────────────────────────
 
-test.describe('T-16 — Refresh During "Starting" State is Blocked', () => {
+test.describe(`T-16 — Refresh During "Starting" State is Blocked [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let testProjectId = '';
@@ -345,7 +349,7 @@ test.describe('T-16 — Refresh During "Starting" State is Blocked', () => {
       projectId: testProjectId,
       name: sessionName,
       command: 'bash -c "sleep 30"',
-      mode: 'direct',
+      mode: MODE,
       cols: 80,
       rows: 24,
     }));
@@ -456,7 +460,7 @@ test.describe('T-16 — Refresh During "Starting" State is Blocked', () => {
       projectId: testProjectId,
       name: sessionName,
       command: 'bash -c "sleep 30"',
-      mode: 'direct',
+      mode: MODE,
       cols: 80,
       rows: 24,
     }));
@@ -552,7 +556,7 @@ test.describe('T-16 — Refresh During "Starting" State is Blocked', () => {
       projectId: testProjectId,
       name: sessionName,
       command: 'bash -c "sleep 30"',
-      mode: 'direct',
+      mode: MODE,
       cols: 80,
       rows: 24,
     }));
@@ -589,3 +593,4 @@ test.describe('T-16 — Refresh During "Starting" State is Blocked', () => {
   });
 
 });
+} // end for (const MODE of MODES)

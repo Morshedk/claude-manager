@@ -26,9 +26,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3116;
+const PORTS = { direct: 3116, tmux: 3716 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T19-lastline');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T19-lastline-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -83,7 +87,7 @@ async function waitForServer(url, timeoutMs = 20000) {
 
 // ── Test suite ────────────────────────────────────────────────────────────────
 
-test.describe('T-19 — Session card lastLine updates while overlay is open', () => {
+test.describe(`T-19 — Session card lastLine updates while overlay is open [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let testProjectId = '';
@@ -136,7 +140,7 @@ test.describe('T-19 — Session card lastLine updates while overlay is open', ()
       projectId: testProjectId,
       name: 'T19-session',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     });
@@ -404,3 +408,4 @@ test.describe('T-19 — Session card lastLine updates while overlay is open', ()
     expect(session2).toBeDefined();
   });
 });
+} // end for (const MODE of MODES)

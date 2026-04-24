@@ -33,9 +33,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3139;
+const PORTS = { direct: 3139, tmux: 3739 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-42-badge-independence');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-42-badge-independence-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -94,7 +98,7 @@ async function startServer(tmpDir, crashLogPath) {
 
 // ── Main test ─────────────────────────────────────────────────────────────────
 
-test.describe('T-42 — Multi-Project Badge Counts Are Fully Independent', () => {
+test.describe(`T-42 — Multi-Project Badge Counts Are Fully Independent [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let crashLogPath = '';
@@ -156,7 +160,7 @@ test.describe('T-42 — Multi-Project Badge Counts Are Fully Independent', () =>
         projectId: projectAId,
         name: `alpha-session-${i}`,
         command: 'bash',
-        mode: 'direct',
+        mode: MODE,
       }));
       const created = await waitForMessage(ws, m => m.type === 'session:created', 15000);
       sessionIds.push(created.session.id);
@@ -339,3 +343,4 @@ test.describe('T-42 — Multi-Project Badge Counts Are Fully Independent', () =>
     console.log(`  [T-42.03] PASS: No server crashes`);
   });
 });
+} // end for (const MODE of MODES)

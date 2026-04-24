@@ -25,9 +25,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3122;
+const PORTS = { direct: 3122, tmux: 3722 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T25-paste-large');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T25-paste-large-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const PAYLOAD_CHARS = 5000;
@@ -83,7 +87,7 @@ let projectId = 'proj-t25';
 let testSessionId = null;
 let ctrlWs = null;
 
-test.describe('T-25 — Paste Large Input', () => {
+test.describe(`T-25 — Paste Large Input [${MODE}]`, () => {
 
   test.beforeAll(async () => {
     fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
@@ -138,7 +142,7 @@ test.describe('T-25 — Paste Large Input', () => {
       projectId,
       name: 't25-paste-session',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 220,
       rows: 50,
     });
@@ -436,3 +440,4 @@ test.describe('T-25 — Paste Large Input', () => {
   });
 
 });
+} // end for (const MODE of MODES)

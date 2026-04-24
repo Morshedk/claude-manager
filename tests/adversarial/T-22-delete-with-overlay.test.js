@@ -31,13 +31,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3119;
+const PORTS = { direct: 3119, tmux: 3719 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-22-delete-with-overlay');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-22-delete-with-overlay-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-22 — Delete session while overlay is open', () => {
+test.describe(`T-22 — Delete session while overlay is open [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let testProjectId = '';
@@ -172,7 +176,7 @@ test.describe('T-22 — Delete session while overlay is open', () => {
       projectId: testProjectId,
       name: 'T22-bash',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -460,3 +464,4 @@ test.describe('T-22 — Delete session while overlay is open', () => {
     }
   });
 });
+} // end for (const MODE of MODES)

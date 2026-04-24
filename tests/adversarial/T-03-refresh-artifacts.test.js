@@ -21,15 +21,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3100;
+const PORTS = { direct: 3100, tmux: 3700 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T03-refresh-dots');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T03-refresh-dots-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ── Server lifecycle ──────────────────────────────────────────────────────────
 
-test.describe('T-03 — Session Refresh Clears Terminal Buffer (No Dot Artifacts)', () => {
+test.describe(`T-03 — Session Refresh Clears Terminal Buffer (No Dot Artifacts) [${MODE}]`, () => {
   let serverProc = null;
   let tmpDir = '';
   let testProjectId = '';
@@ -412,7 +416,7 @@ test.describe('T-03 — Session Refresh Clears Terminal Buffer (No Dot Artifacts
       projectId: testProjectId,
       name: 'T03-bash',
       command: 'bash',
-      mode: 'direct',
+      mode: MODE,
       cols: 120,
       rows: 30,
     }));
@@ -679,3 +683,4 @@ test.describe('T-03 — Session Refresh Clears Terminal Buffer (No Dot Artifacts
     }
   });
 });
+} // end for (const MODE of MODES)

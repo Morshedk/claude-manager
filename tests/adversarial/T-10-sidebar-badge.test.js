@@ -25,9 +25,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3107;
+const PORTS = { direct: 3107, tmux: 3707 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T10-sidebar-badge');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T10-sidebar-badge-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -70,7 +74,7 @@ let projectId = '';
 let sessionIds = [];    // [s1, s2, s3]
 let ctrlWs = null;      // control WebSocket
 
-test.describe('T-10 — Sidebar Badge Real-Time Session Count', () => {
+test.describe(`T-10 — Sidebar Badge Real-Time Session Count [${MODE}]`, () => {
 
   test.beforeAll(async () => {
     fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
@@ -131,7 +135,7 @@ test.describe('T-10 — Sidebar Badge Real-Time Session Count', () => {
         projectId,
         name: `T10-sess-${i}`,
         command: 'bash',
-        mode: 'direct',
+        mode: MODE,
         cols: 80,
         rows: 24,
       });
@@ -268,3 +272,4 @@ test.describe('T-10 — Sidebar Badge Real-Time Session Count', () => {
   });
 
 });
+} // end for (const MODE of MODES)

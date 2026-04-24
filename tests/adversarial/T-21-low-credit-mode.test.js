@@ -24,13 +24,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
-const PORT = 3118;
+const PORTS = { direct: 3118, tmux: 3718 };
+const MODES = ['direct', 'tmux'];
+
+for (const MODE of MODES) {
+const PORT = PORTS[MODE];
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', 'T-21-low-credit');
+const SCREENSHOTS_DIR = path.join(APP_DIR, 'qa-screenshots', `T-21-low-credit-${MODE}`);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-test.describe('T-21 — Low Credit Mode uses lcModel command in New Session modal', () => {
+test.describe(`T-21 — Low Credit Mode uses lcModel command in New Session modal [${MODE}]`, () => {
 
   let serverProc = null;
   let tmpDir = '';
@@ -435,3 +439,4 @@ test.describe('T-21 — Low Credit Mode uses lcModel command in New Session moda
 //   - Settings are verified via /api/settings before opening New Session modal
 //   - Modal is confirmed open via h2 text check before asserting
 //   - Badge is checked for both existence AND visibility (rect.width > 0)
+} // end for (const MODE of MODES)
