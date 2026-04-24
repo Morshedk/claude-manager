@@ -406,15 +406,10 @@ test.describe('T-15 — Scroll Freeze While Streaming + Input While Scrolled Up'
       await collector.waitForContent('STREAM-LINE-50', 15000);
       console.log('  [T-15] C5 PASS: STREAM-LINE-50 received in WS buffer');
 
-      // Scroll to bottom via page evaluate
-      await page.evaluate(() => {
-        const vp = document.querySelector('#session-overlay-terminal .xterm-viewport');
-        if (vp) {
-          vp.scrollTop = vp.scrollHeight;
-          // Trigger scroll event manually to update userScrolledUp state
-          vp.dispatchEvent(new Event('scroll'));
-        }
-      });
+      // Scroll to bottom via real mouse wheel events — evaluate(el => el.scrollTop = X)
+      // bypasses the browser event pipeline and would pass even if scrolling was broken.
+      await page.mouse.move(termCenterX, termCenterY);
+      await page.mouse.wheel(0, 10000);
       await sleep(600);
 
       // C6: userScrolledUp is false after scrolling to bottom
