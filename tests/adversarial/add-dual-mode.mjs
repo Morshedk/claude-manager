@@ -20,7 +20,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Tests to skip
 const SKIP = new Set([
-  'T-12-tmux-survives-close.test.js',       // inherently tmux-only
+  'T-08-bad-project-path.test.js',           // top-level test() calls outside describe — dual-mode causes title collisions
+  'T-12-tmux-survives-close.test.js',        // inherently tmux-only
   'T-30-tmux-pid-unchanged.test.js',         // inherently tmux-only
   'T-17-server-restart-recovery.test.js',    // already tests both in one describe
   'T-52-session-switch-no-garble.test.js',   // already done
