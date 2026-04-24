@@ -21,6 +21,27 @@ const PLAYWRIGHT_TESTS = [
   '**/adversarial/feat-watchdog-panel-reload.test.js',
   '**/adversarial/feat-watchdog-panel-500.test.js',
   '**/adversarial/feat-watchdog-panel-default-tab.test.js',
+  // ── feat: delete toggle (T2-T9 are Jest, excluded) ───────────────────────
+  '**/adversarial/feat-delete-toggle-T1-mode-toggle.test.js',
+  '**/adversarial/feat-delete-toggle-T7-armed-outline-toast.test.js',
+  // ── feat: move session (T1-T4,T6 are Jest; T5 is Playwright) ─────────────
+  '**/adversarial/feat-move-session-T5-browser-ui.test.js',
+  // ── feat: session cards (T2-T4 are Jest; T1,T5-T7 are Playwright) ────────
+  '**/adversarial/feat-session-cards-T1-dom-structure.test.js',
+  '**/adversarial/feat-session-cards-T5-ansi-stripping.test.js',
+  '**/adversarial/feat-session-cards-T6-wrench-opens-modal.test.js',
+  '**/adversarial/feat-session-cards-T7-btn-icon-css-regression.test.js',
+  // ── feat: terminal copy + scrollbar ──────────────────────────────────────
+  '**/adversarial/feat-terminal-copy-scrollbar-T1-ctrl-c-copies-no-sigint.test.js',
+  '**/adversarial/feat-terminal-copy-scrollbar-T2-ctrl-c-no-selection-sends-sigint.test.js',
+  '**/adversarial/feat-terminal-copy-scrollbar-T3-scrollbar-always-visible.test.js',
+  '**/adversarial/feat-terminal-copy-scrollbar-T4-right-click-copies-no-context-menu.test.js',
+  '**/adversarial/feat-terminal-copy-scrollbar-T5-ctrl-shift-c-copy-alt.test.js',
+  '**/adversarial/feat-terminal-copy-scrollbar-T6-copy-works-readonly-mode.test.js',
+  '**/adversarial/feat-terminal-copy-scrollbar-T7-rapid-ctrl-c-flickering.test.js',
+  '**/adversarial/feat-terminal-copy-scrollbar-T8-project-terminal-pane-copy.test.js',
+  // ── feat: image paste ────────────────────────────────────────────────────
+  '**/adversarial/feat-paste-image.test.js',
   // ── T-series: browser + server ───────────────────────────────────────────
   '**/adversarial/T-01-double-click.test.js',
   '**/adversarial/T-02-browser-reload.test.js',

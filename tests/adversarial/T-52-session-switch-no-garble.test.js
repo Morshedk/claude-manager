@@ -7,13 +7,13 @@
  *
  * Full user flow tested:
  *   1. Open session A in overlay → verify scrollback not garbled
- *   2. Copy content from session A
- *   3. Scroll up and down in session A
+ *   2. Scroll up 40+ lines in session A — check historical rows are not garbled
+ *   3. Verify scrollbar actually moves when scrolling (real mouse wheel events)
  *   4. Switch to session B → verify scrollback not garbled
- *   5. Paste/type the copied content into session B
+ *   5. Type content into session B (simulates paste)
  *   6. Reload the browser page
- *   7. Scroll up in session B after reload
- *   8. Copy the content back from session B and type it into session A
+ *   7. Scroll up in session B after reload — check rows again
+ *   8. Switch back to session A and type copy-back marker
  *
  * FAIL pre-fix: scrollback captured at 120 cols, displayed in wider terminal →
  *               lines under 120 chars render correctly but the PTY stays at 120 cols
@@ -88,7 +88,6 @@ function wsInput(port, sessionId, input) {
 async function openSession(page, name) {
   const card = page.locator('.session-card').filter({ hasText: name }).first();
   await card.waitFor({ state: 'visible', timeout: 10000 });
-  // Click the name link (avoids the preview area which stopPropagation)
   const nameLink = card.locator('.session-card-name').first();
   await nameLink.click();
   await page.waitForSelector('#session-overlay', { state: 'visible', timeout: 15000 });
@@ -105,15 +104,57 @@ async function closeOverlay(page) {
   }
 }
 
-// Count non-empty xterm DOM rows
+// Count non-empty xterm DOM rows inside the overlay — evaluate() for reading state.
+// Scope to #session-overlay to avoid counting rows in session-card preview xtermss.
 async function countRows(page) {
   return page.evaluate(() => {
-    const rows = document.querySelectorAll('.xterm-rows > div, .xterm-rows > span');
+    const rows = document.querySelectorAll('#session-overlay .xterm-rows > div, #session-overlay .xterm-rows > span');
     return Array.from(rows).filter(r => r.textContent.trim().length > 0).length;
   });
 }
 
-// Get subscribe cols from intercepted WS messages
+// Read scroll position of the overlay terminal — scoped to #session-overlay to avoid
+// reading the session-card preview xterm which is always at scrollTop=0.
+async function getScrollTop(page) {
+  return page.evaluate(() => {
+    const vp = document.querySelector('#session-overlay .xterm-viewport');
+    return vp ? vp.scrollTop : -1;
+  });
+}
+
+// Scroll the terminal UP using real mouse wheel events over the terminal container.
+// Using page.mouse.wheel() fires real browser scroll events through the full event
+// pipeline — this is what a real user does. evaluate(el => el.scrollTop = 0) bypasses
+// all scroll listeners and would pass even if the scrollbar was completely broken.
+// API: mouse.move(x, y) first, then mouse.wheel(deltaX, deltaY) at current position.
+async function scrollTerminalUp(page, totalPx) {
+  const tc = page.locator('#session-overlay .terminal-container').first();
+  const box = await tc.boundingBox();
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(cx, cy);
+  for (let sent = 0; sent < totalPx; sent += 300) {
+    await page.mouse.wheel(0, -300);
+    await sleep(60);
+  }
+  await sleep(400); // let xterm render the new scroll position
+}
+
+// Scroll the terminal DOWN using real mouse wheel events
+async function scrollTerminalDown(page, totalPx) {
+  const tc = page.locator('#session-overlay .terminal-container').first();
+  const box = await tc.boundingBox();
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(cx, cy);
+  for (let sent = 0; sent < totalPx; sent += 300) {
+    await page.mouse.wheel(0, 300);
+    await sleep(60);
+  }
+  await sleep(400);
+}
+
+// Get subscribe cols from intercepted WS messages — evaluate() for reading state
 async function getLastSubscribeCols(page) {
   return page.evaluate(() => {
     const msgs = window.__subscribeMsgs || [];
@@ -122,16 +163,37 @@ async function getLastSubscribeCols(page) {
   });
 }
 
+// Check scrollback for garbling: each content line should be intact (contains both
+// the line marker and the :END sentinel). If the terminal displayed content at wrong
+// column width, lines would wrap and :END would appear on a separate DOM row.
+// Scoped to #session-overlay to avoid reading the session-card preview xterm.
+// Returns { total, withMarker, garbled } — evaluate() is for reading state only.
+async function checkScrollbackGarbling(page, markerSubstr) {
+  return page.evaluate((marker) => {
+    const rowEls = document.querySelectorAll('#session-overlay .xterm-rows > div');
+    const texts = Array.from(rowEls)
+      .map(r => r.textContent.trim())
+      .filter(t => t.length > 0);
+    const withMarker = texts.filter(t => t.includes(marker));
+    // A garbled row contains the line start (LINE + digits) but has lost the :END
+    // because the line was wrapped onto a second DOM row due to column mismatch.
+    const garbled = withMarker.filter(t => t.match(/LINE\d+/) && !t.includes(':END'));
+    return { total: texts.length, withMarker: withMarker.length, garbled: garbled.length, sample: withMarker.slice(0, 3) };
+  }, markerSubstr);
+}
+
 test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-back', () => {
   let serverProc = null;
   let tmpDir = '';
   let projectId = '';
   let sessionIdA = '';
   let sessionIdB = '';
-  // Sentinel content — 60 chars; each printf line is "LINE001-" (8) + 60 = 68 chars,
+  // Sentinel content — 56 chars; each printf line is "LINE001-" (8) + 56 = 64 chars,
   // fits in any terminal ≥ 70 cols without wrapping (headless chromium gives ~89 cols).
-  const CONTENT_A = 'SESS-A:' + 'A'.repeat(45) + ':END'; // 60 chars
-  const CONTENT_B = 'SESS-B:' + 'B'.repeat(45) + ':END'; // 60 chars
+  // 200 lines ensures scrollback even in a tall overlay (1440x900 shows ~47 rows).
+  const CONTENT_A = 'SESS-A:' + 'A'.repeat(45) + ':END'; // 56 chars
+  const CONTENT_B = 'SESS-B:' + 'B'.repeat(45) + ':END'; // 56 chars
+  const LINE_COUNT = 200;
 
   test.beforeAll(async () => {
     fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
@@ -147,9 +209,16 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
+    // Poll with AbortController timeout to avoid fetch hanging on unresponsive port
     const deadline = Date.now() + 25000;
     while (Date.now() < deadline) {
-      try { const r = await fetch(`${BASE_URL}/api/projects`); if (r.ok) break; } catch {}
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 2000);
+        const r = await fetch(`${BASE_URL}/api/projects`, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (r.ok) break;
+      } catch {}
       await sleep(400);
     }
 
@@ -165,16 +234,16 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
     sessionIdB = await wsCreate(PORT, projectId, 'session-B');
     await sleep(1500);
 
-    // Write 50 distinctive lines to session A in a single bash for-loop
-    // (avoids 50 separate WS round-trips that would exceed beforeAll timeout)
-    const cmdA = `for i in $(seq 1 50); do printf 'LINE%03d-${CONTENT_A}\\n' $i; done\r`;
+    // Write 200 distinctive lines to session A — enough to ensure scrollback even in
+    // a tall overlay terminal (1440x900 shows ~47 rows, so 200 lines = 153 in scrollback).
+    const cmdA = `for i in $(seq 1 ${LINE_COUNT}); do printf 'LINE%03d-${CONTENT_A}\\n' $i; done\r`;
     await wsInput(PORT, sessionIdA, cmdA);
-    await sleep(1200);
+    await sleep(2000);
 
-    // Write 50 lines to session B likewise
-    const cmdB = `for i in $(seq 1 50); do printf 'LINE%03d-${CONTENT_B}\\n' $i; done\r`;
+    // Write 200 lines to session B likewise
+    const cmdB = `for i in $(seq 1 ${LINE_COUNT}); do printf 'LINE%03d-${CONTENT_B}\\n' $i; done\r`;
     await wsInput(PORT, sessionIdB, cmdB);
-    await sleep(1200);
+    await sleep(2000);
   });
 
   test.afterAll(async () => {
@@ -190,7 +259,6 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
     });
     const ctx = await browser.newContext({
       viewport: { width: 1440, height: 900 },
-      // Grant clipboard read/write so copy interactions work
       permissions: ['clipboard-read', 'clipboard-write'],
     });
     const page = await ctx.newPage();
@@ -228,41 +296,43 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
 
       const rowsA_initial = await countRows(page);
 
-      // ── Step 2: Scroll up in session A ────────────────────────────────────
-      const viewport = page.locator('.xterm-viewport').first();
-      await viewport.evaluate(el => el.scrollTop = 0); // scroll to top
-      await sleep(500);
-      await snap('session-A-scrolled-up');
+      // ── Step 2: Scroll up 40+ lines in session A — garbling check ─────────
+      // First scroll to bottom to ensure we start at the end of scrollback.
+      // Then scroll up 1000px (~58 lines at 17px/line) to see historical content.
+      await scrollTerminalDown(page, 3000); // ensure at bottom
+      const scrollTopBottom = await getScrollTop(page);
+      await scrollTerminalUp(page, 1000);
+      const scrollTopAfter = await getScrollTop(page);
+      await snap('session-A-scrolled-up-40-lines');
 
-      // Verify content is visible (xterm has DOM rows with content)
+      // Scrollbar must actually move — proves mouse wheel events reached xterm
+      expect(scrollTopAfter, 'Scrollbar must move upward when scrolling with mouse wheel').toBeLessThan(scrollTopBottom);
+
+      // Rows visible at the top should be non-empty
       const rowsA_top = await countRows(page);
       expect(rowsA_top, 'Rows visible at top of session A').toBeGreaterThan(0);
 
-      // ── Step 3: "Copy" content from session A (simulate Ctrl+A then Ctrl+C) ─
-      // In the terminal: select all visible text and copy via keyboard
-      await page.locator('#session-overlay .terminal-container').click();
-      // Use Ctrl+Shift+A to select all in terminal (if supported), else use keyboard combo
-      // We simulate the user copying by reading the xterm selection API
-      const copiedText = await page.evaluate(() => {
-        // Use xterm's built-in selection if available
-        const canvas = document.querySelector('.xterm-screen canvas');
-        if (!canvas) return '';
-        // Get some visible text from the DOM rows (accessibility layer)
-        const rows = document.querySelectorAll('.xterm-rows > div');
-        return Array.from(rows)
-          .map(r => r.textContent)
-          .filter(t => t.includes('SESS-A'))
-          .slice(0, 5)
-          .join('\n');
-      });
+      // Garbling check: historical rows must be intact — not split by column mismatch
+      const garbleA = await checkScrollbackGarbling(page, 'SESS-A:');
+      expect(garbleA.withMarker,
+        `Must see session A content after scrolling up 1000px — only ${garbleA.total} total rows visible`
+      ).toBeGreaterThan(0);
+      expect(garbleA.garbled,
+        `Session A scrollback garbled: ${garbleA.garbled} rows contain LINE+digits but are missing :END (column-mismatch wrap). Sample: ${JSON.stringify(garbleA.sample)}`
+      ).toBe(0);
 
-      // We have content from session A — even if copiedText is empty (WebGL canvas),
-      // the key assertion is that rows are not doubled from line-wrapping
+      await snap('session-A-garble-check');
+
+      // ── Step 3: "Copy" content from session A via keyboard ────────────────
+      // Click into the terminal (the actual container element, not the canvas overlay)
+      await page.locator('#session-overlay .terminal-container').click();
+      // Ctrl+Shift+C = copy selection in terminal emulators
+      await page.keyboard.press('Control+Shift+C');
+      await sleep(300);
       await snap('session-A-after-copy-attempt');
 
-      // Scroll back down
-      await viewport.evaluate(el => el.scrollTop = el.scrollHeight);
-      await sleep(400);
+      // ── Scroll back to bottom ─────────────────────────────────────────────
+      await scrollTerminalDown(page, 3000);
 
       // ── Step 4: Switch to session B ───────────────────────────────────────
       await closeOverlay(page);
@@ -275,7 +345,6 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
       const rowsB_initial = await countRows(page);
 
       // ── Step 5: Type the "copied" content into session B ──────────────────
-      // Simulate pasting: type a marker line into session B's terminal
       await page.locator('#session-overlay .terminal-container').click();
       const pasteMarker = 'PASTED-FROM-A:' + CONTENT_A.slice(0, 30);
       await page.keyboard.type(pasteMarker);
@@ -300,18 +369,29 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
       const colsB_afterReload = await getLastSubscribeCols(page);
       expect(colsB_afterReload, 'Subscribe cols after reload: still measured correctly').toBeGreaterThan(0);
 
-      // ── Step 7: Scroll up in session B after reload ───────────────────────
-      const viewportB = page.locator('.xterm-viewport').first();
-      await viewportB.evaluate(el => el.scrollTop = 0);
-      await sleep(500);
+      // ── Step 7: Scroll up 40+ lines in session B after reload ────────────
+      await scrollTerminalDown(page, 3000); // ensure at bottom first
+      const scrollTopB_bottom = await getScrollTop(page);
+      await scrollTerminalUp(page, 1000);
+      const scrollTopB_after = await getScrollTop(page);
       await snap('session-B-scrolled-up-after-reload');
+
+      expect(scrollTopB_after, 'Session B scrollbar must move after reload when scrolled with mouse wheel').toBeLessThan(scrollTopB_bottom);
 
       const rowsB_afterReload = await countRows(page);
       expect(rowsB_afterReload, 'Session B must have content after reload').toBeGreaterThan(0);
 
-      // ── Step 8: "Copy" from session B and switch back to session A ────────
-      await viewportB.evaluate(el => el.scrollTop = el.scrollHeight);
-      await sleep(400);
+      // Garbling check for session B after reload
+      const garbleB = await checkScrollbackGarbling(page, 'SESS-B:');
+      expect(garbleB.withMarker,
+        `Must see session B content after scrolling up 1000px — only ${garbleB.total} total rows visible`
+      ).toBeGreaterThan(0);
+      expect(garbleB.garbled,
+        `Session B scrollback garbled after reload: ${garbleB.garbled} rows contain LINE+digits but are missing :END. Sample: ${JSON.stringify(garbleB.sample)}`
+      ).toBe(0);
+
+      // ── Step 8: Scroll back down and switch to session A ─────────────────
+      await scrollTerminalDown(page, 3000);
       await closeOverlay(page);
 
       // Open session A
@@ -324,7 +404,7 @@ test.describe('T-52 — Session switch: scrollback, copy, scroll, refresh, copy-
       const rowsA_returned = await countRows(page);
       await snap('session-A-final');
 
-      // ── Key assertion: row counts must stay stable across session switches ───
+      // ── Key assertions: row counts must stay stable across session switches ─
       // If column mismatch bug is present, re-subscribing may resize the PTY to the
       // wrong width, causing xterm to re-flow scrollback and changing the row count.
       expect(rowsA_returned,

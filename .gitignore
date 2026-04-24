@@ -7,3 +7,43 @@ data/activity-logs/
 *.snap
 .env
 data/sessionlog/
+
+# Runtime state
+data/watchdog-state.json
+data/credit-history.json
+data/session-lifecycle.json
+data/todos/
+data-beta/
+
+# QA / test artifacts
+qa-screenshots/
+qa-lifecycle-test/
+test-results/
+repro-*.png
+verify-*.png
+
+# Temporary scripts (debug / one-off QA)
+diag*.mjs
+diag2.mjs
+diag3.mjs
+ws-diag-test.mjs
+smoke-test-*.mjs
+qa-demo-*.js
+qa-e2e-*.js
+playwright-feat-*.config.js
+
+# Logs
+crash.log
+crash-beta.log
+
+# Tool / IDE artifacts
+.expo/
+.playwright-mcp/
+.superpowers/
+claude-traced.sh
+
+# Mockups / scratch docs
+public/mockup-*.html
+data/mockup-*.svg
+docs/superpowers/plans/
+HANDOVER.md

@@ -9,6 +9,15 @@
             "command": ".claude/hooks/block-git-checkout.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-main-source-edits.sh"
+          }
+        ]
       }
     ]
   }
