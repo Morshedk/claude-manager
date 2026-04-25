@@ -14,6 +14,7 @@ import { WatchdogPanel } from './WatchdogPanel.js';
 import { TodoPanel } from './TodoPanel.js';
 import { FileBrowser } from './FileBrowser.js';
 import { ProjectTerminalPane } from './ProjectTerminalPane.js';
+import { CommandBuffer } from './CommandBuffer.js';
 import { ThirdSpaceTabBar } from './ThirdSpaceTabBar.js';
 import { initResize } from '../utils/dom.js';
 
@@ -139,13 +140,16 @@ export function ProjectDetail() {
           <div id="project-terminal-content" class="terminal-area">
             <!-- Terminal panes: always mounted once activated, hidden via CSS when inactive -->
             ${terminalTabs.filter(t => mountedTerminals.has(t.id)).map(t => html`
-              <div key=${t.id} class=${'terminal-pane' + (activeThirdTab === t.id ? ' active' : '')}>
-                <${ProjectTerminalPane}
-                  terminalId=${t.id}
-                  cwd=${t.cwd}
-                  projectId=${project.id}
-                  create=${true}
-                />
+              <div key=${t.id} class=${'terminal-pane' + (activeThirdTab === t.id ? ' active' : '')} style="display: flex; flex-direction: column;">
+                <div style="flex: 1; min-height: 0; overflow: hidden;">
+                  <${ProjectTerminalPane}
+                    terminalId=${t.id}
+                    cwd=${t.cwd}
+                    projectId=${project.id}
+                    create=${true}
+                  />
+                </div>
+                <${CommandBuffer} targetId=${t.id} inputType="terminal" />
               </div>
             `)}
 

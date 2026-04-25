@@ -2,6 +2,7 @@ import { html } from 'htm/preact';
 import { useRef, useState } from 'preact/hooks';
 import { TerminalPane } from './TerminalPane.js';
 import { SessionLogPane } from './SessionLogPane.js';
+import { CommandBuffer } from './CommandBuffer.js';
 import { attachedSession, splitView, splitPosition } from '../state/store.js';
 import { detachSession, refreshSession, stopSession, showToast } from '../state/actions.js';
 
@@ -202,6 +203,8 @@ export function SessionOverlay() {
         >
           <${TerminalPane} sessionId=${session.id} />
         </div>
+
+        <${CommandBuffer} targetId=${session.id} inputType="session" />
 
         <!-- Bottom tab bar (always visible) -->
         <div style="
