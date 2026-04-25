@@ -40,17 +40,31 @@ function MarkdownView({ content }) {
  * Props: { path, projectPath }
  * Used by FileBrowser (right pane) and FileSplitPane (split pane body).
  */
+const PREVIEW_EXTENSIONS = new Set(['html', 'md']);
+
+const previewToggleStyle = (active) => `
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: ${active ? 'var(--bg-raised)' : 'transparent'};
+  color: ${active ? 'var(--accent)' : 'var(--text-muted)'};
+  font-size: 11px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+`;
+
 export function FileContentView({ path, projectPath }) {
   const [fileContent, setFileContent] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [fileError, setFileError] = useState(null);
   const [contentLoading, setContentLoading] = useState(false);
+  const [preview, setPreview] = useState(false);
   const abortRef = useRef(null);
-  // Ref for the markdown container — used to attach delegated link-click prevention
   const markdownRef = useRef(null);
 
   const fileName = path ? path.split('/').pop() : '';
   const fileExt = fileName.split('.').pop().toLowerCase();
+  const canPreview = PREVIEW_EXTENSIONS.has(fileExt);
 
   useEffect(() => {
     if (!path || !projectPath) return;
@@ -123,18 +137,57 @@ export function FileContentView({ path, projectPath }) {
     `;
   }
 
-  if (fileContent !== null && fileExt === 'md') {
-    const rendered = typeof marked !== 'undefined'
-      ? marked.parse(fileContent)
-      : null;
-    if (rendered !== null) {
-      return html`<${MarkdownView} content=${rendered} />`;
-    }
-    // Fallback: render as code with line numbers (same as non-md path)
-  }
-
   if (fileContent !== null) {
-    return html`
+    const toggleBar = canPreview ? html`
+      <div style="display:flex;gap:4px;padding:4px 8px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-surface);">
+        <button style=${previewToggleStyle(!preview)} onClick=${() => setPreview(false)}>Source</button>
+        <button style=${previewToggleStyle(preview)} onClick=${() => setPreview(true)}>Preview</button>
+      </div>
+    ` : null;
+
+    // HTML preview — render in sandboxed iframe
+    if (preview && fileExt === 'html') {
+      return html`
+        <div style="display:flex;flex-direction:column;height:100%;">
+          ${toggleBar}
+          <iframe
+            srcdoc=${fileContent}
+            sandbox="allow-scripts"
+            style="flex:1;width:100%;border:none;background:#fff;"
+          />
+        </div>
+      `;
+    }
+
+    // Markdown preview
+    if (fileExt === 'md') {
+      const rendered = typeof marked !== 'undefined' ? marked.parse(fileContent) : null;
+      if (rendered !== null) {
+        return html`
+          <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+            ${toggleBar}
+            <div style="flex:1;overflow:auto;min-height:0;">
+              ${preview
+                ? html`<${MarkdownView} content=${rendered} />`
+                : html`
+                    <div class="fb-code" style="font-family:var(--font-mono);font-size:12px;line-height:1.5;">
+                      ${fileContent.split('\n').map((line, i) => html`
+                        <div key=${i} class="fb-code-line" style="display:flex;">
+                          <span class="fb-code-linenum" style="min-width:40px;padding:0 8px;color:var(--text-muted);text-align:right;user-select:none;border-right:1px solid var(--border);flex-shrink:0;">${i + 1}</span>
+                          <span class="fb-code-text" style="padding:0 12px;white-space:pre;color:var(--text-primary);">${line}</span>
+                        </div>
+                      `)}
+                    </div>
+                  `
+              }
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Default: code with line numbers (wrapped with toggle bar for previewable files)
+    const codeView = html`
       <div class="fb-code" style="font-family:var(--font-mono);font-size:12px;line-height:1.5;">
         ${fileContent.split('\n').map((line, i) => html`
           <div key=${i} class="fb-code-line" style="display:flex;">
@@ -142,6 +195,13 @@ export function FileContentView({ path, projectPath }) {
             <span class="fb-code-text" style="padding:0 12px;white-space:pre;color:var(--text-primary);">${line}</span>
           </div>
         `)}
+      </div>
+    `;
+    if (!canPreview) return codeView;
+    return html`
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+        ${toggleBar}
+        <div style="flex:1;overflow:auto;min-height:0;">${codeView}</div>
       </div>
     `;
   }
