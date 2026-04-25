@@ -20,6 +20,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Tests to skip
 const SKIP = new Set([
+  'T-03-refresh-artifacts.test.js',          // tmux preserves scrollback across refresh by design; test only valid for direct mode
   'T-08-bad-project-path.test.js',           // top-level test() calls outside describe — dual-mode causes title collisions
   'T-12-tmux-survives-close.test.js',        // inherently tmux-only
   'T-30-tmux-pid-unchanged.test.js',         // inherently tmux-only

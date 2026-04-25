@@ -277,21 +277,21 @@ test.describe(`T-28 — Delete button absent on running session [${MODE}]`, () =
 
       // 6. Assert Stop button IS present in the session card actions
       console.log('  [T-28] Step 6: Checking Stop button is present...');
-      const stopBtn = sessionCard.locator('.session-card-actions button').filter({ hasText: 'Stop' });
+      const stopBtn = sessionCard.locator('.session-card-actionbar button').filter({ hasText: 'Stop' });
       const stopVisible = await stopBtn.isVisible().catch(() => false);
       expect(stopVisible, 'Stop button must be visible on a running session card').toBe(true);
       console.log('  [T-28] PASS — Stop button is present');
 
       // 7. Assert Delete button is NOT present in the session card actions
       console.log('  [T-28] Step 7: Checking Delete button is absent...');
-      const deleteBtn = sessionCard.locator('.session-card-actions button').filter({ hasText: 'Delete' });
+      const deleteBtn = sessionCard.locator('.session-card-actionbar button').filter({ hasText: 'Delete' });
       const deleteCount = await deleteBtn.count();
       expect(deleteCount, 'Delete button must NOT be present on a running session card').toBe(0);
       console.log('  [T-28] PASS — Delete button is absent (count=0)');
 
       // 8. Assert Refresh button is also NOT present (sanity check)
       console.log('  [T-28] Step 8: Checking Refresh button is absent...');
-      const refreshBtn = sessionCard.locator('.session-card-actions button').filter({ hasText: 'Refresh' });
+      const refreshBtn = sessionCard.locator('.session-card-actionbar button').filter({ hasText: 'Refresh' });
       const refreshCount = await refreshBtn.count();
       expect(refreshCount, 'Refresh button must NOT be present on a running session card').toBe(0);
       console.log('  [T-28] PASS — Refresh button is absent (count=0)');
@@ -354,21 +354,21 @@ test.describe(`T-28 — Delete button absent on running session [${MODE}]`, () =
 
       // 11. Assert Delete button IS now present when stopped
       console.log('  [T-28] Step 11: Checking Delete button appears after stop...');
-      const deleteBtnStopped = sessionCard.locator('.session-card-actions button').filter({ hasText: 'Delete' });
+      const deleteBtnStopped = sessionCard.locator('.session-card-actionbar button').filter({ hasText: 'Delete' });
       const deleteVisibleStopped = await deleteBtnStopped.isVisible().catch(() => false);
       expect(deleteVisibleStopped, 'Delete button must appear on a stopped session card').toBe(true);
       console.log('  [T-28] PASS — Delete button IS present on stopped session');
 
       // 12. Assert Stop button is NOT present when stopped
       console.log('  [T-28] Step 12: Checking Stop button is absent when stopped...');
-      const stopBtnStopped = sessionCard.locator('.session-card-actions button').filter({ hasText: 'Stop' });
+      const stopBtnStopped = sessionCard.locator('.session-card-actionbar button').filter({ hasText: 'Stop' });
       const stopCountStopped = await stopBtnStopped.count();
       expect(stopCountStopped, 'Stop button must NOT be present on a stopped session card').toBe(0);
       console.log('  [T-28] PASS — Stop button absent on stopped session');
 
       // 13. Assert Refresh button IS present when stopped
       console.log('  [T-28] Step 13: Checking Refresh button appears when stopped...');
-      const refreshBtnStopped = sessionCard.locator('.session-card-actions button').filter({ hasText: 'Refresh' });
+      const refreshBtnStopped = sessionCard.locator('.session-card-actionbar button').filter({ hasText: 'Refresh' });
       const refreshVisibleStopped = await refreshBtnStopped.isVisible().catch(() => false);
       expect(refreshVisibleStopped, 'Refresh button must appear on a stopped session card').toBe(true);
       console.log('  [T-28] PASS — Refresh button IS present on stopped session');
