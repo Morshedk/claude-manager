@@ -35,13 +35,24 @@ Custom skills live at `~/.claude/skills/` and are NOT auto-surfaced by any plugi
 
 Managed by PM2. Never start with `node` directly.
 
-| Name | Port | Branch |
-|------|------|--------|
-| `claude-v2-prod` | 3001 | `main` |
-| `claude-v2-beta` | 3002 | `beta` |
+**Both servers run from the same directory** (`/home/claude-runner/apps/claude-web-app-v2`). They share the same code — only port and data directory differ. See `docs/decisions/2026-04-25-both-servers-share-cwd.md` for full context.
+
+| Name | Port | Data dir |
+|------|------|----------|
+| `claude-v2-prod` | 3001 | `data/` |
+| `claude-v2-beta` | 3002 | `data-beta/` |
+
+**To deploy code changes:** merge your feature branch into `main`, then restart.
 
 ```bash
-pm2 restart claude-v2-beta   # deploy to beta
-pm2 restart claude-v2-prod   # deploy to prod
+git merge feat/<name>            # merge into main
+pm2 restart claude-v2-beta       # pick up changes on beta
+pm2 restart claude-v2-prod       # pick up changes on prod
 pm2 logs claude-v2-beta --lines 20 --nostream
 ```
+
+**Before any restart:** run `pm2 info <name>` to verify CWD and port. A hook will print this info automatically.
+
+## Decision Log
+
+Significant decisions are recorded in `docs/decisions/`. Check these before making assumptions about the codebase — they capture the "why" behind non-obvious choices.
