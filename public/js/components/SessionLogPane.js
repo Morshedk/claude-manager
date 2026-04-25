@@ -106,7 +106,7 @@ export function SessionLogPane({ sessionId }) {
   }, [loading]);
 
   return html`
-    <div style="display:flex;flex-direction:column;height:100%;background:var(--bg-base);border-left:1px solid var(--border);overflow:hidden;">
+    <div style="display:flex;flex-direction:column;height:100%;background:var(--bg-base);border-top:1px solid var(--border);overflow:hidden;">
       <!-- Header -->
       <div style="display:flex;align-items:center;gap:8px;padding:0 12px;height:32px;background:var(--bg-surface);border-bottom:1px solid var(--border);flex-shrink:0;">
         <span style="font-size:12px;font-weight:600;color:var(--text-bright);">Session Events</span>
