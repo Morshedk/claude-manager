@@ -28,7 +28,7 @@ if echo "$rel" | grep -qE '^(public/js/|lib/|server\.js|routes/)'; then
   echo "Create a feature worktree first:" >&2
   echo "  git worktree add ../claude-web-app-v2-<name> -b feat/<name>" >&2
   echo "  # work in /home/claude-runner/apps/claude-web-app-v2-<name>" >&2
-  echo "  # merge into beta to deploy, then promote to main when ready" >&2
+  echo "  # merge into main, then pm2 restart to deploy" >&2
   exit 2
 fi
 

@@ -157,14 +157,6 @@ export function SessionOverlay() {
         <!-- Actions -->
         <div class="overlay-actions" style="display: flex; gap: 4px; flex-shrink: 0;">
           <button
-            onClick=${toggleLog}
-            style=${btnStyle(showLog ? 'var(--bg-raised)' : 'transparent', showLog ? 'var(--accent)' : 'var(--text-secondary)')}
-            title=${showLog ? 'Hide session events' : 'Show session events'}
-          >
-            Events
-          </button>
-
-          <button
             onClick=${toggleSplit}
             style=${btnStyle()}
             title=${isSplit ? 'Expand to full screen' : 'Switch to split view'}
@@ -202,16 +194,47 @@ export function SessionOverlay() {
         </div>
       </header>
 
-      <!-- Terminal body (+ optional events split) -->
-      <div style="flex: 1; min-height: 0; overflow: hidden; display: flex;">
+      <!-- Terminal body -->
+      <div style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
         <div
           id="session-overlay-terminal"
-          style=${'flex: 1; min-height: 0; overflow: hidden; position: relative;' + (showLog ? ' max-width: 50%;' : '')}
+          style="flex: 1; min-height: 0; overflow: hidden; position: relative;"
         >
           <${TerminalPane} sessionId=${session.id} />
         </div>
+
+        <!-- Bottom tab bar (always visible) -->
+        <div style="
+          display: flex;
+          align-items: center;
+          height: 28px;
+          background: var(--bg-surface);
+          border-top: 1px solid var(--border);
+          flex-shrink: 0;
+          gap: 0;
+        ">
+          <button
+            onClick=${toggleLog}
+            style="
+              height: 100%;
+              padding: 0 14px;
+              background: ${showLog ? 'var(--bg-base)' : 'transparent'};
+              color: ${showLog ? 'var(--accent)' : 'var(--text-muted)'};
+              border: none;
+              border-right: 1px solid var(--border);
+              border-top: ${showLog ? '2px solid var(--accent)' : '2px solid transparent'};
+              font-size: 11px;
+              font-family: var(--font-sans);
+              cursor: pointer;
+              white-space: nowrap;
+            "
+            title=${showLog ? 'Hide session events' : 'Show session events'}
+          >Events</button>
+        </div>
+
+        <!-- Events panel (below terminal, fixed height) -->
         ${showLog ? html`
-          <div style="flex: 1; min-height: 0; min-width: 0;">
+          <div style="height: 260px; min-height: 0; flex-shrink: 0; overflow: hidden;">
             <${SessionLogPane} sessionId=${session.id} />
           </div>
         ` : null}
