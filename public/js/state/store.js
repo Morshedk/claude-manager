@@ -51,6 +51,10 @@ export const attachedSession = computed(() =>
 /** App-level settings object */
 export const settings = signal({});
 
+// ── Vitals (system metrics from watchdog) ────────────────────────────────────
+/** System vitals: { cpuPct, memUsedMb, memTotalMb, memPct, diskPct, uptimeS, timestamp } */
+export const vitals = signal(null);
+
 // ── Todos ─────────────────────────────────────────────────────────────────────
 /** Map of projectId → { items: TodoItem[], loading: boolean } */
 export const todos = signal({});

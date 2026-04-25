@@ -1,6 +1,7 @@
 import { html } from 'htm/preact';
 import { connected, serverVersion, serverEnv } from '../state/store.js';
 import { openSettingsModal, manualReconnect } from '../state/actions.js';
+import { VitalsIndicator } from './VitalsIndicator.js';
 
 /**
  * TopBar — app-level header.
@@ -31,7 +32,9 @@ export function TopBar() {
         <span style="${badgeStyle}">${versionLabel}</span>
       </div>
 
-      <div class="global-stats"></div>
+      <div class="global-stats">
+        <${VitalsIndicator} />
+      </div>
 
       <div class="topbar-right">
         ${isConnected

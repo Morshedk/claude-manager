@@ -60,12 +60,13 @@ wss.on('connection', (ws) => {
   const clientId = clientRegistry.add(ws);
   console.log(`[ws] client connected: ${clientId}`);
 
-  // Send init message with clientId and server version
+  // Send init message with clientId, server version, and current vitals
   clientRegistry.send(clientId, {
     type: 'init',
     clientId,
     serverVersion: '2.03',
     serverEnv: process.env.NODE_ENV === 'production' ? 'PROD' : 'BETA',
+    vitals: watchdog.getVitals(),
   });
 
   // Send current sessions list so client can populate UI immediately
