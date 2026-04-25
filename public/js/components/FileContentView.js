@@ -186,8 +186,8 @@ export function FileContentView({ path, projectPath }) {
       }
     }
 
-    // Default: code with line numbers
-    return html`
+    // Default: code with line numbers (wrapped with toggle bar for previewable files)
+    const codeView = html`
       <div class="fb-code" style="font-family:var(--font-mono);font-size:12px;line-height:1.5;">
         ${fileContent.split('\n').map((line, i) => html`
           <div key=${i} class="fb-code-line" style="display:flex;">
@@ -195,6 +195,13 @@ export function FileContentView({ path, projectPath }) {
             <span class="fb-code-text" style="padding:0 12px;white-space:pre;color:var(--text-primary);">${line}</span>
           </div>
         `)}
+      </div>
+    `;
+    if (!canPreview) return codeView;
+    return html`
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+        ${toggleBar}
+        <div style="flex:1;overflow:auto;min-height:0;">${codeView}</div>
       </div>
     `;
   }
