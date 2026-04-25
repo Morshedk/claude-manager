@@ -27,7 +27,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ── Config ─────────────────────────────────────────────────────────────────────
-const APP_DIR = '/home/claude-runner/apps/claude-web-app-v2';
+const APP_DIR = path.resolve(__dirname, '../../');
 const PORT = 3095;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const FINDINGS = [];
@@ -48,9 +48,10 @@ async function startServer() {
   tmpDir = execSync('mktemp -d /tmp/qa-B-XXXXXX').toString().trim();
   fs.writeFileSync(path.join(tmpDir, 'sessions.json'), '[]');
 
-  serverProc = spawn('node', ['server.js'], {
+  const crashLogPath = path.join(tmpDir, 'server-crash.log');
+  serverProc = spawn('node', ['server-with-crash-log.mjs'], {
     cwd: APP_DIR,
-    env: { ...process.env, DATA_DIR: tmpDir, PORT: String(PORT) },
+    env: { ...process.env, DATA_DIR: tmpDir, PORT: String(PORT), CRASH_LOG: crashLogPath },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
@@ -87,6 +88,10 @@ async function stopServer() {
     try { serverProc.kill('SIGKILL'); } catch {}
     serverProc = null;
   }
+  try {
+    const crashLog = fs.readFileSync(path.join(tmpDir, 'server-crash.log'), 'utf8');
+    if (crashLog.trim()) console.log('\n  [CRASH LOG]\n' + crashLog);
+  } catch {}
   if (tmpDir) {
     try { execSync(`rm -rf ${tmpDir}`); } catch {}
     tmpDir = '';
@@ -98,6 +103,13 @@ async function stopServer() {
 function wsConnect() {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(`ws://127.0.0.1:${PORT}`);
+    // Buffer messages received before waitForMessage registers a listener.
+    // The server sends 'init' immediately on connect, often before the caller
+    // has a chance to call waitForMessage().
+    ws._msgBuffer = [];
+    ws.on('message', raw => {
+      if (ws._msgBuffer !== null) ws._msgBuffer.push(raw);
+    });
     ws.once('open', () => resolve(ws));
     ws.once('error', reject);
     setTimeout(() => reject(new Error('WS connect timeout')), 10000);
@@ -105,6 +117,15 @@ function wsConnect() {
 }
 
 function waitForMessage(ws, predicate, timeoutMs = 15000) {
+  // Drain buffered messages first (received between open and first waitForMessage).
+  if (ws._msgBuffer) {
+    const buf = ws._msgBuffer;
+    ws._msgBuffer = null; // stop buffering, hand off to live listener
+    for (const raw of buf) {
+      let msg; try { msg = JSON.parse(raw); } catch { continue; }
+      if (predicate(msg)) return Promise.resolve(msg);
+    }
+  }
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       ws.off('message', handler);
@@ -220,7 +241,7 @@ async function getVisibleText(page) {
 
 /** Navigate app to a project and open session overlay */
 async function openSessionInBrowser(page, sessionName) {
-  await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(1000);
 
   // Click the project in sidebar
@@ -228,7 +249,10 @@ async function openSessionInBrowser(page, sessionName) {
     await page.waitForSelector('#project-sidebar .project-item', { timeout: 10000 });
   } catch {}
   const projectItem = page.locator('#project-sidebar .project-item').first();
-  if (await projectItem.count()) await projectItem.click();
+  if (await projectItem.count()) {
+    await projectItem.click();
+    await sleep(500);  // let project detail render
+  }
 
   // Wait for session cards
   try {
@@ -240,9 +264,11 @@ async function openSessionInBrowser(page, sessionName) {
   const card = page.locator('.session-card').filter({ hasText: sessionName });
   if (!(await card.count())) throw new Error(`Session card not found: "${sessionName}"`);
 
-  const openBtn = card.locator('button').filter({ hasText: /^Open$/ });
-  if (await openBtn.count()) {
-    await openBtn.first().click();
+  // Click the session name link — clicking the card center lands on the preview
+  // pane which calls stopPropagation(), so we target the title link explicitly.
+  const nameLink = card.locator('.session-card-name-link').first();
+  if (await nameLink.count()) {
+    await nameLink.click();
   } else {
     await card.first().click();
   }
@@ -260,6 +286,9 @@ function recordFinding(testId, status, detail) {
 }
 
 // ── Global setup / teardown ────────────────────────────────────────────────────
+// serial mode: beforeAll/afterAll run once for the whole group (not per-test).
+test.describe('Category B: Terminal Rendering', () => {
+test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
   await startServer();
@@ -1290,8 +1319,7 @@ test('B.24 — rapid session switching (10 times) leaves no stale handlers', asy
       try {
         const card = page.locator('.session-card').filter({ hasText: targetName });
         if (await card.count()) {
-          const openBtn = card.locator('button').filter({ hasText: /^Open$/ });
-          if (await openBtn.count()) await openBtn.first().click();
+          await card.first().click();
         }
       } catch {}
       await sleep(150);
@@ -1340,7 +1368,7 @@ test('B.25 — terminal still functional after navigating away and back', async 
     await sleep(500);
 
     // Navigate back
-    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await sleep(1000);
 
     // Re-open session
@@ -1368,3 +1396,5 @@ test('B.25 — terminal still functional after navigating away and back', async 
     await ctx.close();
   }
 });
+
+}); // end test.describe('Category B: Terminal Rendering')

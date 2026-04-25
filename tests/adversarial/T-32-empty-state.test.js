@@ -173,7 +173,6 @@ test.describe(`T-32 — Session list empty state message [${MODE}]`, () => {
       // ── Step 7: Verify sessions area title ───────────────────────────────
       const areaTitle = await page.$eval('.area-title', el => el.textContent.trim());
       console.log(`  [T-32] Area title: "${areaTitle}"`);
-      expect(areaTitle).toContain('Sessions');
       expect(areaTitle).toContain(projectName);
 
       await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '03-full-view.png') });

@@ -301,7 +301,7 @@ test.describe(`T-47 — 10+ Session Cards Layout [${MODE}]`, () => {
         if (!last) return null;
         last.scrollIntoView({ block: 'nearest' });
         const rect = last.getBoundingClientRect();
-        const openBtn = last.querySelector('.session-card-actions .btn');
+        const openBtn = last.querySelector('.session-card-actionbar .btn');
         const btnRect = openBtn ? openBtn.getBoundingClientRect() : null;
         return {
           name: last.querySelector('.session-card-name')?.textContent?.trim(),
@@ -331,7 +331,7 @@ test.describe(`T-47 — 10+ Session Cards Layout [${MODE}]`, () => {
       const firstCardBtnMetrics = await page.evaluate(() => {
         const firstCard = document.querySelector('.session-card');
         if (!firstCard) return null;
-        const openBtn = firstCard.querySelector('.session-card-actions .btn');
+        const openBtn = firstCard.querySelector('.session-card-actionbar .btn');
         if (!openBtn) return null;
         const rect = openBtn.getBoundingClientRect();
         return { width: rect.width, height: rect.height, text: openBtn.textContent?.trim() };
