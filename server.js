@@ -76,7 +76,7 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.static(join(__dirname, 'public')));
 
 // Mount API routes (routes include /api/ prefix, so mount at root)
-app.use('/', createRouter({ sessions, projects, settings, terminals, detector, todos, watchdog, sessionLog }));
+app.use('/', createRouter({ sessions, projects, settings, terminals, detector, todos, watchdog, sessionLog, health }));
 
 // Fallback: serve index.html for non-API routes
 app.get('*', (req, res) => {
