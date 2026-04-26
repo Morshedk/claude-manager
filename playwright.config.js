@@ -98,6 +98,7 @@ const PLAYWRIGHT_TESTS = [
   '**/adversarial/T-55-command-buffer.test.js',
   '**/adversarial/T-56-logging-p1.test.js',
   '**/adversarial/T-56-logging-p2.test.js',
+  '**/adversarial/T-56-logging-p3.test.js',
   // ── B / F series ─────────────────────────────────────────────────────────
   '**/adversarial/B-rendering.test.js',
   '**/adversarial/F-bug-reproductions.test.js',
