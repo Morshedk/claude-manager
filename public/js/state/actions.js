@@ -9,6 +9,7 @@ import {
   editSessionModalOpen, editSessionTarget,
   fileSplitTarget, splitView, connected,
   thirdSpaceTab, fileBrowserTarget,
+  healthState,
 } from './store.js';
 import { upsertSession, removeSession } from './sessionState.js';
 
@@ -63,6 +64,14 @@ export async function saveSettings(updates) {
   } catch (err) {
     log.error('api', 'saveSettings failed', { err });
   }
+}
+
+/** Fetch subsystem health from /api/health and populate the healthState signal. */
+export async function fetchHealth() {
+  try {
+    const data = await fetch('/api/health').then(r => r.json());
+    healthState.value = data;
+  } catch { /* non-fatal */ }
 }
 
 // ── Session actions ───────────────────────────────────────────────────────────

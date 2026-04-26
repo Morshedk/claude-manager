@@ -6,6 +6,7 @@ import {
   loadProjects,
   loadSessions,
   loadSettings,
+  fetchHealth,
   handleSessionCreated,
   handleSessionState,
   handleSessionsList,
@@ -85,6 +86,8 @@ export function initMessageHandlers() {
     loadProjects();
     loadSessions();
     loadSettings();
+    fetchHealth();
+    setInterval(fetchHealth, 60_000);
   });
 
   // Connection lifecycle
