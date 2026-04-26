@@ -17,10 +17,18 @@ import { ProcessDetector } from './lib/detector/ProcessDetector.js';
 import { TodoManager } from './lib/todos/TodoManager.js';
 import { WatchdogManager } from './lib/watchdog/WatchdogManager.js';
 import { SessionLogManager } from './lib/sessionlog/SessionLogManager.js';
+import fs from 'fs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = process.env.PORT || 3001;
 const DATA_DIR = process.env.DATA_DIR || join(__dirname, 'data');
+
+// ── Connection log — append-only JSONL for WS connect/disconnect/reconnect ───
+const CONNECTION_LOG = join(DATA_DIR, 'connection-log.jsonl');
+function logConnection(entry) {
+  const line = JSON.stringify({ ts: new Date().toISOString(), ...entry }) + '\n';
+  fs.appendFile(CONNECTION_LOG, line, () => {});
+}
 
 // ── Initialize stores and managers ───────────────────────────────────────────
 const sessionLog = new SessionLogManager({ dataDir: DATA_DIR });
@@ -56,9 +64,11 @@ app.get('*', (req, res) => {
 const httpServer = createServer(app);
 const wss = new WebSocketServer({ server: httpServer });
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   const clientId = clientRegistry.add(ws);
-  console.log(`[ws] client connected: ${clientId}`);
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  console.log(`[ws] client connected: ${clientId} from ${ip}`);
+  logConnection({ event: 'connect', clientId, ip, totalClients: clientRegistry._clients.size });
 
   // Send init message with clientId, server version, and current vitals
   clientRegistry.send(clientId, {
@@ -83,13 +93,21 @@ wss.on('connection', (ws) => {
       console.warn('[ws] invalid JSON from client:', clientId);
       return;
     }
+
+    if (message.type === 'client:reconnect') {
+      console.log(`[ws] client reconnect report: ${clientId} attempt=${message.attempt} trigger=${message.trigger} downtime=${message.downtimeMs}ms lastClose=${message.lastCloseCode}`);
+      logConnection({ event: 'reconnect', clientId, ip, ...message });
+      return;
+    }
+
     router.route(clientId, message, clientRegistry);
   });
 
   ws.on('close', (code, reason) => {
-    console.log(`[ws] client disconnected: ${clientId} (code=${code} reason=${reason||'none'})`);
-    // Clean up viewers on disconnect (both terminal and session subscriptions)
     const client = clientRegistry.get(clientId);
+    const subs = client ? [...client.subscriptions] : [];
+    console.log(`[ws] client disconnected: ${clientId} (code=${code} reason=${reason||'none'} subs=${subs.length})`);
+    logConnection({ event: 'disconnect', clientId, code, reason: reason || 'none', subscriptions: subs, totalClients: clientRegistry._clients.size - 1 });
     if (client) {
       for (const subId of client.subscriptions) {
         terminals.removeViewer(subId, clientId);
@@ -101,6 +119,7 @@ wss.on('connection', (ws) => {
 
   ws.on('error', (err) => {
     console.error(`[ws] error for client ${clientId}:`, err.message);
+    logConnection({ event: 'error', clientId, error: err.message });
     clientRegistry.remove(clientId);
   });
 });
