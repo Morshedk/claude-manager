@@ -1,5 +1,6 @@
 import { on } from '../ws/connection.js';
 import { SERVER } from '../ws/protocol.js';
+import { log } from '../logger/logger.js';
 import { sessions, connected, clientId, attachedSessionId, serverVersion, serverEnv, vitals } from './store.js';
 import {
   loadProjects,
@@ -78,6 +79,9 @@ export function initMessageHandlers() {
     if (msg.serverVersion) serverVersion.value = msg.serverVersion;
     if (msg.serverEnv) serverEnv.value = msg.serverEnv;
     if (msg.vitals) vitals.value = msg.vitals;
+    if (msg.logging?.levels) {
+      log.setLevels(msg.logging.levels);
+    }
     loadProjects();
     loadSessions();
     loadSettings();
@@ -128,4 +132,9 @@ export function initMessageHandlers() {
 
   // session:subscribed and session:output are handled per-terminal in TerminalPane
   // They are NOT stored in global state — handled locally in the component
+
+  // Log level sync from server
+  on('log:level:changed', (msg) => {
+    log.setLevels(msg.levels);
+  });
 }
