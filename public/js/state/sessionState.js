@@ -1,7 +1,7 @@
 import { on } from '../ws/connection.js';
 import { SERVER } from '../ws/protocol.js';
 import { log } from '../logger/logger.js';
-import { sessions, connected, clientId, attachedSessionId, serverVersion, serverEnv, vitals } from './store.js';
+import { sessions, connected, clientId, attachedSessionId, serverVersion, serverEnv, vitals, logEntries } from './store.js';
 import {
   loadProjects,
   loadSessions,
@@ -136,5 +136,10 @@ export function initMessageHandlers() {
   // Log level sync from server
   on('log:level:changed', (msg) => {
     log.setLevels(msg.levels);
+  });
+
+  // Structured log entries streamed from server
+  on('log:entry', (msg) => {
+    logEntries.value = [...logEntries.value.slice(-999), msg.entry];
   });
 }

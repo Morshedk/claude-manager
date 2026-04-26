@@ -118,6 +118,10 @@ export const fileSplitTarget = signal(null);
 /** Array of { id, message, type } toast notifications */
 export const toasts = signal([]);
 
+// ── Logs ──────────────────────────────────────────────────────────────────────
+/** Circular buffer of structured log entries streamed from server (max 1000) */
+export const logEntries = signal([]);
+
 // ── Third space ───────────────────────────────────────────────────────────────
 /** Active tab in the third space: 'files' | 'todos' | <terminalId> */
 export const thirdSpaceTab = signal('files');
