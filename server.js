@@ -128,6 +128,7 @@ wss.on('connection', (ws, req) => {
 await sessions.init();
 setInterval(() => sessionLog.tick(), 20_000);
 watchdog.on('error', (err) => console.error('[watchdog] error:', err.message));
+watchdog.on('sessionsListChanged', () => sessionHandlers._broadcastSessionsList());
 watchdog.start();
 
 httpServer.listen(PORT, '127.0.0.1', () => {
