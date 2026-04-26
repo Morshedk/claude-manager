@@ -1,6 +1,6 @@
 import { on } from '../ws/connection.js';
 import { SERVER } from '../ws/protocol.js';
-import { sessions, connected, clientId, attachedSessionId, serverVersion, serverEnv } from './store.js';
+import { sessions, connected, clientId, attachedSessionId, serverVersion, serverEnv, vitals } from './store.js';
 import {
   loadProjects,
   loadSessions,
@@ -71,12 +71,13 @@ export function removeSession(id) {
  * Call once at startup (from main.js) before mounting the app.
  */
 export function initMessageHandlers() {
-  // On server init: mark connected, store clientId, load initial data
+  // On server init: mark connected, store clientId, load initial data + vitals
   on(SERVER.INIT, (msg) => {
     connected.value = true;
     if (msg.clientId) clientId.value = msg.clientId;
     if (msg.serverVersion) serverVersion.value = msg.serverVersion;
     if (msg.serverEnv) serverEnv.value = msg.serverEnv;
+    if (msg.vitals) vitals.value = msg.vitals;
     loadProjects();
     loadSessions();
     loadSettings();
@@ -99,6 +100,11 @@ export function initMessageHandlers() {
 
   // Todo updates pushed from server
   on(SERVER.TODOS_UPDATED, handleTodosUpdated);
+
+  // Watchdog tick — update system vitals
+  on(SERVER.WATCHDOG_TICK, (msg) => {
+    if (msg.vitals) vitals.value = msg.vitals;
+  });
 
   // Session refreshed — update session state
   on('session:refreshed', (msg) => {
