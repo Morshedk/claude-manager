@@ -95,6 +95,7 @@ const PLAYWRIGHT_TESTS = [
   '**/adversarial/T-52-session-switch-no-garble.test.js',
   '**/adversarial/T-53-events-bottom-tab.test.js',
   '**/adversarial/T-54-pulse-metrics.test.js',
+  '**/adversarial/T-55-command-buffer.test.js',
   // ── B / F series ─────────────────────────────────────────────────────────
   '**/adversarial/B-rendering.test.js',
   '**/adversarial/F-bug-reproductions.test.js',
