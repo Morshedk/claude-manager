@@ -18,10 +18,24 @@ import { TodoManager } from './lib/todos/TodoManager.js';
 import { WatchdogManager } from './lib/watchdog/WatchdogManager.js';
 import { SessionLogManager } from './lib/sessionlog/SessionLogManager.js';
 import fs from 'fs';
+import { log } from './lib/logger/Logger.js';
+import { health } from './lib/logger/health.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = process.env.PORT || 3001;
 const DATA_DIR = process.env.DATA_DIR || join(__dirname, 'data');
+
+// ── Log subscriber registry (clients with Logs tab open) ────────────────────
+const logSubscribers = {
+  _clients: new Set(),
+  add(clientId) { this._clients.add(clientId); },
+  remove(clientId) { this._clients.delete(clientId); },
+  broadcast(message) {
+    for (const clientId of this._clients) {
+      clientRegistry.send(clientId, message);
+    }
+  },
+};
 
 // ── Connection log — append-only JSONL for WS connect/disconnect/reconnect ───
 const CONNECTION_LOG = join(DATA_DIR, 'connection-log.jsonl');
@@ -39,6 +53,15 @@ const terminals = new TerminalManager();
 const detector = new ProcessDetector(projects);
 const todos = new TodoManager(projects, sessions, { dataDir: DATA_DIR });
 const watchdog = new WatchdogManager({ clientRegistry, sessionManager: sessions, detector, settingsStore: settings, todoManager: todos, dataDir: DATA_DIR });
+
+// ── Initialize logger ────────────────────────────────────────────────────────
+health.init(join(DATA_DIR, 'health.json'));
+log.init({
+  settingsStore: settings,
+  logFile: join(DATA_DIR, 'app.log.jsonl'),
+  health,
+  logSubscribers,
+});
 
 // ── Initialize WS handlers ────────────────────────────────────────────────────
 const sessionHandlers = new SessionHandlers(sessions, clientRegistry, { watchdogManager: watchdog, settingsStore: settings });
@@ -77,6 +100,7 @@ wss.on('connection', (ws, req) => {
     serverVersion: '2.03',
     serverEnv: process.env.NODE_ENV === 'production' ? 'PROD' : 'BETA',
     vitals: watchdog.getVitals(),
+    logging: { levels: settings.getSync()?.logging?.levels || { default: 'warn' } },
   });
 
   // Send current sessions list so client can populate UI immediately
@@ -100,6 +124,26 @@ wss.on('connection', (ws, req) => {
       return;
     }
 
+    if (message.type === 'logs:subscribe') {
+      logSubscribers.add(clientId);
+      return;
+    }
+    if (message.type === 'logs:unsubscribe') {
+      logSubscribers.remove(clientId);
+      return;
+    }
+    if (message.type === 'log:client') {
+      const entries = Array.isArray(message.entries) ? message.entries : [];
+      const logFile = join(DATA_DIR, 'app.log.jsonl');
+      for (const entry of entries) {
+        try {
+          const line = JSON.stringify({ ...entry, source: 'client' }) + '\n';
+          fs.appendFileSync(logFile, line);
+        } catch { /* non-fatal */ }
+      }
+      return;
+    }
+
     router.route(clientId, message, clientRegistry);
   });
 
@@ -114,6 +158,7 @@ wss.on('connection', (ws, req) => {
         sessions.unsubscribe(subId, clientId);
       }
     }
+    logSubscribers.remove(clientId);
     clientRegistry.remove(clientId);
   });
 
@@ -127,9 +172,23 @@ wss.on('connection', (ws, req) => {
 // ── Start ─────────────────────────────────────────────────────────────────────
 await sessions.init();
 setInterval(() => sessionLog.tick(), 20_000);
-watchdog.on('error', (err) => console.error('[watchdog] error:', err.message));
 watchdog.on('sessionsListChanged', () => sessionHandlers._broadcastSessionsList());
 watchdog.start();
+
+// ── Global error handlers ────────────────────────────────────────────────────
+process.on('uncaughtException', (err) => {
+  log.error('process', 'uncaught exception', { error: err.message, stack: err.stack });
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason) => {
+  log.error('process', 'unhandled promise rejection', { reason: String(reason) });
+});
+
+// ── EventEmitter error wiring ─────────────────────────────────────────────────
+watchdog.on('error',  (err) => log.error('watchdog',  err.message, { stack: err.stack }));
+sessions.on('error',  (err) => log.error('sessions',  err.message, { stack: err.stack }));
+todos.on('error',     (err) => log.error('todos',     err.message, { stack: err.stack }));
+// Note: TerminalManager does not extend EventEmitter — no error wiring needed
 
 httpServer.listen(PORT, '127.0.0.1', () => {
   console.log(`[server] claude-web-app-v2 listening on http://127.0.0.1:${PORT}`);
