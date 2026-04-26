@@ -64,9 +64,10 @@ export function ThirdSpaceTabBar({ terminalTabs, activeTabId, onTabSelect, onAdd
           </div>
         `)}
 
-        <!-- Permanent tabs: Files and Todos -->
+        <!-- Permanent tabs: Files, Todos, and Logs -->
         <div style=${tabStyle('files')} onClick=${() => onTabSelect('files')}>Files</div>
         <div style=${tabStyle('todos')} onClick=${() => onTabSelect('todos')}>Todos</div>
+        <div style=${tabStyle('logs')} onClick=${() => onTabSelect('logs')}>Logs</div>
       </div>
     </div>
   `;

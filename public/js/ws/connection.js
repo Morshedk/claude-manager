@@ -3,6 +3,8 @@
  * Dispatches incoming messages to registered handlers by type.
  */
 
+import { log } from '../logger/logger.js';
+
 const RECONNECT_DELAY = 3000;
 
 let _ws = null;
@@ -50,6 +52,15 @@ export function connect() {
     console.log(`[ws] connected (attempt #${attempt}, reconnect took ${elapsed}ms)`);
     if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
     dispatch({ type: 'connection:open' });
+
+    // Flush client log buffer to server
+    const unflushed = log.getUnflushed();
+    if (unflushed.length > 0) {
+      try {
+        _ws.send(JSON.stringify({ type: 'log:client', entries: unflushed }));
+        log.markFlushed();
+      } catch { /* non-fatal */ }
+    }
 
     // Report reconnect diagnostics to the server
     if (attempt > 1) {

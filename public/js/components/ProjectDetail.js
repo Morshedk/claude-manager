@@ -5,6 +5,7 @@ import {
   projectSessions,
   selectedProjectId,
   thirdSpaceTab,
+  connected,
 } from '../state/store.js';
 import { send } from '../ws/connection.js';
 import { CLIENT } from '../ws/protocol.js';
@@ -16,6 +17,7 @@ import { FileBrowser } from './FileBrowser.js';
 import { ProjectTerminalPane } from './ProjectTerminalPane.js';
 import { CommandBuffer } from './CommandBuffer.js';
 import { ThirdSpaceTabBar } from './ThirdSpaceTabBar.js';
+import { LogsPane } from './LogsPane.js';
 import { initResize } from '../utils/dom.js';
 
 export function ProjectDetail() {
@@ -167,8 +169,15 @@ export function ProjectDetail() {
               </div>
             ` : null}
 
+            <!-- Logs panel -->
+            ${activeThirdTab === 'logs' ? html`
+              <div style="height:100%;overflow:hidden;">
+                <${LogsPane} connected=${connected.value} />
+              </div>
+            ` : null}
+
             <!-- Empty state: no terminals and no panel active (should not occur in normal use) -->
-            ${terminalTabs.length === 0 && activeThirdTab !== 'files' && activeThirdTab !== 'todos' ? html`
+            ${terminalTabs.length === 0 && activeThirdTab !== 'files' && activeThirdTab !== 'todos' && activeThirdTab !== 'logs' ? html`
               <div class="terminals-empty">Open a terminal with the + button above</div>
             ` : null}
           </div>
