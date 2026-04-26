@@ -11,7 +11,7 @@
  *   4. Shows "RAM" label with memory values (MB or GB)
  *   5. Shows "Disk" label with a percentage value
  *   6. Contains at least 3 micro progress bar elements (48px-wide divs)
- *   7. CPU percentage is in range 0-300 (multi-core systems can exceed 100%)
+ *   7. CPU percentage is in range 0-100 (display caps at 100%)
  *   8. Disk percentage is in range 0-100
  *   9. No "waiting..." text after vitals data arrives
  *
@@ -185,9 +185,9 @@ test.describe(`T-54 [${MODE}] — Pulse metrics display in TopBar`, () => {
       }
 
       // ── 8. Assert percentage values are reasonable ──────────────────────
-      // CPU can exceed 100% on multi-core systems (e.g. 4 cores = up to 400%)
+      // Display caps at 100% even if raw load avg exceeds it
       expect(cpuPct, 'CPU % must be >= 0').toBeGreaterThanOrEqual(0);
-      expect(cpuPct, 'CPU % must be <= 300 (multi-core ceiling)').toBeLessThanOrEqual(300);
+      expect(cpuPct, 'CPU % must be <= 100 (display capped)').toBeLessThanOrEqual(100);
 
       // Disk is always 0-100%
       expect(diskPct, 'Disk % must be >= 0').toBeGreaterThanOrEqual(0);
