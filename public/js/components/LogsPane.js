@@ -116,7 +116,7 @@ export function LogsPane({ connected }) {
         ${!historyLoaded ? html`<div style="padding:8px;color:var(--text-muted);font-size:11px;">Loading...</div>` : null}
         ${filtered.length === 0 && historyLoaded ? html`<div style="padding:8px;color:var(--text-muted);font-size:11px;">No entries</div>` : null}
         ${filtered.map((e, i) => html`
-          <div key=${i} style=${rowStyle(e)}>
+          <div key=${`${e.ts}-${e.tag}-${i}`} style=${rowStyle(e)}>
             <div style="display:flex;align-items:center;gap:4px;">
               <span style="color:var(--text-muted);font-size:10px;" title=${e.ts}>
                 ${e.ts.slice(11, 19)}
