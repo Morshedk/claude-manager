@@ -85,7 +85,7 @@ export function VitalsIndicator() {
       <span style="display:inline-flex;align-items:center;gap:4px;">
         <span style=${labelStyle}>CPU</span>
         <${MicroBar} pct=${v.cpuPct} color=${cpuColor} />
-        <span style="${valueStyle}color:${cpuColor};">${v.cpuPct}%</span>
+        <span style="${valueStyle}color:${cpuColor};">${Math.min(100, v.cpuPct)}%</span>
       </span>
 
       <span style=${sepStyle}>|</span>
