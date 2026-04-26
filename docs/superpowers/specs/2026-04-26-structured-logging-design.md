@@ -421,6 +421,70 @@ Wire `/api/health` polling into TopBar component. Add per-subsystem status dots.
 
 ---
 
+## Acceptance Tests
+
+One Playwright test file per phase (`tests/adversarial/T-56-logging-*.test.js`). Each phase must pass before the next begins.
+
+### Phase 1 — Infrastructure
+
+| # | Test | Pass condition |
+|---|---|---|
+| 1.1 | GET /api/logs/tail | Returns 200 with a JSON array (empty is fine) |
+| 1.2 | GET /api/health | Returns 200 with `ws`, `sessions`, `watchdog`, `terminals` keys |
+| 1.3 | POST /api/logs/client | Accepts `{ entries: [...] }`, returns 200, entry appears in `app.log.jsonl` |
+| 1.4 | Logs tab opens | Third-space "Logs" tab renders without JS errors |
+| 1.5 | Logs tab offline | Disconnect WS → tab shows "disconnected" banner, does not crash |
+
+### Phase 2 — Server migration
+
+| # | Test | Pass condition |
+|---|---|---|
+| 2.1 | Log written to JSONL | Trigger a known warn path (e.g. unknown WS message type) → entry appears in `app.log.jsonl` with correct `level`, `tag`, `msg` |
+| 2.2 | Level filtering | Set `ws=error` via settings API → triggering a `warn` in ws tag produces no JSONL entry |
+| 2.3 | Level change no restart | Change level via settings API, verify new level applies within one log call — no PM2 restart |
+| 2.4 | File rotation | Inject entries until JSONL exceeds 10MB → `app.log.1.jsonl` created, original reset |
+| 2.5 | safeSerialize | Pass a circular-reference object as data → log call completes, entry in JSONL contains `_serializeError: true` or truncated output, no server crash |
+
+### Phase 3 — Client migration
+
+| # | Test | Pass condition |
+|---|---|---|
+| 3.1 | Client log reaches server | Call `log.warn('test', 'hello')` in browser console → entry appears in `app.log.jsonl` with `source: client` after next flush |
+| 3.2 | Ring buffer survives disconnect | Disconnect WS, trigger 3 client log calls → all 3 appear in Logs tab offline view |
+| 3.3 | Flush on reconnect | After 3.2, reconnect WS → all 3 entries appear in `app.log.jsonl` |
+| 3.4 | sendBeacon on unload | Close tab with unflushed entries → `POST /api/logs/client` fires → entries in JSONL tagged `client-beacon` |
+| 3.5 | window.onerror captured | Trigger `throw new Error('test')` in browser → entry appears in Logs tab with tag `app`, level `error` |
+| 3.6 | console.* still works | After logger wraps console, `console.error('x')` still appears in browser devtools |
+
+### Phase 4 — Feature health signals
+
+| # | Test | Pass condition |
+|---|---|---|
+| 4.1 | Session start updates health | Create a session → `GET /api/health` shows `sessions.lastStart` updated within 5s |
+| 4.2 | Watchdog review updates health | Wait for or trigger watchdog review → `watchdog.lastReview` updated |
+| 4.3 | Error increments count | Trigger a sessions error → `sessions.errorCount1h` increments |
+| 4.4 | Count resets after 1h | Mock time >1h forward → `errorCount1h` returns 0 on next read |
+
+### Phase 5 — TopBar health dots
+
+| # | Test | Pass condition |
+|---|---|---|
+| 5.1 | Green state | Fresh server, recent activity → all dots green |
+| 5.2 | Amber threshold | Mock `watchdog.lastReview` to 3h ago → watchdog dot amber |
+| 5.3 | Red threshold | Mock `watchdog.lastReview` to 7h ago → watchdog dot red |
+| 5.4 | Dot tooltip | Hover dot → tooltip shows subsystem name + last-seen time |
+
+### Cross-cutting
+
+| # | Test | Pass condition |
+|---|---|---|
+| X.1 | Logger never crashes server | Call `log.error()` with `undefined`, `null`, circular ref, 10MB string → server continues serving requests |
+| X.2 | Level control in Logs tab | Open Logs tab, change `ws` level to `debug` → dropdown updates, setting persists after page reload |
+| X.3 | Per-tag isolation | Set `ws=debug`, `sessions=error` → ws debug entries appear, sessions debug entries do not |
+| X.4 | Multi-tab level sync | Two browser tabs open → change level in tab A → tab B's Logs tab updates level dropdown within 2s |
+
+---
+
 ## Keeping Logs Current as the Product Evolves
 
 Three mechanisms enforce this without relying on memory:
