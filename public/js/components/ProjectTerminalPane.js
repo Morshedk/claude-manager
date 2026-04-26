@@ -1,6 +1,7 @@
 import { html } from 'htm/preact';
 import { useRef, useLayoutEffect } from 'preact/hooks';
 import { on, off, send } from '../ws/connection.js';
+import { log } from '../logger/logger.js';
 import { SERVER, CLIENT } from '../ws/protocol.js';
 import { showToast } from '../state/actions.js';
 import { copyText } from '../utils/clipboard.js';
@@ -64,7 +65,7 @@ export function ProjectTerminalPane({ terminalId, cwd, projectId, create = false
       xterm.loadAddon(unicode11);
       xterm.unicode.activeVersion = '11';
     } catch (e) {
-      console.warn('[ProjectTerminalPane] Unicode11 addon failed:', e);
+      log.warn('app', 'ProjectTerminalPane: Unicode11 addon failed', { err: e });
     }
     xterm.loadAddon(fitAddon);
 

@@ -1,6 +1,7 @@
 import { html } from 'htm/preact';
 import { useRef, useLayoutEffect } from 'preact/hooks';
 import { on, off, send } from '../ws/connection.js';
+import { log } from '../logger/logger.js';
 import { SERVER, CLIENT } from '../ws/protocol.js';
 import { showToast, openFileInThirdSpace } from '../state/actions.js';
 import { copyText } from '../utils/clipboard.js';
@@ -68,7 +69,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
       xterm.loadAddon(unicode11);
       xterm.unicode.activeVersion = '11';
     } catch (e) {
-      console.warn('[TerminalPane] Unicode11 addon failed:', e);
+      log.warn('app', 'TerminalPane: Unicode11 addon failed', { err: e });
     }
     xterm.loadAddon(fitAddon);
 
@@ -113,7 +114,7 @@ export function TerminalPane({ sessionId, cols = 120, rows = 30, readOnly = fals
         },
       });
     } catch (e) {
-      console.warn('[TerminalPane] link provider failed:', e);
+      log.warn('app', 'TerminalPane: link provider failed', { err: e });
     }
 
     // Fit synchronously — useLayoutEffect fires before the browser paints, and

@@ -21,14 +21,14 @@ function dispatch(message) {
   const set = handlers.get(message.type);
   if (set) {
     for (const fn of [...set]) {
-      try { fn(message); } catch (err) { console.error('[ws] handler error:', err); }
+      try { fn(message); } catch (err) { log.error('ws', 'handler error', { err }); }
     }
   }
   // Also dispatch to '*' wildcard listeners
   const wildcard = handlers.get('*');
   if (wildcard) {
     for (const fn of [...wildcard]) {
-      try { fn(message); } catch (err) { console.error('[ws] wildcard handler error:', err); }
+      try { fn(message); } catch (err) { log.error('ws', 'wildcard handler error', { err }); }
     }
   }
 }
@@ -40,8 +40,7 @@ export function connect() {
   const attempt = _connectAttempt;
   const trigger = _manualReconnect ? 'manual' : (attempt === 1 ? 'initial' : 'auto');
   const downtime = _lastDisconnectTs ? Date.now() - _lastDisconnectTs : null;
-  console.log(`[ws] connect attempt #${attempt} trigger=${trigger}` +
-    (downtime !== null ? ` downtime=${downtime}ms lastClose=${_lastDisconnectCode}` : ''));
+  log.info('ws', 'connect attempt', { attempt, trigger, ...(downtime !== null ? { downtimeMs: downtime, lastCloseCode: _lastDisconnectCode } : {}) });
   _manualReconnect = false;
 
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -49,7 +48,7 @@ export function connect() {
 
   _ws.addEventListener('open', () => {
     const elapsed = _lastDisconnectTs ? Date.now() - _lastDisconnectTs : 0;
-    console.log(`[ws] connected (attempt #${attempt}, reconnect took ${elapsed}ms)`);
+    log.info('ws', 'connected', { attempt, elapsedMs: elapsed });
     if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
     dispatch({ type: 'connection:open' });
 
@@ -82,7 +81,7 @@ export function connect() {
     try {
       message = JSON.parse(event.data);
     } catch {
-      console.warn('[ws] received non-JSON message');
+      log.warn('ws', 'received non-JSON message');
       return;
     }
     dispatch(message);
@@ -91,13 +90,14 @@ export function connect() {
   _ws.addEventListener('close', (event) => {
     _lastDisconnectTs = Date.now();
     _lastDisconnectCode = event.code;
-    console.log(`[ws] disconnected code=${event.code} reason="${event.reason || 'none'}" — reconnecting in ${RECONNECT_DELAY}ms`);
+    log.info('ws', 'disconnected', { code: event.code, reason: event.reason || 'none', reconnectInMs: RECONNECT_DELAY });
+    log.warn('ws', 'reconnect scheduled', { attempt: _connectAttempt + 1 });
     dispatch({ type: 'connection:close' });
     reconnectTimer = setTimeout(connect, RECONNECT_DELAY);
   });
 
   _ws.addEventListener('error', (err) => {
-    console.error(`[ws] error (attempt #${attempt}):`, err);
+    log.warn('ws', 'socket error', { attempt });
     dispatch({ type: 'connection:error', error: err });
   });
 }
@@ -108,7 +108,7 @@ export function connect() {
  */
 export function send(message) {
   if (!_ws || _ws.readyState !== WebSocket.OPEN) {
-    console.warn('[ws] send called but socket not open');
+    log.warn('ws', 'send called but socket not open');
     return;
   }
   _ws.send(JSON.stringify(message));
@@ -142,7 +142,7 @@ export function off(type, handler) {
 export function once(type, handler) {
   const wrapper = (message) => {
     off(type, wrapper);
-    try { handler(message); } catch (err) { console.error('[ws] once handler error:', err); }
+    try { handler(message); } catch (err) { log.error('ws', 'once handler error', { err }); }
   };
   on(type, wrapper);
 }
@@ -161,7 +161,7 @@ export function reconnectNow() {
   _manualReconnect = true;
   const stateNames = { 0: 'CONNECTING', 1: 'OPEN', 2: 'CLOSING', 3: 'CLOSED' };
   const wsState = _ws ? stateNames[_ws.readyState] || _ws.readyState : 'null';
-  console.log(`[ws] reconnectNow called — wsState=${wsState}`);
+  log.info('ws', 'reconnectNow called', { wsState });
 
   if (!_ws) {
     connect();
@@ -170,12 +170,12 @@ export function reconnectNow() {
 
   const state = _ws.readyState;
   if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) {
-    console.log(`[ws] reconnectNow: already ${wsState}, skipping`);
+    log.info('ws', 'reconnectNow: already connected, skipping', { wsState });
     _manualReconnect = false;
     return;
   }
   if (state === WebSocket.CLOSING) {
-    console.log('[ws] reconnectNow: CLOSING — deferring connect to next tick');
+    log.info('ws', 'reconnectNow: CLOSING — deferring connect to next tick');
     setTimeout(connect, 0);
     return;
   }
