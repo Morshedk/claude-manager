@@ -92,6 +92,8 @@ wss.on('connection', (ws, req) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   console.log(`[ws] client connected: ${clientId} from ${ip}`);
   logConnection({ event: 'connect', clientId, ip, totalClients: clientRegistry._clients.size });
+  log.info('ws', 'client connected', { clientId });
+  health.signal('ws', 'lastConnect');
 
   // Send init message with clientId, server version, and current vitals
   clientRegistry.send(clientId, {
@@ -152,6 +154,8 @@ wss.on('connection', (ws, req) => {
     const subs = client ? [...client.subscriptions] : [];
     console.log(`[ws] client disconnected: ${clientId} (code=${code} reason=${reason||'none'} subs=${subs.length})`);
     logConnection({ event: 'disconnect', clientId, code, reason: reason || 'none', subscriptions: subs, totalClients: clientRegistry._clients.size - 1 });
+    log.info('ws', 'client disconnected', { clientId, code });
+    health.signal('ws', 'lastDisconnect');
     if (client) {
       for (const subId of client.subscriptions) {
         terminals.removeViewer(subId, clientId);
