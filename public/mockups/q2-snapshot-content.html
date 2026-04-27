@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Q2 — What should a session snapshot contain?</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  padding: 24px;
+  min-height: 100vh;
+}
+h1 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.subtitle { color: #888; font-size: 13px; margin-bottom: 28px; line-height: 1.5; }
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.option {
+  border: 2px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  background: #161616;
+}
+.option:hover { border-color: #555; }
+.option.selected { border-color: #4f8ef7; background: #0e1a2e; }
+.option-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 8px; }
+.option.selected .option-label { color: #4f8ef7; }
+.option h3 { font-size: 14px; font-weight: 600; color: #e0e0e0; margin-bottom: 6px; }
+.option p { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 14px; }
+
+/* ── Session card mockups ── */
+.card {
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0d0d0d;
+}
+.card-header {
+  height: 32px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 6px;
+  font-size: 11px;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: #3fb950; flex-shrink: 0; }
+.dot.yellow { background: #f0a500; }
+.sname { font-weight: 600; color: #d0d0d0; }
+.status-badge {
+  margin-left: auto;
+  font-size: 10px;
+  color: #3fb950;
+  background: #0f2a1a;
+  border: 1px solid #1e4a2a;
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.status-badge.thinking { color: #f0a500; background: #2a1f0a; border-color: #4a3a1a; }
+
+/* Option A — Raw terminal preview (current style, cleaned) */
+.terminal-preview {
+  padding: 8px 10px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 10px;
+  color: #7a7a7a;
+  line-height: 1.6;
+  min-height: 64px;
+}
+.terminal-preview .line-new { color: #aaa; }
+.terminal-preview .line-cmd { color: #5b8fe8; }
+.terminal-preview .line-ok { color: #3fb950; }
+
+/* Option B — Structured activity snapshot */
+.activity-snap {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 64px;
+}
+.activity-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 10px;
+}
+.activity-icon { width: 14px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+.activity-text { color: #bbb; line-height: 1.4; }
+.activity-text .dim { color: #555; }
+.activity-time { margin-left: auto; color: #444; font-size: 9px; flex-shrink: 0; }
+
+/* Option C — Hybrid: structured header + terminal tail */
+.hybrid-snap {
+  display: flex;
+  flex-direction: column;
+}
+.hybrid-status {
+  padding: 6px 10px;
+  background: #0a1628;
+  border-bottom: 1px solid #1e3a5f;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+}
+.hybrid-status .phase { color: #4f8ef7; font-weight: 600; }
+.hybrid-status .tool { color: #888; }
+.hybrid-terminal {
+  padding: 6px 10px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 10px;
+  color: #555;
+  line-height: 1.5;
+  min-height: 44px;
+}
+.hybrid-terminal .bright { color: #888; }
+
+/* Animated "stream" indicator */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.cursor { display: inline-block; width: 6px; height: 10px; background: #4f8ef7; animation: blink 1s infinite; vertical-align: middle; margin-left: 2px; }
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.slide-in { animation: slide-in .4s ease forwards; }
+
+.selection-bar {
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+  padding: 8px;
+}
+.selection-bar span { color: #4f8ef7; font-weight: 600; }
+
+.note {
+  font-size: 11px;
+  color: #555;
+  margin-top: 10px;
+  border-top: 1px solid #222;
+  padding-top: 8px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<h1>What should a session snapshot contain?</h1>
+<p class="subtitle">
+  Currently session cards show raw terminal output lines (noisy, hard to skim).<br>
+  Pick what a clean snapshot should look like — this is what populates the card and animates into view.
+</p>
+
+<div class="options">
+
+  <!-- Option A: Clean terminal tail -->
+  <div class="option" id="opt-a" onclick="select('a')">
+    <div class="option-label">Option A</div>
+    <h3>Clean Terminal Tail</h3>
+    <p>Same idea as now but smarter: snapshot the last few lines of meaningful output, strip spinner noise and ANSI codes, update every few seconds and animate new lines in.</p>
+    <div class="card">
+      <div class="card-header">
+        <div class="dot"></div>
+        <span class="sname">api-work</span>
+        <span class="status-badge">running</span>
+      </div>
+      <div class="terminal-preview">
+        <div class="line-cmd">$ Reading src/api/routes.js…</div>
+        <div class="line-new slide-in">Found 3 endpoints to update</div>
+        <div class="line-new slide-in" style="animation-delay:.15s">Editing handlers/auth.js…<span class="cursor"></span></div>
+      </div>
+    </div>
+    <p class="note">Simplest change. Familiar feel. Still shows raw-ish output but cleaned up.</p>
+  </div>
+
+  <!-- Option B: Structured activity snapshot -->
+  <div class="option" id="opt-b" onclick="select('b')">
+    <div class="option-label">Option B</div>
+    <h3>Structured Activity Feed</h3>
+    <p>Parse Claude's output into typed events (task start, tool call, result, error). Each snapshot is a short list of meaningful milestones — nothing raw, just intent and outcome.</p>
+    <div class="card">
+      <div class="card-header">
+        <div class="dot yellow"></div>
+        <span class="sname">api-work</span>
+        <span class="status-badge thinking">thinking</span>
+      </div>
+      <div class="activity-snap">
+        <div class="activity-row">
+          <span class="activity-icon">▶</span>
+          <span class="activity-text">Fixing auth endpoint <span class="dim">(started 2m ago)</span></span>
+          <span class="activity-time">14:02</span>
+        </div>
+        <div class="activity-row">
+          <span class="activity-icon" style="color:#5b8fe8">⬡</span>
+          <span class="activity-text">Read <span class="dim">handlers/auth.js</span></span>
+          <span class="activity-time">14:03</span>
+        </div>
+        <div class="activity-row slide-in">
+          <span class="activity-icon" style="color:#f0a500">✦</span>
+          <span class="activity-text">Writing edit… <span class="cursor"></span></span>
+          <span class="activity-time">14:04</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">Most readable. Requires parsing Claude's output patterns (tool calls, confirmations, errors).</p>
+  </div>
+
+  <!-- Option C: Hybrid — status header + terminal tail -->
+  <div class="option" id="opt-c" onclick="select('c')">
+    <div class="option-label">Option C</div>
+    <h3>Hybrid: Status + Terminal</h3>
+    <p>Small structured header shows the current phase/tool. Below it, a 2–3 line terminal tail for raw context. Best of both — skim the header, dive into output if curious.</p>
+    <div class="card">
+      <div class="card-header">
+        <div class="dot"></div>
+        <span class="sname">api-work</span>
+        <span class="status-badge">running</span>
+      </div>
+      <div class="hybrid-snap">
+        <div class="hybrid-status">
+          <span class="phase">Edit</span>
+          <span class="tool">handlers/auth.js · line 42</span>
+          <span style="margin-left:auto; color:#444; font-size:9px">14:04</span>
+        </div>
+        <div class="hybrid-terminal">
+          <div>Replacing token validation logic…</div>
+          <div class="bright slide-in">-  if (token == req.body.key) {<span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Richest context. Slightly more complex to build — needs both a parser and a terminal tail.</p>
+  </div>
+
+</div>
+
+<div class="selection-bar" id="selection-bar">
+  Click an option — or describe in the terminal what you're after.
+</div>
+
+<script>
+let selected = null;
+function select(choice) {
+  document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+  if (selected === choice) {
+    selected = null;
+    document.getElementById('selection-bar').innerHTML = 'Click an option — or describe in the terminal what you\'re after.';
+    return;
+  }
+  document.getElementById('opt-' + choice).classList.add('selected');
+  selected = choice;
+  const labels = {
+    a: 'Option A — Clean terminal tail (smarter noise filtering + animation)',
+    b: 'Option B — Structured activity feed (parsed milestones)',
+    c: 'Option C — Hybrid: status header + terminal tail',
+  };
+  document.getElementById('selection-bar').innerHTML = '✓ Selected: <span>' + labels[choice] + '</span>';
+}
+</script>
+</body>
+</html>
