@@ -1,7 +1,37 @@
 import { html } from 'htm/preact';
-import { connected, serverVersion, serverEnv } from '../state/store.js';
+import { connected, serverVersion, serverEnv, healthState } from '../state/store.js';
 import { openSettingsModal, manualReconnect } from '../state/actions.js';
 import { VitalsIndicator } from './VitalsIndicator.js';
+
+/**
+ * HealthDot — a single 7px coloured dot indicating subsystem health.
+ * Returns null until healthState is populated (no flash on load).
+ */
+function HealthDot({ subsystem, label }) {
+  const h = healthState.value;
+  if (!h) return null;
+  const sub = h[subsystem] || {};
+  const errors = sub.errorCount1h || 0;
+
+  let color = '#4caf50'; // green
+  let title = `${label}: ok`;
+
+  if (subsystem === 'watchdog' && sub.lastReview) {
+    const ageH = (Date.now() - new Date(sub.lastReview).getTime()) / 3_600_000;
+    if (ageH > 6) { color = '#f04848'; title = `${label}: review >6h ago`; }
+    else if (ageH > 2) { color = '#e8a020'; title = `${label}: review >2h ago`; }
+  }
+  if (errors > 5) { color = '#f04848'; title = `${label}: ${errors} errors/h`; }
+  else if (errors > 0) { color = '#e8a020'; title = `${label}: ${errors} errors/h`; }
+
+  return html`
+    <span title=${title} style="
+      width:7px;height:7px;border-radius:50%;
+      background:${color};display:inline-block;
+      margin:0 2px;cursor:default;
+    "></span>
+  `;
+}
 
 /**
  * TopBar — app-level header.
@@ -34,6 +64,12 @@ export function TopBar() {
 
       <div class="global-stats">
         <${VitalsIndicator} />
+        <div style="display:flex;align-items:center;gap:2px;margin-left:8px;" title="Subsystem health">
+          <${HealthDot} subsystem="ws" label="WS" />
+          <${HealthDot} subsystem="sessions" label="Sessions" />
+          <${HealthDot} subsystem="watchdog" label="Watchdog" />
+          <${HealthDot} subsystem="terminals" label="Terminals" />
+        </div>
       </div>
 
       <div class="topbar-right">

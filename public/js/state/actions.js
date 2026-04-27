@@ -1,4 +1,5 @@
 import { send, reconnectNow } from '../ws/connection.js';
+import { log } from '../logger/logger.js';
 import { CLIENT } from '../ws/protocol.js';
 import {
   sessions, projects, attachedSessionId,
@@ -8,6 +9,7 @@ import {
   editSessionModalOpen, editSessionTarget,
   fileSplitTarget, splitView, connected,
   thirdSpaceTab, fileBrowserTarget,
+  healthState,
 } from './store.js';
 import { upsertSession, removeSession } from './sessionState.js';
 
@@ -19,7 +21,7 @@ export async function loadProjects() {
     const data = await fetch('/api/projects').then(r => r.json());
     projects.value = Array.isArray(data) ? data : (data.projects || []);
   } catch (err) {
-    console.error('[actions] loadProjects failed:', err);
+    log.error('api', 'loadProjects failed', { err });
   }
 }
 
@@ -36,7 +38,7 @@ export async function loadSessions() {
       sessions.value = data.sessions || [];
     }
   } catch (err) {
-    console.error('[actions] loadSessions failed:', err);
+    log.error('api', 'loadSessions failed', { err });
   }
 }
 
@@ -46,7 +48,7 @@ export async function loadSettings() {
     const data = await fetch('/api/settings').then(r => r.json());
     settings.value = data || {};
   } catch (err) {
-    console.error('[actions] loadSettings failed:', err);
+    log.error('api', 'loadSettings failed', { err });
   }
 }
 
@@ -60,8 +62,16 @@ export async function saveSettings(updates) {
     }).then(r => r.json());
     settings.value = data || {};
   } catch (err) {
-    console.error('[actions] saveSettings failed:', err);
+    log.error('api', 'saveSettings failed', { err });
   }
+}
+
+/** Fetch subsystem health from /api/health and populate the healthState signal. */
+export async function fetchHealth() {
+  try {
+    const data = await fetch('/api/health').then(r => r.json());
+    healthState.value = data;
+  } catch { /* non-fatal */ }
 }
 
 // ── Session actions ───────────────────────────────────────────────────────────
@@ -203,7 +213,7 @@ export async function createProject(name, path) {
     if (data && data.id) selectedProjectId.value = data.id;
     return data;
   } catch (err) {
-    console.error('[actions] createProject failed:', err);
+    log.error('api', 'createProject failed', { err });
     throw err;
   }
 }
@@ -219,7 +229,7 @@ export async function updateProject(id, updates) {
     await loadProjects();
     return data;
   } catch (err) {
-    console.error('[actions] updateProject failed:', err);
+    log.error('api', 'updateProject failed', { err });
     throw err;
   }
 }

@@ -56,3 +56,10 @@ pm2 logs claude-v2-beta --lines 20 --nostream
 ## Decision Log
 
 Significant decisions are recorded in `docs/decisions/`. Check these before making assumptions about the codebase — they capture the "why" behind non-obvious choices.
+
+## Logging conventions
+
+- **New lib modules:** import `log` from `../logger/Logger.js`, no bare `console.*`
+- **New user-facing feature:** add at least one `log.info()` health signal at the feature boundary (start/complete/fail); if it's a new domain, add it to `lib/logger/health.js` SUBSYSTEMS
+- **New error path:** use `log.error()` or `log.warn()` with relevant context IDs (`sessionId`, `clientId`) in the data field
+- **Never swallow silently:** every `catch {}` block gets at minimum `log.debug(tag, 'suppressed error', { error: err.message })`

@@ -122,6 +122,10 @@ export const toasts = signal([]);
 /** Circular buffer of structured log entries streamed from server (max 1000) */
 export const logEntries = signal([]);
 
+// ── Health ────────────────────────────────────────────────────────────────────
+/** Subsystem health from /api/health: { ws, sessions, watchdog, terminals, ... } */
+export const healthState = signal(null);
+
 // ── Third space ───────────────────────────────────────────────────────────────
 /** Active tab in the third space: 'files' | 'todos' | <terminalId> */
 export const thirdSpaceTab = signal('files');
