@@ -68,6 +68,9 @@ export function removeSession(id) {
   sessions.value = sessions.value.filter(s => s.id !== id);
 }
 
+// Guard against multiple health poll intervals on reconnect
+let _healthPollStarted = false;
+
 /**
  * Wire up all global WebSocket message handlers.
  * Call once at startup (from main.js) before mounting the app.
@@ -87,7 +90,10 @@ export function initMessageHandlers() {
     loadSessions();
     loadSettings();
     fetchHealth();
-    setInterval(fetchHealth, 60_000);
+    if (!_healthPollStarted) {
+      _healthPollStarted = true;
+      setInterval(fetchHealth, 60_000);
+    }
   });
 
   // Connection lifecycle
