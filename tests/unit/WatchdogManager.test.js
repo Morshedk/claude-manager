@@ -510,6 +510,32 @@ describe('WatchdogManager — low-power mode', () => {
   });
 });
 
+// ─── _callClaudeThinking ─────────────────────────────────────────────────────────
+
+describe('WatchdogManager — _callClaudeThinking', () => {
+  test('method exists and returns a promise', () => {
+    expect(typeof watchdog._callClaudeThinking).toBe('function');
+    const promise = watchdog._callClaudeThinking('test');
+    expect(promise).toBeInstanceOf(Promise);
+    promise.catch(() => {});
+  });
+
+  test('rejects in low-power mode by default', async () => {
+    watchdog._lowPower = true;
+    await expect(watchdog._callClaudeThinking('test'))
+      .rejects.toThrow('Low-power mode');
+  });
+
+  test('bypasses low-power mode with force option', () => {
+    watchdog._lowPower = true;
+    const promise = watchdog._callClaudeThinking('test', { force: true });
+    expect(promise).toBeInstanceOf(Promise);
+    promise.catch((err) => {
+      expect(err.message).not.toMatch(/Low-power mode/);
+    });
+  });
+});
+
 // ─── Summarization ────────────────────────────────────────────────────────────
 
 describe('WatchdogManager — summarizeSession', () => {
