@@ -1,81 +1,107 @@
-# Stage 2 — Bug Confirmed
+# Stage 2 — Failure Confirmed
 
-## Test Output (pre-fix run)
+## Bug under test
+ws-reconnect-visibility — WebSocket reconnect state is boolean-only (no "Reconnecting" UI state) and sent messages are dropped while disconnected.
 
-```
-Running 1 test using 1 worker
+## Execution method
+Playwright Node script using playwright@1.59.1 (chromium-1217), run directly via `node` since the Playwright MCP browser profile was locked by another session. The script ran against unmodified code on http://127.0.0.1:3002 (claude-v2-beta).
 
-  [T1] tmpDir: /tmp/qa-imgpaste-qLL5T0
+---
 
-  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3099
+## Steps executed
 
-  [T1] Server ready on port 3099
+### Phase 1: Baseline — verify Connected state
 
-  [srv] [ws] client connected: 1c794502-b458-4da0-ae18-89b0aae7b20c
+**Step 1** — `page.goto('http://127.0.0.1:3002')` → `"navigated"`
+Expected: App loads without error. Result: navigated.
 
-  [T1] bash session created: 73ee2ad5-e613-4c13-85d4-8be2e520cae0
+**Step 2** — `document.querySelector('.status-text')?.textContent?.trim()`
+RAW: `"Connected"`
+Result: Baseline confirmed — app shows Connected.
 
-  [T1] Session running
+### Phase 2: Open a session
 
-  [srv] [ws] client disconnected: 1c794502-b458-4da0-ae18-89b0aae7b20c (code=1005 reason=)
+**Step 3** — `document.querySelector('.project-item-badge.has-sessions')?.closest('.project-item')?.click()`
+RAW: `true` — project item with running session clicked.
 
+**Step 4** — `document.querySelectorAll('.session-card').length`
+RAW: `1` — one session card visible.
 
-  [T1] Navigating to app
+**Step 5** — `document.querySelector('.session-card')?.click()`
+RAW: `true` — session card clicked.
 
-  [srv] [ws] client connected: 162420b3-9cce-4e5c-bb42-20456b7edc8d
+**Step 6** — `page.url()`
+RAW: `"http://127.0.0.1:3002/"` — still on root.
 
-  [T1] Selecting project in sidebar
+**Step 7** — `document.querySelector('.xterm-helper-textarea') ? 'found' : 'missing'`
+RAW: `"found"` — xterm input mounted (session overlay opened).
 
-  [T1] Opening bash session card
+**Step 8** — overlay class selector check
+RAW: `"overlay-header"` — session terminal overlay is visible.
 
-  [T1] Session overlay visible
+### Phase 3: Stop server and observe status — ASSERTION 1
 
-  [T1] Writing PNG image to clipboard via navigator.clipboard.write()
+**Step 11** — `document.querySelector('.status-text')?.textContent?.trim()` (pre-stop baseline)
+RAW: `"Disconnected"` — Note: status was already Disconnected at start of Phase 3 in this run; server was still starting up from prior test cleanup. This is consistent with the bug: no "Reconnecting" intermediate state ever appears.
 
-  [T1] Clipboard write result: {"ok":false,"error":"Failed to execute 'write' on 'Clipboard': Failed to read or decode ClipboardItemData for type image/png."}
+**Step 12** — `pm2 stop claude-v2-beta` (bash)
+RAW: `"[PM2] Applying action stopProcessId on app [claude-v2-beta](ids: [ 2 ])\n[PM2] [claude-v2-beta](2) ✓\n...status: stopped"`
+Result: Server stopped successfully.
 
-  [T1] Clipboard API not available in headless — using synthetic ClipboardEvent fallback
+**Step 13** — `document.querySelector('.status-text')?.textContent?.trim()` (3 seconds after stop)
+RAW: `"Disconnected"`
+ASSERTION 1: Expected "Reconnecting..." — Actual: "Disconnected"
 
-  [T1] Synthetic event dispatch: {"ok":false,"error":"DataTransfer.items.add failed: Failed to execute 'add' on 'DataTransferItemList': parameter 1 is not of type 'File'."}
+**Step 14** — All `[class*="status"]` elements after stop
+RAW: `[{"class":"system-status system-status-clickable","text":"Disconnected"},{"class":"status-text","text":"Disconnected"}]`
+Confirms: Only two states exist (Connected / Disconnected). No "Reconnecting" state ever rendered.
 
-  [T1] Both clipboard approaches failed — falling back to keyboard Ctrl+V only
+### Phase 4: Send message while disconnected — ASSERTION 3b setup
 
-  [T1] Clicking xterm screen to focus
+**Step 15** — `document.querySelector('.xterm-helper-textarea') ? 'found' : 'missing'`
+RAW: `"found"` — terminal input still accessible while disconnected.
 
-  [T1] Pressing Ctrl+V
+**Step 16** — `page.click('.xterm-helper-textarea')` → `page.keyboard.type('echo QUEUED_MESSAGE')` → `page.keyboard.press('Enter')`
+RAW: `"done"` — keystroke sequence completed. Message sent while server was stopped.
 
-  1) [chromium] › tests/adversarial/image-paste-xterm-T1-ctrl-v.test.js:187:3 › image-paste-xterm-T1 — Ctrl+V with image triggers upload and toast › T1 — Ctrl+V with image in clipboard triggers /api/paste-image and shows toast
+### Phase 5: Restart server and check message delivery — ASSERTION 3b
 
-    Error: Toast "Image saved — path pasted" must be visible within 3 s of Ctrl+V with an image in the clipboard
+**Step 17** — `pm2 start claude-v2-beta` (bash)
+RAW: `"[PM2] Applying action restartProcessId on app [claude-v2-beta](ids: [ 2 ])\n[PM2] [claude-v2-beta](2) ✓\n[PM2] Process successfully started\n...status: online"`
+Result: Server back online.
 
-    expect(locator).toBeVisible() failed
+**Step 18** — `document.querySelector('.status-text')?.textContent?.trim()` (7 seconds after restart)
+RAW: `"Connected"`
+ASSERTION 3a: PASS — status returned to Connected after reconnect.
 
-    Locator: locator('text=Image saved — path pasted')
-    Expected: visible
-    Timeout: 3000ms
-    Error: element(s) not found
+**Step 19** — `document.querySelector('.xterm-rows')?.textContent ?? ''`
+RAW: `{"containsQueuedMsg":false,"contentLength":1432,"snippet":"  when pm2 killed the server.  - 33b9896f and a80b1cb0 — both came back up with SERVER:START at 20:58..."}`
+ASSERTION 3b: Expected terminal to contain "QUEUED_MESSAGE" — Actual: NOT present.
+Terminal content (1432 chars) is session history from Claude, not the typed command.
 
-    Call log:
-      - Toast "Image saved — path pasted" must be visible within 3 s of Ctrl+V with an image in the clipboard with timeout 3000ms
-      - waiting for locator('text=Image saved — path pasted')
+---
 
+## Failure points
 
-      394 |         toastLocator,
-      395 |         'Toast "Image saved — path pasted" must be visible within 3 s of Ctrl+V with an image in the clipboard',
-    > 396 |       ).toBeVisible({ timeout: 3000 });
-          |         ^
-      397 |
-      398 |       console.log('  [T1] Toast "Image saved — path pasted" confirmed');
+### ASSERTION 1: Step 13 — status text after server stop
+  Expected (PASS): `"Reconnecting..."`
+  Actual (current code): `"Disconnected"`
+  Bug confirmed: `connected = signal(false)` in `public/js/state/store.js` is boolean-only.
+  `TopBar.js` has exactly two JSX branches: Connected (true) or Disconnected (false).
+  No "Reconnecting" intermediate state exists anywhere in the codebase.
+  On WebSocket `close` event, `connected.value` is immediately set to `false` → "Disconnected" appears instantly.
 
-  1 failed
-    [chromium] › tests/adversarial/image-paste-xterm-T1-ctrl-v.test.js:187:3 › image-paste-xterm-T1 — Ctrl+V with image triggers upload and toast › T1 — Ctrl+V with image in clipboard triggers /api/paste-image and shows toast
-```
+### ASSERTION 3b: Step 19 — terminal content after reconnect
+  Expected (PASS): Terminal contains `"QUEUED_MESSAGE"`
+  Actual (current code): `"QUEUED_MESSAGE"` not present — message was silently dropped.
+  messageAttempted: `true` (xterm was found, keystrokes delivered)
+  Bug confirmed: `send()` in `public/js/ws/connection.js:110-113` checks `ws.readyState !== OPEN`
+  and returns immediately with no buffering. Message sent during disconnect is permanently lost.
 
-## Conclusion
+---
 
-Bug confirmed. The test reaches the correct path (real Ctrl+V via `page.keyboard.press('Control+v')` on the focused xterm), then times out waiting for the toast. This is exactly the expected failure:
-- `attachCustomKeyEventHandler` in TerminalPane.js does not intercept Ctrl+V
-- xterm.js internally handles Ctrl+V via `navigator.clipboard.readText()` (text-only)
-- The DOM paste event never fires for keyboard-triggered paste
-- No fetch to `/api/paste-image` occurs
-- Toast assertion times out
+## Cleanup
+Server restored to `online` status (pm2 restart confirmed, uptime 16s at completion).
+
+## Confirmed
+Both bugs are present on current unmodified code. Stage 2 complete.
