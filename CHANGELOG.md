@@ -8,6 +8,7 @@ Format: newest first. Each push to beta/prod that adds user-visible changes gets
 ## [Unreleased] — on main, not yet promoted
 
 ### Added
+- **Session recovery API** — `POST /api/sessions/recover` scans tmux for orphan `cm-*` sessions and adopts them back into the server. Scoped per server via `session-lifecycle.json` so prod and beta don't cross-contaminate. Also re-attaches tracked sessions incorrectly marked stopped while tmux is alive
 - **Watchdog session audit** — WatchdogManager tracks all session names, tmux names, and Claude session IDs on every tick; alerts to activity log when a session is RUNNING with no connected viewers (1-hour dedup); hourly sweep auto-archives and deletes sessions inactive 7+ days (1 day for TTT test sessions); Telegram-connected sessions are excluded from cleanup; `sessionsListChanged` event triggers live WS broadcast after sweep
 - **Embedded session name in tmux names** — tmux sessions are now named `cm-<id8>-<slug>` (e.g. `cm-ab12cd34-my-project`), making the session name recoverable from `tmux ls` without relying on sessions.json
 - **TTT test convention in `/test` skill** — test sessions must use `TTT` suffix; skill enforces collision check before starting and cleans up all TTT sessions after
@@ -15,6 +16,9 @@ Format: newest first. Each push to beta/prod that adds user-visible changes gets
 - **Pulse system metrics** — TopBar shows live CPU, RAM, and disk usage via `/api/watchdog/state`
 - **CommandBuffer** — latency-free terminal input: keystrokes are buffered locally and flushed on send, preventing round-trip lag on slow connections
 - **Events bottom tab** — session events panel moved to a bottom tab to avoid shrinking terminal width
+
+### Fixed
+- **Sessions lost on server save** — `SessionStore.save()` now merges externally-added entries from disk instead of blindly overwriting them with the in-memory Map
 
 ---
 
