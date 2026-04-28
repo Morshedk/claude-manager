@@ -27,8 +27,7 @@ export function CommandBuffer({ targetId, inputType }) {
     if (!content) return;
 
     if (connected.value) {
-      // Send immediately with bracket paste wrapping
-      send({ type: msgType, id: targetId, data: '\x1b[200~' + content + '\x1b[201~' });
+      send({ type: msgType, id: targetId, data: content + '\r' });
     } else {
       // Queue for later
       setQueue(prev => [...prev, {
@@ -64,8 +63,7 @@ export function CommandBuffer({ targetId, inputType }) {
 
           ((currentItem, currentDelay) => {
             setTimeout(() => {
-              // Actually send
-              send({ type: msgType, id: targetId, data: '\x1b[200~' + currentItem.text + '\x1b[201~' });
+              send({ type: msgType, id: targetId, data: currentItem.text + '\r' });
 
               // Mark as sent
               setQueue(prev2 => prev2.map(q =>

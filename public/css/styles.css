@@ -79,6 +79,14 @@ a { color: var(--accent); text-decoration: none; }
 }
 .status-dot.connected { background: var(--success); box-shadow: 0 0 6px var(--success); }
 .status-dot.error { background: var(--danger); }
+.status-dot.reconnecting {
+  background: #e8a020;
+  animation: status-dot-pulse 1.2s ease-in-out infinite;
+}
+@keyframes status-dot-pulse {
+  0%, 100% { box-shadow: 0 0 3px #e8a020; opacity: 1; }
+  50% { box-shadow: 0 0 8px #e8a020; opacity: 0.7; }
+}
 .system-status-clickable {
   cursor: pointer;
   background: transparent;
@@ -787,4 +795,13 @@ body.file-split #workspace {
 }
 .xterm-viewport::-webkit-scrollbar-thumb:hover {
   background: rgba(255,255,255,0.6);
+}
+
+/* ===== SESSION LOG ANIMATIONS ===== */
+@keyframes logSlideIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.log-line-new {
+  animation: logSlideIn 0.3s ease forwards;
 }

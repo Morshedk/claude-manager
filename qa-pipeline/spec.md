@@ -1,74 +1,70 @@
+---
 # QA Spec
 
 ## Bug
-Session events log shows garbled/unreadable text in the SessionLogPane. User reports "the sessionlog still looks messy" even after a previous fix to handle cursor-forward (ESC[NC) sequences.
+WebSocket reconnect fails silently when browser tab is backgrounded (timer throttling) AND sent messages are dropped while disconnected. Users see a stuck "disconnected" state with no feedback, no retry, and lost messages.
 
 ## Acceptance Criteria
-Given: a tmux session is running Claude Code and has been captured for at least one 20s tick (producing output to the .raw file)
-When:  the user opens the Events pane in the session overlay
-Then:  the log lines are readable English text — tool names, file paths, and command output are legible with correct spacing; no raw escape codes, control characters, or mangled character sequences are visible
+Given: The app has an active WS connection and the server becomes unreachable (SSH tunnel drop, server restart, etc.)
+When:  The connection is lost — whether the tab is in foreground or background
+Then:
+  1. Status immediately changes to "Reconnecting..." (visible in the UI)
+  2. User can type into any terminal input and click Send — the message is queued (not dropped)
+  3. On successful reconnect: queued messages are sent, status changes to "Connected"
+  4. If all retries are exhausted: status changes to "Disconnected"
+  5. Retry timing, error details, and next-retry countdown appear in the Logs tab only — not in the main UI
+
+## Acceptance Flow (from user)
+1. Open the app — verify status shows "Connected"
+2. Break the connection (SSH tunnel drop / `pm2 stop claude-v2-beta`)
+3. Observe status changes to "Reconnecting..."
+4. While reconnecting: type a message in a terminal input and click Send
+5. Restore the connection (`pm2 start claude-v2-beta`)
+6. Observe status returns to "Connected" and the queued message is delivered to the terminal
+7. Break connection again and wait through all retries
+8. Observe final status: "Disconnected"
+9. Check Logs tab: confirm retry timing and error details are visible there
+
+Expected observable outcome: Three distinct UI states (Connected / Reconnecting / Disconnected). Messages typed while disconnected are not lost. Error detail stays in Logs.
 
 ## Specific Instance
-Session: b6237bba-12e5-4811-8e60-aa1d541b2a07
-Reproducible on other instances: yes (raw tmux output contains same patterns)
+Reproducible: Yes — triggered by any server stop (pm2 stop) or tunnel drop
+Session: Any active session
 
 ## Preliminary Investigation
 
-### Code Path
-1. **Raw capture** (`startCapture`): tmux pipe-pane writes raw bytes to .raw file (contains terminal escape codes, CRLF/CR line endings)
-2. **Processing** (`_processSession`): Reads new bytes from .raw, strips ANSI with `stripAnsi()`, appends to .log file
-3. **Serving** (`tailLog`): Reads .log file, splits on `\n` only, returns array of lines
-4. **Rendering** (SessionLogPane): Fetches lines every 3s, renders each as `<div>` with `white-space:pre-wrap`
+**Root causes found (2026-04-27 investigation):**
 
-### Root Cause Analysis
+### Bug 1: Browser timer throttling kills reconnect when tab is backgrounded
+- `public/js/ws/connection.js:8` — `RECONNECT_DELAY = 3000` flat delay, no backoff
+- `connection.js:96` — `setTimeout(connect, RECONNECT_DELAY)` — no Page Visibility API
+- Chrome/Chromium throttles `setTimeout` to ~1/minute for backgrounded tabs
+- Evidence: beta connection log shows 17–18 minute gaps between socket errors at 11:55, 12:12, 12:22
+- At 12:22 (tab came to foreground) errors became rapid-fire every 3s — tab fidelity restored
+- Fix: `document.addEventListener('visibilitychange', ...)` → call `reconnectNow()` on tab focus
 
-**File: lib/utils/stripAnsi.js (line 15)**
-- Correctly removes `\r` via `.replace(/\r/g, '')` 
-- Does NOT replace `\r` with `\n`, just deletes it
-- Problem: When tmux output uses `\r` alone (CR only, not CRLF) to move cursor to start of line, removing it without replacement concatenates lines
+### Bug 2: No message queue — sends silently dropped while disconnected
+- `connection.js:110-114` — `send()` checks `ws.readyState !== OPEN`, logs warn, returns
+- Nothing is buffered; user messages sent during disconnect are permanently lost
+- Fix: buffer sends in a queue while disconnected, flush on reconnect
 
-**File: lib/sessionlog/SessionLogManager.js (lines 88, 92)**
-- `_processSession` calls `stripAnsi(content)` on bytes read from .raw
-- Appends stripped result directly to .log: `appendFileSync(logPath, "\n--- timestamp ---\n" + stripped)`
-- No re-delimiting after stripping
+### Bug 3: No "Reconnecting" UI state — only boolean connected/disconnected
+- `public/js/state/store.js` — `connected = signal(false)` (boolean only)
+- UI has no "reconnecting" intermediate state
+- Fix: `connectionStatus = signal('connected' | 'reconnecting' | 'disconnected')`
 
-**File data/sessionlog/b6237bba-12e5-4811-8e60-aa1d541b2a07.raw**
-- Contains escape sequences for cursor movement: `\x1b[2C`, `\x1b[3A`, `\x1b[2D`, `\x1b[3B` (cursor right, up, left, down)
-- Contains UTF-8 sequences: `e2 94 80` (…), `e2 81 a4` (−), etc.
-- Line endings are `\r\r\n` (double CR + LF) and bare `\r` (CR only)
-- File type: "Unicode text, UTF-8 text, with very long lines, with CRLF, CR line terminators, with escape sequences"
+### Bug 4: Server crashes silently — uncaughtException not logged
+- `server.js:183-186` — `log.error()` called before `process.exit(1)` in uncaughtException handler
+- If logger hits re-entrancy guard (`_writing = true`), crash exits with no log entry
+- Evidence: 139 server restarts visible in PM2, zero crash stack traces in app.log.jsonl
+- Fix: `fs.appendFileSync(CRASH_LOG, ...)` sync write before calling `log.error()`
 
-**File data/sessionlog/b6237bba-12e5-4811-8e60-aa1d541b2a07.log**
-- Contains `\r\r\n` sequences (example at byte offset 0x340: `\r\r\n`)
-- Contains non-ASCII bytes that are UTF-8 multi-byte sequences
-- When inspected with `od -c`, shows sequences like: `342 226 220` (UTF-8 for box-drawing chars)
-- Bare `\r` characters have been removed by stripAnsi, but `\r\r\n` becomes `\r\n` (one CR + LF)
-- File type: "Unicode text, UTF-8 text, with CRLF, CR, LF line terminators"
-
-**Verification via test**
-```javascript
-stripAnsi("line1\r\rline2\r\r\n") → "line1line2\n"
-// When split('\n'): ["line1line2", ""]
-// Expected: ["line1", "line2", ""]
-```
-
-### Specific Evidence
-1. Raw file hex dump shows: `1b5b3341` (ESC[3A cursor up), `1b5b3342` (ESC[3B cursor down), `0d0d0a` (CR CR LF)
-2. Log file octal dump shows: `\r  \r  \n` (CR CR LF) at line boundaries
-3. Session Pane display shows: concatenated text like "  P  c" and "r  e" on separate lines when they should all be on one logical line with proper spacing
-
-### Why Previous Fix Was Incomplete
-- The prior fix in stripAnsi.js (line 10) converts `\x1b[NC` (cursor forward) to spaces: `.replace(/\x1b\[(\d*)C/g, (_, n) => ' '.repeat(...))`
-- This only handles cursor-RIGHT sequences
-- But cursor-UP (`\x1b[NA`), cursor-DOWN, cursor-LEFT sequences are still stripped completely (line 11) without any replacement
-- The core problem: `\r` (carriage return) is used by the terminal to reposition for in-place updates (like animated spinners, progress bars, REPL prompt rewrites)
-- When bare `\r` is simply deleted without context of what it means, multiple output lines merge into one
-
-### Impact on User
-- Lines in log appear as fragments: "P", "r", "o", spread across multiple div elements with extra blank lines
-- Characters that should form words or paths are separated
-- Command output and tool invocation details become unreadable
-- Makes the session log feature unusable for debugging/reference
+**Files to modify:**
+- `public/js/ws/connection.js` — backoff, visibility hook, send queue
+- `public/js/state/store.js` — connectionStatus signal (3 states)
+- `public/js/state/sessionState.js` — handle new connectionStatus signal
+- `public/js/components/TopBar.js` (or StatusBar) — display 3-state status
+- `server.js` — sync crash log in uncaughtException handler
 
 ## Confirmed
 true

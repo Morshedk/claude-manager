@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Q1 — Where should Events live?</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  padding: 24px;
+  min-height: 100vh;
+}
+
+h1 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.subtitle { color: #888; font-size: 13px; margin-bottom: 28px; }
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.option {
+  border: 2px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  background: #161616;
+}
+.option:hover { border-color: #555; }
+.option.selected { border-color: #4f8ef7; background: #0e1a2e; }
+
+.option-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #555;
+  margin-bottom: 8px;
+}
+.option.selected .option-label { color: #4f8ef7; }
+
+.option h3 { font-size: 14px; font-weight: 600; color: #e0e0e0; margin-bottom: 6px; }
+.option p { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 12px; }
+
+/* ── mini app wireframe ── */
+.frame {
+  border: 1px solid #333;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #0d0d0d;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  font-size: 10px;
+}
+
+/* Shared parts */
+.f-topbar {
+  height: 28px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 6px;
+  flex-shrink: 0;
+  color: #555;
+  font-size: 9px;
+}
+.f-topbar .dot { width: 5px; height: 5px; border-radius: 50%; background: #4f8ef7; }
+.f-topbar .dot.green { background: #3fb950; }
+
+.f-sessions {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 6px;
+  gap: 4px;
+}
+
+.f-session-card {
+  height: 36px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 6px;
+  flex-shrink: 0;
+  color: #666;
+  font-size: 9px;
+}
+.f-session-card .sname { color: #aaa; font-weight: 600; }
+.f-session-card .sline { color: #555; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.f-events-strip {
+  background: #0a1628;
+  border: 1px solid #1e3a5f;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 9px;
+  color: #5b8fe8;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.f-events-strip .ev-row { display: flex; gap: 6px; color: #4a7fd4; }
+.f-events-strip .ev-time { color: #3a5f8a; flex-shrink: 0; }
+.f-events-strip .ev-msg { color: #6a9fd8; }
+
+.f-terminal-body {
+  flex: 1;
+  min-height: 0;
+  background: #0d0d0d;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.f-terminal-text {
+  flex: 1;
+  padding: 6px;
+  font-family: monospace;
+  font-size: 9px;
+  color: #aaa;
+  overflow: hidden;
+}
+.f-cmd-bar {
+  height: 22px;
+  background: #1a1a1a;
+  border-top: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.f-cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 9px;
+  color: #666;
+  font-family: monospace;
+}
+.f-cmd-btn {
+  background: #1e3a5f;
+  color: #4f8ef7;
+  border: none;
+  border-radius: 3px;
+  font-size: 9px;
+  padding: 1px 5px;
+}
+
+/* Option A — Events above terminal, inside overlay */
+.opt-a .frame { }
+.opt-a .overlay-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.opt-a .overlay-header {
+  height: 22px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 4px;
+  flex-shrink: 0;
+  color: #555;
+  font-size: 9px;
+}
+
+/* Option B — Events panel above session cards on main page */
+.opt-b .f-events-strip-top {
+  background: #0a1628;
+  border-bottom: 1px solid #1e3a5f;
+  padding: 5px 8px;
+  font-size: 9px;
+  color: #5b8fe8;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  height: 52px;
+}
+
+/* Option C — Events as a top-level tab in the topbar */
+.opt-c .f-topbar-tabs {
+  height: 28px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  align-items: stretch;
+  padding: 0 8px;
+  gap: 0;
+  flex-shrink: 0;
+  font-size: 9px;
+}
+.opt-c .tab {
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  color: #555;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.opt-c .tab.active {
+  color: #4f8ef7;
+  border-bottom-color: #4f8ef7;
+}
+
+.badge {
+  display: inline-block;
+  background: #1e3a5f;
+  color: #4f8ef7;
+  border-radius: 8px;
+  font-size: 8px;
+  padding: 0 4px;
+  margin-left: 3px;
+  font-weight: 700;
+}
+
+/* Selection state */
+.selection-bar {
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+  padding: 8px;
+}
+.selection-bar span { color: #4f8ef7; font-weight: 600; }
+
+/* Highlight tag */
+.highlight {
+  display: inline-block;
+  background: #1e3a5f;
+  color: #4f8ef7;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<h1>Where should the Events panel live?</h1>
+<p class="subtitle">Currently it's a collapsible pane at the bottom of the terminal overlay. Pick the new home that feels right.</p>
+
+<div class="options">
+
+  <!-- Option A: Events at top of terminal overlay (inside overlay, above terminal) -->
+  <div class="option opt-a" id="opt-a" onclick="select('a')">
+    <div class="option-label">Option A</div>
+    <h3>Top of Terminal Overlay</h3>
+    <p>Events strip sits above the terminal inside the session overlay. Replaces "bottom tab" — always visible when overlay is open.</p>
+    <div class="frame">
+      <div class="f-topbar">
+        <div class="dot"></div>
+        <span>my-session</span>
+        <span style="flex:1"></span>
+        <span>Split · Refresh · ✕</span>
+      </div>
+      <!-- Events strip at top of overlay -->
+      <div class="f-events-strip" style="flex-shrink:0; margin:4px 4px 0; border-radius:4px;">
+        <div class="ev-row"><span class="ev-time">14:02:01</span><span class="ev-msg">▶ Task started — analyze code</span></div>
+        <div class="ev-row"><span class="ev-time">14:02:04</span><span class="ev-msg">✦ Tool call: Read file</span></div>
+        <div class="ev-row"><span class="ev-time">14:02:07</span><span class="ev-msg">✓ Complete — 3 files reviewed</span></div>
+      </div>
+      <div class="f-terminal-body">
+        <div class="f-terminal-text" style="color:#555">$ claude --session ...<br><span style="color:#3fb950">●</span> Running...</div>
+        <div class="f-cmd-bar">
+          <span class="f-cmd-input">Type a command...</span>
+          <span class="f-cmd-btn">Send ↵</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Events above session cards on main page -->
+  <div class="option opt-b" id="opt-b" onclick="select('b')">
+    <div class="option-label">Option B</div>
+    <h3>Global Event Feed (Main Page)</h3>
+    <p>Persistent event feed at the top of the session list page — shows events from all active sessions, always visible without opening a session.</p>
+    <div class="frame">
+      <div class="f-topbar">
+        <div class="dot"></div>
+        <span>claude sessions</span>
+        <span style="flex:1"></span>
+        <div class="dot green"></div>
+        <span>3 active</span>
+      </div>
+      <!-- Events strip at top of main page -->
+      <div class="opt-b f-events-strip-top">
+        <div class="ev-row"><span class="ev-time">14:02</span><span class="ev-msg" style="color:#6a9fd8">[api-work] ✓ Complete</span></div>
+        <div class="ev-row"><span class="ev-time">14:01</span><span class="ev-msg" style="color:#6a9fd8">[docs] ▶ Writing markdown</span></div>
+        <div class="ev-row"><span class="ev-time">14:00</span><span class="ev-msg" style="color:#6a9fd8">[tests] ✦ Read 12 files</span></div>
+      </div>
+      <div class="f-sessions">
+        <div class="f-session-card"><span class="sname">api-work</span><span class="sline">✓ Analysis complete</span></div>
+        <div class="f-session-card"><span class="sname">docs</span><span class="sline">▶ Writing markdown...</span></div>
+        <div class="f-session-card"><span class="sname">tests</span><span class="sline">✦ Reading test files</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: Events as a dedicated top-level page/tab -->
+  <div class="option opt-c" id="opt-c" onclick="select('c')">
+    <div class="option-label">Option C</div>
+    <h3>Top-Nav Tab (Dedicated View)</h3>
+    <p>Events get their own top-level tab in the navigation bar. Click "Events" in the top bar to see a full-page feed across all sessions.</p>
+    <div class="frame">
+      <div class="f-topbar-tabs">
+        <span class="tab">Sessions</span>
+        <span class="tab active">Events <span class="badge">12</span></span>
+        <span class="tab">Projects</span>
+      </div>
+      <!-- Full events page -->
+      <div style="flex:1; min-height:0; padding:6px; display:flex; flex-direction:column; gap:4px; overflow:hidden;">
+        <div class="f-events-strip" style="flex-shrink:0;">
+          <div class="ev-row"><span class="ev-time">14:02:07</span><span class="ev-msg">[api-work] ✓ Task complete</span></div>
+          <div class="ev-row"><span class="ev-time">14:02:04</span><span class="ev-msg">[api-work] ✦ Tool: Bash</span></div>
+        </div>
+        <div class="f-events-strip" style="flex-shrink:0;">
+          <div class="ev-row"><span class="ev-time">14:01:55</span><span class="ev-msg">[docs] ▶ Writing output</span></div>
+          <div class="ev-row"><span class="ev-time">14:01:50</span><span class="ev-msg">[docs] ✦ Tool: Write file</span></div>
+        </div>
+        <div class="f-events-strip" style="flex-shrink:0;">
+          <div class="ev-row"><span class="ev-time">14:00:30</span><span class="ev-msg">[tests] ✦ Tool: Read ×12</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="selection-bar" id="selection-bar">
+  Click an option above to select it. Or just tell me in the terminal what you have in mind.
+</div>
+
+<script>
+let selected = null;
+function select(choice) {
+  document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('opt-' + choice);
+  if (selected === choice) {
+    selected = null;
+    document.getElementById('selection-bar').innerHTML = 'Click an option above to select it. Or just tell me in the terminal what you have in mind.';
+    return;
+  }
+  el.classList.add('selected');
+  selected = choice;
+  const labels = {
+    a: 'Option A — Top of Terminal Overlay (above terminal, below header)',
+    b: 'Option B — Global Event Feed at top of main Sessions page',
+    c: 'Option C — Dedicated top-nav Events tab (full-page view)',
+  };
+  document.getElementById('selection-bar').innerHTML = '✓ Selected: <span>' + labels[choice] + '</span>';
+  // Try to record selection
+  try {
+    fetch('/mockups/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ choice, label: labels[choice], timestamp: Date.now() }),
+    }).catch(() => {});
+  } catch(e) {}
+}
+</script>
+</body>
+</html>

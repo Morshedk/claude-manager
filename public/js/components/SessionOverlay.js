@@ -6,31 +6,47 @@ import { CommandBuffer } from './CommandBuffer.js';
 import { attachedSession, splitView, splitPosition } from '../state/store.js';
 import { detachSession, refreshSession, stopSession, showToast } from '../state/actions.js';
 
+const EVENTS_COLLAPSED_HEIGHT = 28;
+const EVENTS_DEFAULT_HEIGHT = 120;
+const EVENTS_COLLAPSE_THRESHOLD = 44;
+
+function loadEventsHeight() {
+  try {
+    const v = parseInt(localStorage.getItem('eventsHeight') || '0', 10);
+    return v > 0 ? v : EVENTS_DEFAULT_HEIGHT;
+  } catch { return EVENTS_DEFAULT_HEIGHT; }
+}
+
+function saveEventsHeight(h) {
+  try { localStorage.setItem('eventsHeight', String(h)); } catch {}
+}
+
 /**
  * SessionOverlay — full-screen (or split) terminal view for the attached session.
  *
- * Modes:
- *   - Full: overlays the entire workspace (default)
- *   - Split: covers right half of the workspace; session list stays visible left
- *
- * Controls: Split/Full toggle, Restart, Stop (when running), Close (✕)
+ * Layout (top to bottom):
+ *   - Overlay header (40px)
+ *   - Events strip (resizable, default 120px, collapses to 28px)
+ *   - Drag handle (6px)
+ *   - Terminal pane (flex: 1)
+ *   - CommandBuffer input bar
  */
 export function SessionOverlay() {
   const session = attachedSession.value;
   if (!session) return null;
 
   const isSplit = splitView.value;
-  const [showLog, setShowLog] = useState(false);
-  const toggleLog = () => setShowLog(v => !v);
+  const [eventsHeight, setEventsHeight] = useState(loadEventsHeight);
+  const isCollapsed = eventsHeight <= EVENTS_COLLAPSE_THRESHOLD;
+  const eventsResizing = useRef(false);
+  const isDragging = useRef(false);
 
   const toggleSplit = () => {
     splitView.value = !splitView.value;
     try { localStorage.setItem('splitView', String(splitView.value)); } catch {}
   };
 
-  // ── Split resize handle drag logic ──────────────────────────────────────────
-  const isDragging = useRef(false);
-
+  // ── Split resize handle (horizontal) ────────────────────────────────────────
   const handleResizeMouseDown = (e) => {
     e.preventDefault();
     isDragging.current = true;
@@ -57,22 +73,47 @@ export function SessionOverlay() {
     document.addEventListener('mouseup', onMouseUp);
   };
 
+  // ── Events panel vertical resize ─────────────────────────────────────────────
+  const handleEventsResizeMouseDown = (e) => {
+    e.preventDefault();
+    eventsResizing.current = true;
+    const startY = e.clientY;
+    const startH = eventsHeight;
+
+    const onMouseMove = (ev) => {
+      if (!eventsResizing.current) return;
+      const raw = Math.max(EVENTS_COLLAPSED_HEIGHT, Math.min(500, startH + (ev.clientY - startY)));
+      setEventsHeight(raw);
+    };
+
+    const onMouseUp = (ev) => {
+      eventsResizing.current = false;
+      const raw = Math.max(EVENTS_COLLAPSED_HEIGHT, Math.min(500, startH + (ev.clientY - startY)));
+      const snapped = raw <= EVENTS_COLLAPSE_THRESHOLD ? EVENTS_COLLAPSED_HEIGHT : raw;
+      setEventsHeight(snapped);
+      saveEventsHeight(snapped);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
   const handleRefresh = () => {
     refreshSession(session.id);
-    showToast('Refreshing session\u2026', 'info');
+    showToast('Refreshing session…', 'info');
   };
 
   const handleStop = () => {
     stopSession(session.id);
-    showToast('Stopping session\u2026', 'info');
+    showToast('Stopping session…', 'info');
   };
 
   const handleClose = () => detachSession();
 
-  // Display name: prefer session.name, then projectName, then id prefix
   const displayName = session.name || session.projectName || session.id.slice(0, 8);
 
-  // Status dot color
   const statusColor = {
     running: 'var(--accent)',
     starting: 'var(--warning)',
@@ -105,6 +146,7 @@ export function SessionOverlay() {
           title="Drag to resize"
         ></div>
       ` : null}
+
       <!-- Header -->
       <header
         class="overlay-header"
@@ -119,59 +161,34 @@ export function SessionOverlay() {
           flex-shrink: 0;
         "
       >
-        <!-- Status dot -->
         <span style="
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: ${statusColor};
-          flex-shrink: 0;
+          width: 7px; height: 7px; border-radius: 50%;
+          background: ${statusColor}; flex-shrink: 0;
         "></span>
 
-        <!-- Session name -->
         <span
           id="overlay-title"
           style="
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-bright);
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            font-size: 13px; font-weight: 600; color: var(--text-bright);
+            flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
           "
         >${displayName}</span>
 
         ${session.claudeSessionId ? html`
           <span
             title=${'Claude session: ' + session.claudeSessionId}
-            style="
-              font-size: 11px;
-              color: var(--text-muted);
-              font-family: var(--font-mono);
-              cursor: default;
-              flex-shrink: 0;
-            "
+            style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); cursor: default; flex-shrink: 0;"
           >${session.claudeSessionId.slice(0, 8)}</span>
         ` : null}
 
-        <!-- Actions -->
         <div class="overlay-actions" style="display: flex; gap: 4px; flex-shrink: 0;">
           <button
             onClick=${toggleSplit}
             style=${btnStyle()}
             title=${isSplit ? 'Expand to full screen' : 'Switch to split view'}
-          >
-            ${isSplit ? 'Full' : 'Split'}
-          </button>
+          >${isSplit ? 'Full' : 'Split'}</button>
 
-          <button
-            onClick=${handleRefresh}
-            style=${btnStyle()}
-            title="Refresh session"
-          >
-            Refresh
-          </button>
+          <button onClick=${handleRefresh} style=${btnStyle()} title="Refresh session">Refresh</button>
 
           ${isActive ? html`
             <button
@@ -179,9 +196,7 @@ export function SessionOverlay() {
               onClick=${handleStop}
               style=${btnStyle('var(--danger-bg)', 'var(--danger)')}
               title="Stop session"
-            >
-              Stop
-            </button>
+            >Stop</button>
           ` : null}
 
           <button
@@ -189,11 +204,41 @@ export function SessionOverlay() {
             onClick=${handleClose}
             style=${btnStyle()}
             title="Close terminal overlay"
-          >
-            \u2715
-          </button>
+          >✕</button>
         </div>
       </header>
+
+      <!-- Events strip (top, resizable) -->
+      <div
+        style="
+          height: ${eventsHeight}px;
+          min-height: ${EVENTS_COLLAPSED_HEIGHT}px;
+          flex-shrink: 0;
+          overflow: hidden;
+          border-bottom: 1px solid var(--border);
+        "
+      >
+        <${SessionLogPane} sessionId=${session.id} collapsed=${isCollapsed} />
+      </div>
+
+      <!-- Vertical drag handle for events strip -->
+      <div
+        onMouseDown=${handleEventsResizeMouseDown}
+        title="Drag to resize events panel"
+        style="
+          height: 6px;
+          flex-shrink: 0;
+          background: var(--bg-surface);
+          border-bottom: 1px solid var(--border);
+          cursor: row-resize;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          user-select: none;
+        "
+      >
+        <div style="width: 32px; height: 2px; border-radius: 2px; background: var(--border);"></div>
+      </div>
 
       <!-- Terminal body -->
       <div style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
@@ -205,48 +250,11 @@ export function SessionOverlay() {
         </div>
 
         <${CommandBuffer} targetId=${session.id} inputType="session" />
-
-        <!-- Bottom tab bar (always visible) -->
-        <div style="
-          display: flex;
-          align-items: center;
-          height: 28px;
-          background: var(--bg-surface);
-          border-top: 1px solid var(--border);
-          flex-shrink: 0;
-          gap: 0;
-        ">
-          <button
-            onClick=${toggleLog}
-            style="
-              height: 100%;
-              padding: 0 14px;
-              background: ${showLog ? 'var(--bg-base)' : 'transparent'};
-              color: ${showLog ? 'var(--accent)' : 'var(--text-muted)'};
-              border: none;
-              border-right: 1px solid var(--border);
-              border-top: ${showLog ? '2px solid var(--accent)' : '2px solid transparent'};
-              font-size: 11px;
-              font-family: var(--font-sans);
-              cursor: pointer;
-              white-space: nowrap;
-            "
-            title=${showLog ? 'Hide session events' : 'Show session events'}
-          >Events</button>
-        </div>
-
-        <!-- Events panel (below terminal, fixed height) -->
-        ${showLog ? html`
-          <div style="height: 260px; min-height: 0; flex-shrink: 0; overflow: hidden;">
-            <${SessionLogPane} sessionId=${session.id} />
-          </div>
-        ` : null}
       </div>
     </div>
   `;
 }
 
-/** Returns an inline style string for overlay action buttons. */
 function btnStyle(bg = 'var(--bg-raised)', color = 'var(--text-secondary)') {
   return `
     padding: 3px 10px;

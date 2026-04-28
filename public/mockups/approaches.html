@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Proposed Approaches — All 3 Changes</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  padding: 28px;
+  min-height: 100vh;
+}
+h1 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.subtitle { color: #666; font-size: 12px; margin-bottom: 36px; }
+
+.section { margin-bottom: 44px; }
+.section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; color: #4f8ef7; margin-bottom: 16px;
+  padding-bottom: 8px; border-bottom: 1px solid #1e3a5f;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-num {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #1e3a5f; color: #4f8ef7;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+
+.approaches { display: grid; gap: 12px; }
+.approach {
+  border: 1px solid #2a2a2a; border-radius: 8px;
+  padding: 14px 16px; background: #161616;
+  display: grid; grid-template-columns: 80px 1fr; gap: 12px;
+  align-items: start;
+}
+.approach.recommended {
+  border-color: #1e4a2a; background: #0a1f12;
+}
+.approach-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: #555; padding-top: 2px;
+}
+.approach.recommended .approach-label { color: #3fb950; }
+.rec-badge {
+  display: inline-block; background: #0f2a1a; border: 1px solid #1e4a2a;
+  color: #3fb950; border-radius: 4px; font-size: 9px; font-weight: 700;
+  padding: 1px 6px; margin-left: 6px; text-transform: uppercase; letter-spacing: .5px;
+}
+.approach-title { font-size: 13px; font-weight: 600; color: #e0e0e0; margin-bottom: 4px; }
+.approach-body { font-size: 12px; color: #888; line-height: 1.6; }
+.approach-body strong { color: #bbb; font-weight: 600; }
+.tradeoff { margin-top: 6px; font-size: 11px; color: #555; }
+.tradeoff .pro { color: #3fb950; }
+.tradeoff .con { color: #f85149; }
+
+/* mini wireframe for events-at-top */
+.frame-row { display: flex; gap: 16px; margin-top: 12px; }
+.frame {
+  flex: 1; border: 1px solid #333; border-radius: 6px;
+  overflow: hidden; background: #0d0d0d;
+  font-size: 9px; font-family: monospace;
+}
+.frame-label { font-size: 10px; font-weight: 600; color: #555; margin-bottom: 6px; font-family: sans-serif; }
+.f-hdr { height: 24px; background: #1a1a1a; border-bottom: 1px solid #2a2a2a; display: flex; align-items: center; padding: 0 8px; color: #555; gap: 4px; flex-shrink: 0; }
+.f-dot { width: 5px; height: 5px; border-radius: 50%; background: #3fb950; }
+.f-events { background: #0a1628; border-bottom: 1px solid #1e3a5f; padding: 5px 8px; font-size: 9px; color: #4a7fd4; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+.f-events.fixed { height: 56px; }
+.f-events.small { height: 24px; justify-content: center; flex-direction: row; align-items: center; gap: 8px; overflow: hidden; }
+.f-terminal { flex: 1; padding: 6px 8px; color: #555; min-height: 80px; }
+.f-cmd { height: 22px; background: #1a1a1a; border-top: 1px solid #2a2a2a; display: flex; align-items: center; padding: 0 6px; gap: 4px; }
+.f-cmd-input { flex: 1; color: #444; }
+.f-cmd-btn { background: #1e3a5f; color: #4f8ef7; border-radius: 2px; padding: 1px 5px; }
+
+/* snapshot animation preview */
+@keyframes slide-in { from { opacity:0; transform: translateY(5px); } to { opacity:1; transform: translateY(0); } }
+.snap-demo { margin-top: 12px; background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 6px; overflow: hidden; }
+.snap-header { height: 24px; background: #1a1a1a; border-bottom: 1px solid #2a2a2a; display: flex; align-items: center; padding: 0 10px; gap: 6px; font-size: 9px; color: #555; }
+.snap-dot { width: 5px; height: 5px; border-radius: 50%; background: #3fb950; }
+.snap-lines { padding: 8px 10px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 3px; }
+.snap-line { display: flex; gap: 8px; }
+.snap-time { color: #444; flex-shrink: 0; width: 48px; }
+.snap-text { color: #888; }
+.snap-text.bright { color: #aaa; }
+.snap-text.event { color: #4a7fd4; }
+.snap-text.ok { color: #3fb950; }
+.snap-text.warn { color: #f0a500; }
+.snap-new { animation: slide-in .35s ease forwards; }
+.snap-new-2 { animation: slide-in .35s .1s ease both; opacity: 0; }
+.snap-new-3 { animation: slide-in .35s .2s ease both; opacity: 0; }
+.snap-divider { border: none; border-top: 1px dashed #222; margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<h1>Proposed Approaches</h1>
+<p class="subtitle">Three changes · two or three options each · recommended option highlighted green</p>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CHANGE 1: Events at top                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    <span class="section-num">1</span>
+    Events panel — move to top of terminal overlay
+  </div>
+
+  <div class="approaches">
+
+    <div class="approach">
+      <div>
+        <div class="approach-label">Option 1A</div>
+      </div>
+      <div>
+        <div class="approach-title">Fixed-height strip above terminal</div>
+        <div class="approach-body">
+          Move <code>SessionLogPane</code> from below the terminal to above it. Fixed 120px height, always visible when overlay is open — no toggle button needed. Remove the bottom tab bar entirely.
+        </div>
+        <div class="tradeoff"><span class="pro">+ Simplest change (move one component)</span> · <span class="con">− Fixed height takes terminal space even when events are sparse</span></div>
+        <div class="frame-row">
+          <div>
+            <div class="frame-label">Before (current)</div>
+            <div class="frame">
+              <div class="f-hdr"><div class="f-dot"></div><span>my-session</span><span style="flex:1"></span><span>Split · ✕</span></div>
+              <div class="f-terminal">$ claude ...<br>● Running...</div>
+              <div style="height:20px; background:#1a1a1a; border-top:1px solid #2a2a2a; display:flex; align-items:center; padding:0 8px; font-size:9px; color:#4f8ef7;">Events ▲</div>
+              <div class="f-events fixed"><div>14:02 ▶ Task started</div><div>14:03 ✦ Read file</div></div>
+              <div class="f-cmd"><span class="f-cmd-input">Type…</span><span class="f-cmd-btn">Send</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="frame-label">After (1A)</div>
+            <div class="frame">
+              <div class="f-hdr"><div class="f-dot"></div><span>my-session</span><span style="flex:1"></span><span>Split · ✕</span></div>
+              <div class="f-events fixed"><div>14:02 ▶ Task started</div><div>14:03 ✦ Read file</div><div>14:04 ● Reconnected</div></div>
+              <div class="f-terminal" style="min-height:60px">$ claude ...<br>● Running...</div>
+              <div class="f-cmd"><span class="f-cmd-input">Type…</span><span class="f-cmd-btn">Send</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="approach recommended">
+      <div>
+        <div class="approach-label">Option 1B <span class="rec-badge">★ Recommended</span></div>
+      </div>
+      <div>
+        <div class="approach-title">Resizable strip with drag handle</div>
+        <div class="approach-body">
+          Same as 1A but with a drag handle between the events strip and terminal. Default height 100px. User can drag to resize (saved to localStorage). Collapsed = 28px summary bar showing only the latest event.
+          <br><br>
+          <strong>Why this over 1A:</strong> The events feed varies — sometimes you want to see 10 lines, sometimes none. A fixed height means either too much wasted space or not enough visibility. The drag handle costs ~30 lines of code.
+        </div>
+        <div class="tradeoff"><span class="pro">+ Adapts to content + user preference</span> · <span class="con">− Slightly more code than 1A</span></div>
+        <div class="frame-row">
+          <div>
+            <div class="frame-label">Default (100px events)</div>
+            <div class="frame">
+              <div class="f-hdr"><div class="f-dot"></div><span>my-session</span><span style="flex:1"></span><span>Split · ✕</span></div>
+              <div class="f-events" style="height:52px; padding:5px 8px;"><div>14:02 ▶ Task started</div><div>14:03 ✦ Read file</div><div>14:04 ● Reconnected</div></div>
+              <div style="height:6px; background:#222; cursor:row-resize; border-top:1px solid #333; border-bottom:1px solid #333;"></div>
+              <div class="f-terminal" style="min-height:60px">$ claude ...<br>● Running...</div>
+              <div class="f-cmd"><span class="f-cmd-input">Type…</span><span class="f-cmd-btn">Send</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="frame-label">Collapsed (28px bar)</div>
+            <div class="frame">
+              <div class="f-hdr"><div class="f-dot"></div><span>my-session</span><span style="flex:1"></span><span>Split · ✕</span></div>
+              <div class="f-events small"><span style="color:#3fb950">●</span><span>14:04 Reconnected</span><span style="color:#444; margin-left:auto">▼ expand</span></div>
+              <div class="f-terminal" style="min-height:90px">$ claude ...<br>● Running...<br><span style="color:#3fb950">✓ Done</span></div>
+              <div class="f-cmd"><span class="f-cmd-input">Type…</span><span class="f-cmd-btn">Send</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CHANGE 2: Snapshot-based cards                                -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    <span class="section-num">2</span>
+    Snapshot-based session cards — clean output + system events, animated
+  </div>
+
+  <div class="approaches">
+
+    <div class="approach">
+      <div>
+        <div class="approach-label">Option 2A</div>
+      </div>
+      <div>
+        <div class="approach-title">Enhanced log file + polling</div>
+        <div class="approach-body">
+          Keep the existing <code>SessionLogManager</code> approach but improve it. Server writes clean lines + system event markers (reconnects, start, stop, time gaps) to the log file. Client polls every 2s instead of 3s, diffs the result against the previous snapshot, and animates new lines in with staggered CSS transitions.
+        </div>
+        <div class="tradeoff"><span class="pro">+ Minimal architecture change — improve existing code</span> · <span class="con">− 2s polling delay before events appear · extra HTTP requests</span></div>
+      </div>
+    </div>
+
+    <div class="approach recommended">
+      <div>
+        <div class="approach-label">Option 2B <span class="rec-badge">★ Recommended</span></div>
+      </div>
+      <div>
+        <div class="approach-title">WebSocket-pushed snapshot per session</div>
+        <div class="approach-body">
+          Server computes a <strong>snapshot object</strong> per session whenever meaningful output changes: <code>{ lines: [...], events: [...], version: N }</code>. <code>lines</code> = last 30 clean terminal lines (ANSI stripped, spinners removed). <code>events</code> = ordered list of system events (session start, reconnect, stop, time gaps &gt;30s). Snapshot is pushed over the existing WebSocket <code>sessions:list</code> broadcast — no new endpoints.
+          <br><br>
+          Client stores last <code>version</code>. When a new snapshot arrives with a higher version, it computes the diff (new lines/events since last snapshot) and reveals them with staggered animation. Session card and events panel both read from the same snapshot.
+          <br><br>
+          <strong>Stream illusion:</strong> Each snapshot diff is revealed line-by-line, 60ms stagger per line, slide-in from bottom. Feels live even though it's periodic.
+        </div>
+        <div class="tradeoff"><span class="pro">+ Instant push (no poll lag) · single source of truth · reuses existing WS · events panel and card are consistent</span> · <span class="con">− Slightly more server-side work to maintain snapshot state</span></div>
+
+        <!-- Animation demo -->
+        <div class="snap-demo">
+          <div class="snap-header"><div class="snap-dot"></div><span>api-work</span><span style="flex:1"></span><span style="color:#3fb950; font-size:9px">running</span></div>
+          <div class="snap-lines">
+            <div class="snap-line"><span class="snap-time">14:01:00</span><span class="snap-text event">● Session started</span></div>
+            <div class="snap-line"><span class="snap-time">14:01:04</span><span class="snap-text">Reading src/api/routes.js…</span></div>
+            <div class="snap-line"><span class="snap-time">14:01:08</span><span class="snap-text">Found 3 endpoints</span></div>
+            <hr class="snap-divider">
+            <div class="snap-line"><span class="snap-time">14:03:15</span><span class="snap-text event warn">↻ Reconnected after 2m07s gap</span></div>
+            <div class="snap-line snap-new"><span class="snap-time">14:03:17</span><span class="snap-text bright">Editing handlers/auth.js…</span></div>
+            <div class="snap-line snap-new-2"><span class="snap-time">14:03:20</span><span class="snap-text ok">✓ Edit applied (line 42)</span></div>
+            <div class="snap-line snap-new-3"><span class="snap-time">14:03:22</span><span class="snap-text bright">Running tests…</span></div>
+          </div>
+        </div>
+        <div style="font-size:10px; color:#444; margin-top:6px; font-style:italic">↑ New lines (blue border on arrival) slide in staggered — snapshot diff revealed as stream</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CHANGE 3: Command send fix                                     -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    <span class="section-num">3</span>
+    Command send — fix bracket-paste so pressing Send actually executes
+  </div>
+
+  <div class="approaches">
+
+    <div class="approach recommended">
+      <div>
+        <div class="approach-label">Option 3A <span class="rec-badge">★ Recommended</span></div>
+      </div>
+      <div>
+        <div class="approach-title">Remove bracket-paste, send content + carriage return</div>
+        <div class="approach-body">
+          One-line fix in <code>CommandBuffer.js:31</code>. Replace:<br>
+          <code style="color:#f85149">'\x1b[200~' + content + '\x1b[201~'</code><br>
+          with:<br>
+          <code style="color:#3fb950">content + '\r'</code><br><br>
+          <code>\r</code> (carriage return) is what terminals use to execute a command. The block is sent whole (user chose Option A for multi-line), so a for-loop arrives intact and <code>\r</code> at the end executes it. Same fix in the queue drain path (line 68).
+        </div>
+        <div class="tradeoff"><span class="pro">+ 2-line change · correct behaviour for all input types · no edge cases</span> · <span class="con">− Removes paste protection (acceptable: CommandBuffer is explicitly a command input, not a paste target)</span></div>
+      </div>
+    </div>
+
+    <div class="approach">
+      <div>
+        <div class="approach-label">Option 3B</div>
+      </div>
+      <div>
+        <div class="approach-title">Smart mode: bracket-paste for clipboard, plain for CommandBuffer</div>
+        <div class="approach-body">
+          Keep bracket-paste when the xterm terminal itself receives a clipboard paste (Ctrl+V in the terminal window), remove it only in <code>CommandBuffer.handleSend()</code>. More surgical — preserves the protection for raw terminal pastes while fixing the Send button.
+        </div>
+        <div class="tradeoff"><span class="pro">+ Preserves bracket-paste in the terminal for clipboard safety</span> · <span class="con">− More code · the terminal already handles its own paste via xterm; CommandBuffer doesn't need it</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="text-align:center; padding: 16px; color: #555; font-size: 12px; border-top: 1px solid #1e1e1e; margin-top: 8px;">
+  Recommended: <strong style="color:#3fb950">1B · 2B · 3A</strong> — do you agree, or want to change any?
+</div>
+
+</body>
+</html>

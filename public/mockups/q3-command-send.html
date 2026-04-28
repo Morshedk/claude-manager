@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Q3 — Command Send Behaviour</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  padding: 24px;
+  min-height: 100vh;
+}
+h1 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.subtitle { color: #888; font-size: 13px; margin-bottom: 28px; line-height: 1.5; max-width: 640px; }
+
+.options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 32px; max-width: 860px; }
+.option {
+  border: 2px solid #2a2a2a; border-radius: 10px; padding: 16px;
+  cursor: pointer; transition: border-color .15s, background .15s; background: #161616;
+}
+.option:hover { border-color: #555; }
+.option.selected { border-color: #4f8ef7; background: #0e1a2e; }
+.option-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 8px; }
+.option.selected .option-label { color: #4f8ef7; }
+.option h3 { font-size: 14px; font-weight: 600; color: #e0e0e0; margin-bottom: 6px; }
+.option p { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 14px; }
+.note { font-size: 11px; color: #555; margin-top: 10px; border-top: 1px solid #222; padding-top: 8px; line-height: 1.5; }
+
+/* flow diagram */
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+}
+.flow-step.highlight { background: #0f2a1a; border-color: #1e4a2a; color: #3fb950; }
+.flow-step.bad { background: #2a1010; border-color: #4a2020; color: #f85149; }
+.flow-step.warn { background: #2a1f0a; border-color: #4a3a1a; color: #f0a500; }
+.flow-arrow { color: #444; margin-left: 20px; font-size: 9px; }
+.flow-label { color: #555; font-size: 9px; margin-left: auto; }
+
+.kbd {
+  display: inline-block;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-family: monospace;
+  color: #bbb;
+}
+
+.selection-bar { text-align: center; font-size: 12px; color: #888; padding: 8px; max-width: 860px; }
+.selection-bar span { color: #4f8ef7; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>How should multi-line input behave when you press Send?</h1>
+<p class="subtitle">
+  The current bug: bracket-paste wrapping tells the shell "this is a paste, don't execute."
+  The fix removes it — but we need to decide what happens when you send multiple lines at once.
+</p>
+
+<div class="options">
+
+  <!-- Option A: Execute whole block at once -->
+  <div class="option" id="opt-a" onclick="select('a')">
+    <div class="option-label">Option A</div>
+    <h3>Send all lines, execute as a block</h3>
+    <p>The entire textarea content is sent to the terminal as-is with a final Enter. Multi-line scripts (heredocs, for-loops) arrive intact and execute together.</p>
+    <div class="flow">
+      <div class="flow-step">User types: <code style="color:#aaa; margin-left:4px">for i in 1 2 3\ndo echo $i\ndone</code></div>
+      <div class="flow-arrow">↓ press Send</div>
+      <div class="flow-step highlight">Terminal receives full block + ↵ → executes</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="color:#3fb950">1<br>2<br>3</div>
+    </div>
+    <p class="note">Best for scripting. Multiline bash constructs work. Single commands also work fine.</p>
+  </div>
+
+  <!-- Option B: Execute line by line -->
+  <div class="option" id="opt-b" onclick="select('b')">
+    <div class="option-label">Option B</div>
+    <h3>Send each line separately</h3>
+    <p>Each newline in the textarea becomes a separate command execution. Paste a list of commands — each runs in order. Simpler mental model for command queues.</p>
+    <div class="flow">
+      <div class="flow-step">User types: <code style="color:#aaa; margin-left:4px">cd /tmp\nls\npwd</code></div>
+      <div class="flow-arrow">↓ press Send</div>
+      <div class="flow-step highlight">Line 1: cd /tmp ↵ → executes</div>
+      <div class="flow-arrow">↓ 200ms delay</div>
+      <div class="flow-step highlight">Line 2: ls ↵ → executes</div>
+      <div class="flow-arrow">↓ 200ms delay</div>
+      <div class="flow-step highlight">Line 3: pwd ↵ → executes</div>
+    </div>
+    <p class="note">Intuitive for command lists. Breaks multiline bash constructs (for-loops, heredocs).</p>
+  </div>
+
+</div>
+
+<div class="selection-bar" id="selection-bar" style="max-width:860px">
+  Pick one — or tell me in the terminal. (For single-line commands, both options behave identically.)
+</div>
+
+<script>
+let selected = null;
+function select(choice) {
+  document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+  if (selected === choice) {
+    selected = null;
+    document.getElementById('selection-bar').innerHTML = 'Pick one — or tell me in the terminal.';
+    return;
+  }
+  document.getElementById('opt-' + choice).classList.add('selected');
+  selected = choice;
+  const labels = {
+    a: 'Option A — Send whole block (best for scripts and heredocs)',
+    b: 'Option B — Execute line by line (best for command queues)',
+  };
+  document.getElementById('selection-bar').innerHTML = '✓ Selected: <span>' + labels[choice] + '</span>';
+}
+</script>
+</body>
+</html>

@@ -1,71 +1,153 @@
 # Stage 3 — Fix Confirmed
 
+## Bug
+ws-reconnect-visibility — WebSocket reconnect state is boolean-only (no "Reconnecting" UI state),
+sent messages are dropped while disconnected, background tabs get 17-minute reconnect gaps,
+and server crashes go unlogged.
+
 ## Root Cause
 
-`public/js/components/TerminalPane.js` and `public/js/components/ProjectTerminalPane.js` — `attachCustomKeyEventHandler` (lines 96–115 / 85–103 respectively). The handler only intercepted Ctrl+C/Cmd+C/Ctrl+Shift+C. Ctrl+V was left unhandled, so xterm.js consumed it internally via `navigator.clipboard.readText()` (text-only). The DOM `paste` event listener (`handlePaste`) was therefore unreachable for keyboard-triggered paste, meaning images in the clipboard were silently ignored.
+| # | File:Line | Bug |
+|---|-----------|-----|
+| 1 | `public/js/state/store.js:5` | `connected = signal(false)` — boolean only, no "Reconnecting" intermediate state |
+| 2 | `public/js/ws/connection.js:110-113` | `send()` returns immediately when socket not OPEN — no queue, messages silently dropped |
+| 3 | `public/js/ws/connection.js:8,96` | `RECONNECT_DELAY = 3000` flat delay, `setTimeout(connect, 3000)` — no exponential backoff, no `visibilitychange` listener; Chrome throttles backgrounded tabs to ~1/minute |
+| 4 | `server.js:183-186` | `uncaughtException` handler calls async `log.error()` before `process.exit(1)` — if logger re-entrancy guard fires, crash log entry is lost |
 
 ## Fix
 
-Added Ctrl+V / Cmd+V interception inside `attachCustomKeyEventHandler` in both components:
-- When Ctrl+V is pressed, calls `navigator.clipboard.read()` to check for image types
-- If an image is found, posts the blob to `/api/paste-image`, then calls `xterm.paste(path)` and `showToast('Image saved — path pasted', 'success')`
-- Falls back to `navigator.clipboard.readText()` + `xterm.paste(text)` when no image is present
-- Falls back to text paste if `clipboard.read()` is not permitted
-- Returns `false` to block xterm's own Ctrl+V handling in all cases
+### `public/js/state/store.js`
+- Added `export const connectionStatus = signal('connected')` — 3-state signal: `'connected' | 'reconnecting' | 'disconnected'`
+- Kept `connected` boolean signal for backward compat
 
-Also removed the now-dead DOM `paste` event listener (`handlePaste` function definition, `container.addEventListener('paste', handlePaste)`, and `container.removeEventListener('paste', handlePaste)`) from both components.
+### `public/js/ws/connection.js`
+- Replaced `RECONNECT_DELAY = 3000` with `BASE_DELAY = 1000`, `MAX_DELAY = 30000`, `MAX_ATTEMPTS = 10`
+- Added `_consecutiveFailures`, `_backoffDelay` tracking; `_sendQueue = []` for buffering messages
+- `open` handler: resets failure counters, sets `connectionStatus.value = 'connected'`, flushes `_sendQueue` before dispatching `connection:open`
+- `close` handler: if ≥ `MAX_ATTEMPTS` → sets `'disconnected'` and stops retrying; otherwise applies ±20% jitter, doubles `_backoffDelay`, sets `'reconnecting'`
+- `send()`: socket OPEN → send; `connectionStatus === 'reconnecting'` → push to `_sendQueue`; otherwise drop with warn log
+- Added `document.addEventListener('visibilitychange', ...)` at module init — triggers `reconnectNow()` when tab foregrounded while reconnecting
+- `reconnectNow()`: resets failure counter/backoff if status was `'disconnected'`
+
+### `public/js/state/sessionState.js`
+- Imported `connectionStatus` from store
+- `SERVER.INIT` handler: sets `connectionStatus.value = 'connected'` alongside `connected.value = true`
+- `connection:open` / `connection:close` handlers: converted to no-ops (signal updates owned by `connection.js`)
+
+### `public/js/components/TopBar.js`
+- Imported `connectionStatus` from store
+- Replaced boolean branch with 3-state switch:
+  - `'connected'` → green dot + "Connected"
+  - `'reconnecting'` → amber pulsing dot + "Reconnecting..." (clickable, triggers manualReconnect)
+  - `'disconnected'` → red dot + "Disconnected" (clickable)
+
+### `public/css/styles.css`
+- Added `.status-dot.reconnecting` with `@keyframes status-dot-pulse` (amber glow pulse, 1.2s)
+
+### `server.js`
+- In `uncaughtException` handler: added `fs.appendFileSync(join(DATA_DIR, 'crash.log'), ...)` sync write **before** `log.error()` — crash always recorded even if async logger is re-entrant
+
+---
 
 ## Evidence
 
+All tests run against http://127.0.0.1:3002 (claude-v2-beta) with fixed code after merge to main.
+
+### ASSERTION 1 — Reconnecting state visible after server stop
+
+**bash: `pm2 stop claude-v2-beta`** → confirmed stopped
+
+**`browser_wait_for(time: 2)`** then:
+
+**`browser_evaluate`:**
 ```
-Running 1 test using 1 worker
-
-  [T1] tmpDir: /tmp/qa-imgpaste-2WxuxI
-
-  [srv] [server] claude-web-app-v2 listening on http://127.0.0.1:3099
-
-  [T1] Server ready on port 3099
-
-  [srv] [ws] client connected: 061a06f0-1d3e-4d33-a622-f22936596be2
-
-  [T1] bash session created: 26ecf7a2-ad80-473d-93c3-848b58f9aa0b
-
-  [T1] Session running
-
-  [T1] Navigating to app
-
-  [T1] Selecting project in sidebar
-
-  [T1] Opening bash session card
-
-  [T1] Session overlay visible
-
-  [T1] Writing PNG image to clipboard via navigator.clipboard.write()
-
-  [T1] Clipboard write result: {"ok":false,"error":"Failed to execute 'write' on 'Clipboard': Failed to read or decode ClipboardItemData for type image/png."}
-
-  [T1] Clipboard API not available in headless — using synthetic ClipboardEvent fallback
-
-  [T1] Synthetic event dispatch: {"ok":false,"error":"DataTransfer.items.add failed: Failed to execute 'add' on 'DataTransferItemList': parameter 1 is not of type 'File'."}
-
-  [T1] Injecting navigator.clipboard.read() mock so Ctrl+V path can exercise image branch
-
-  [T1] Clicking xterm screen to focus
-
-  [T1] Pressing Ctrl+V
-
-  [T1] /api/paste-image intercepted (call #1)
-
-  [T1] Toast "Image saved — path pasted" confirmed
-
-  [T1] /api/paste-image calls intercepted: 1
-
-  [T1] PASS — toast visible, fetch confirmed
-
-  1 passed (9.4s)
+() => document.querySelector('.status-text')?.textContent?.trim()
+→ "Reconnecting..."
 ```
+
+**`browser_snapshot` confirmation:**
+```yaml
+- button "Reconnecting..." [ref=e997] [cursor=pointer]:
+  - generic [ref=e999]: Reconnecting...
+```
+
+PASS condition met: status-text reads "Reconnecting..."
+
+---
+
+### ASSERTION 2 — Terminal input accessible while reconnecting
+
+**`browser_evaluate`:**
+```
+() => { const el = document.querySelector('.xterm-helper-textarea'); return el ? (el.disabled ? 'disabled' : 'enabled') : 'missing'; }
+→ "enabled"
+```
+
+PASS condition met: input enabled during reconnect.
+
+---
+
+### ASSERTION 3b — Queued message delivered after reconnect
+
+Message `echo QUEUED_MESSAGE` typed and Enter pressed while server was stopped. Then `pm2 start claude-v2-beta`.
+
+**`browser_evaluate` (13s after restart):**
+```js
+() => {
+  const content = document.querySelector('.xterm-rows')?.textContent ?? '';
+  return { containsQueuedMsg: content.includes('QUEUED_MESSAGE'), contentLength: content.length };
+}
+→ { containsQueuedMsg: true, contentLength: 1569 }
+```
+
+**Context extract:**
+```
+"N:STOP for   every session on server exit).❯ echo QUEUED_MESSAGE                                              "
+```
+
+PASS condition met: terminal contains "QUEUED_MESSAGE" — message queued during disconnect, flushed on reconnect.
+
+---
+
+### ASSERTION 3a — Status returns to Connected after reconnect
+
+**`browser_evaluate` (13s after `pm2 start claude-v2-beta`):**
+```
+() => document.querySelector('.status-text')?.textContent?.trim()
+→ "Connected"
+```
+
+PASS condition met: status-text reads "Connected" after reconnect.
+
+---
+
+### ASSERTION 4 — Final Disconnected state after retries exhausted
+
+Server stopped again. Waited ~150s for 10 consecutive backoff attempts (1s→2s→4s→8s→16s→30s×5) to exhaust.
+
+**`browser_evaluate`:**
+```
+() => document.querySelector('.status-text')?.textContent?.trim()
+→ "Disconnected"
+```
+
+**`browser_snapshot` confirmation:**
+```yaml
+- button "Disconnected" [ref=e1245] [cursor=pointer]:
+  - generic [ref=e1180]: Disconnected
+- generic [ref=e1243]: Disconnected — messages will queue
+```
+
+PASS condition met: status-text reads "Disconnected" after all 10 attempts exhausted.
+
+---
 
 ## Causal Audit
 
-Does the fix touch the code paths identified in spec.md's Preliminary Investigation?
-Yes: The fix adds Ctrl+V interception to `attachCustomKeyEventHandler` in both `TerminalPane.js` and `ProjectTerminalPane.js` — exactly the function identified as failing to intercept Ctrl+V. The fix calls `navigator.clipboard.read()` (not `readText()`) so that image types are visible, matching the identified root cause.
+Fix touches: `connection.js`, `store.js`, `TopBar.js`, `sessionState.js`, `styles.css`, `server.js`
+Spec suspected: `connection.js`, `store.js`, `TopBar.js`, `sessionState.js`, `server.js`
+Match: YES
+
+## Cleanup
+
+Beta server restored: `pm2 start claude-v2-beta` — status online, confirmed.

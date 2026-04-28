@@ -181,6 +181,12 @@ watchdog.start();
 
 // ── Global error handlers ────────────────────────────────────────────────────
 process.on('uncaughtException', (err) => {
+  try {
+    fs.appendFileSync(
+      join(DATA_DIR, 'crash.log'),
+      JSON.stringify({ ts: new Date().toISOString(), error: err.message, stack: err.stack }) + '\n'
+    );
+  } catch {} // non-fatal
   log.error('process', 'uncaught exception', { error: err.message, stack: err.stack });
   process.exit(1);
 });
