@@ -276,6 +276,41 @@ describe('buildWatchdogCommand()', () => {
   });
 });
 
+// ─── auditor & pm defaults ────────────────────────────────────────────────
+
+describe('auditor and pm defaults', () => {
+  test('auditor defaults exist with correct shape', async () => {
+    const settings = new SettingsStore({ filePath: join(tmpDir, 'settings.json') });
+    const auditor = await settings.get('auditor');
+    expect(auditor).toEqual({
+      enabled: true,
+      dailyHourUTC: 2,
+      weeklyDay: 'friday',
+      lookbackDays: 14,
+      projects: [],
+    });
+  });
+
+  test('pm defaults exist with correct shape', async () => {
+    const settings = new SettingsStore({ filePath: join(tmpDir, 'settings.json') });
+    const pm = await settings.get('pm');
+    expect(pm).toEqual({
+      enabled: true,
+      dailyHourUTC: 4,
+      sprintSize: 5,
+      projects: [],
+    });
+  });
+
+  test('auditor settings can be updated via set()', async () => {
+    const settings = new SettingsStore({ filePath: join(tmpDir, 'settings.json') });
+    await settings.set({ auditor: { dailyHourUTC: 3 } });
+    const auditor = await settings.get('auditor');
+    expect(auditor.dailyHourUTC).toBe(3);
+    expect(auditor.enabled).toBe(true);
+  });
+});
+
 // ─── isFeatureEnabled() ────────────────────────────────────────────────────
 
 describe('isFeatureEnabled()', () => {
