@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { connected, serverVersion, serverEnv, healthState } from '../state/store.js';
+import { connected, connectionStatus, serverVersion, serverEnv, healthState } from '../state/store.js';
 import { openSettingsModal, manualReconnect } from '../state/actions.js';
 import { VitalsIndicator } from './VitalsIndicator.js';
 
@@ -38,6 +38,7 @@ function HealthDot({ subsystem, label }) {
  * Shows: brand name + version badge, connection status, settings button.
  */
 export function TopBar() {
+  const status = connectionStatus.value;
   const isConnected = connected.value;
   const ver = serverVersion.value;
   const env = serverEnv.value;
@@ -73,11 +74,21 @@ export function TopBar() {
       </div>
 
       <div class="topbar-right">
-        ${isConnected
+        ${status === 'connected'
           ? html`<div class="system-status" title="Already connected">
               <div class="status-dot connected"></div>
               <span class="status-text">Connected</span>
             </div>`
+          : status === 'reconnecting'
+          ? html`<button
+              type="button"
+              class="system-status system-status-clickable"
+              title="Reconnecting… click to retry now"
+              onClick=${manualReconnect}
+            >
+              <div class="status-dot reconnecting"></div>
+              <span class="status-text">Reconnecting...</span>
+            </button>`
           : html`<button
               type="button"
               class="system-status system-status-clickable"

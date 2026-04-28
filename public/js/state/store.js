@@ -4,6 +4,9 @@ import { signal, computed } from 'preact/signals';
 /** Whether the WebSocket is currently connected */
 export const connected = signal(false);
 
+/** 3-state connection status: 'connected' | 'reconnecting' | 'disconnected' */
+export const connectionStatus = signal('connected');
+
 /** The clientId assigned by the server on init */
 export const clientId = signal(null);
 

@@ -4,15 +4,31 @@
  */
 
 import { log } from '../logger/logger.js';
+import { connectionStatus, connected } from '../state/store.js';
 
-const RECONNECT_DELAY = 3000;
+const BASE_DELAY = 1000;
+const MAX_DELAY = 30000;
+const MAX_ATTEMPTS = 10;
 
 let _ws = null;
 let reconnectTimer = null;
 let _connectAttempt = 0;
+let _consecutiveFailures = 0;
+let _backoffDelay = BASE_DELAY;
 let _lastDisconnectTs = null;
 let _lastDisconnectCode = null;
 let _manualReconnect = false;
+
+// Send queue: messages buffered while reconnecting
+const _sendQueue = [];
+
+// Page Visibility: reconnect immediately when tab comes to foreground
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && connectionStatus.value === 'reconnecting') {
+    log.info('ws', 'visibilitychange: tab foregrounded, reconnecting now');
+    reconnectNow();
+  }
+});
 
 // Map of message type → Set<handler fn>
 const handlers = new Map();
@@ -50,6 +66,26 @@ export function connect() {
     const elapsed = _lastDisconnectTs ? Date.now() - _lastDisconnectTs : 0;
     log.info('ws', 'connected', { attempt, elapsedMs: elapsed });
     if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+
+    // Reset backoff state on successful connection
+    _consecutiveFailures = 0;
+    _backoffDelay = BASE_DELAY;
+
+    // Update connection status signals
+    connectionStatus.value = 'connected';
+    connected.value = true;
+
+    // Flush send queue before dispatching connection:open so handlers can send too
+    if (_sendQueue.length > 0) {
+      log.info('ws', 'flushing send queue', { count: _sendQueue.length });
+      while (_sendQueue.length > 0) {
+        const queued = _sendQueue.shift();
+        try { _ws.send(JSON.stringify(queued)); } catch (err) {
+          log.warn('ws', 'queue flush send failed', { error: err.message });
+        }
+      }
+    }
+
     dispatch({ type: 'connection:open' });
 
     // Flush client log buffer to server
@@ -90,10 +126,32 @@ export function connect() {
   _ws.addEventListener('close', (event) => {
     _lastDisconnectTs = Date.now();
     _lastDisconnectCode = event.code;
-    log.info('ws', 'disconnected', { code: event.code, reason: event.reason || 'none', reconnectInMs: RECONNECT_DELAY });
-    log.warn('ws', 'reconnect scheduled', { attempt: _connectAttempt + 1 });
+    _consecutiveFailures++;
+
+    if (_consecutiveFailures >= MAX_ATTEMPTS) {
+      // Retry budget exhausted — move to permanently disconnected state
+      log.warn('ws', 'max reconnect attempts reached, giving up', { attempts: _consecutiveFailures });
+      connectionStatus.value = 'disconnected';
+      connected.value = false;
+      dispatch({ type: 'connection:close' });
+      return;
+    }
+
+    // Apply jitter: ±20% of current delay
+    const jitter = _backoffDelay * 0.2 * (Math.random() * 2 - 1);
+    const delay = Math.round(Math.min(_backoffDelay + jitter, MAX_DELAY));
+    log.info('ws', 'disconnected', { code: event.code, reason: event.reason || 'none', reconnectInMs: delay, attempt: _consecutiveFailures });
+    log.warn('ws', 'reconnect scheduled', { attempt: _connectAttempt + 1, delayMs: delay });
+
+    // Escalate backoff for next failure
+    _backoffDelay = Math.min(_backoffDelay * 2, MAX_DELAY);
+
+    // Transition to reconnecting state
+    connectionStatus.value = 'reconnecting';
+    connected.value = false;
+
     dispatch({ type: 'connection:close' });
-    reconnectTimer = setTimeout(connect, RECONNECT_DELAY);
+    reconnectTimer = setTimeout(connect, delay);
   });
 
   _ws.addEventListener('error', (err) => {
@@ -104,14 +162,21 @@ export function connect() {
 
 /**
  * Send a message to the server.
+ * While reconnecting, messages are queued and flushed on reconnect.
+ * While permanently disconnected, messages are dropped.
  * @param {object} message
  */
 export function send(message) {
-  if (!_ws || _ws.readyState !== WebSocket.OPEN) {
-    log.warn('ws', 'send called but socket not open');
+  if (_ws && _ws.readyState === WebSocket.OPEN) {
+    _ws.send(JSON.stringify(message));
     return;
   }
-  _ws.send(JSON.stringify(message));
+  if (connectionStatus.value === 'reconnecting') {
+    log.info('ws', 'send queued (reconnecting)', { type: message.type });
+    _sendQueue.push(message);
+    return;
+  }
+  log.warn('ws', 'send called but socket not open and not reconnecting — dropped', { type: message.type });
 }
 
 /**
@@ -157,6 +222,13 @@ export function once(type, handler) {
 export function reconnectNow() {
   // Cancel any pending auto-reconnect so it cannot race this manual call.
   if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+
+  // If previously gave up (disconnected), reset counters so retry budget is restored
+  if (connectionStatus.value === 'disconnected') {
+    _consecutiveFailures = 0;
+    _backoffDelay = BASE_DELAY;
+    connectionStatus.value = 'reconnecting';
+  }
 
   _manualReconnect = true;
   const stateNames = { 0: 'CONNECTING', 1: 'OPEN', 2: 'CLOSING', 3: 'CLOSED' };

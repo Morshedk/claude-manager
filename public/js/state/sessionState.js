@@ -1,7 +1,7 @@
 import { on } from '../ws/connection.js';
 import { SERVER } from '../ws/protocol.js';
 import { log } from '../logger/logger.js';
-import { sessions, connected, clientId, attachedSessionId, serverVersion, serverEnv, vitals, logEntries } from './store.js';
+import { sessions, connected, connectionStatus, clientId, attachedSessionId, serverVersion, serverEnv, vitals, logEntries } from './store.js';
 import {
   loadProjects,
   loadSessions,
@@ -79,6 +79,7 @@ export function initMessageHandlers() {
   // On server init: mark connected, store clientId, load initial data + vitals
   on(SERVER.INIT, (msg) => {
     connected.value = true;
+    connectionStatus.value = 'connected';
     if (msg.clientId) clientId.value = msg.clientId;
     if (msg.serverVersion) serverVersion.value = msg.serverVersion;
     if (msg.serverEnv) serverEnv.value = msg.serverEnv;
@@ -96,9 +97,14 @@ export function initMessageHandlers() {
     }
   });
 
-  // Connection lifecycle
-  on('connection:open',  () => { connected.value = true; });
-  on('connection:close', () => { connected.value = false; });
+  // Connection lifecycle — connection.js already sets connectionStatus and connected
+  // These handlers are kept as no-ops for backward compat; signal updates happen in connection.js
+  on('connection:open',  () => {
+    // connectionStatus.value = 'connected' and connected.value = true already set by connection.js
+  });
+  on('connection:close', () => {
+    // connectionStatus and connected are managed by connection.js (reconnecting vs disconnected)
+  });
 
   // Session list refresh (bulk replace)
   on(SERVER.SESSIONS_LIST, handleSessionsList);
